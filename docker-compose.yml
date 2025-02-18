@@ -1,0 +1,10 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    environment:
+      AZURE_SUBSCRIPTION: ${AZURE_SUBSCRIPTION}
+      AZURE_ENDPOINT: ${AZURE_ENDPOINT}
