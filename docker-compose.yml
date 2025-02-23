@@ -1,5 +1,7 @@
 services:
   app:
+    image: tts-service
+    container_name: tts-service
     build:
       context: .
       dockerfile: Dockerfile
