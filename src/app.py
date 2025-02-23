@@ -52,6 +52,6 @@ async def chat_endpoint(request: LLMRequest = Body()):
             )
         except Exception as e:
             logging.error(f"Unexpected error: {e}")
-            yield f"Error: {str(e)}"
+            raise HTTPException(status_code=500, detail="An unexpected error occurred")
 
     return StreamingResponse(stream_response(), media_type="text/event-stream")
