@@ -1,5 +1,7 @@
 services:
   app:
+    image: llm-service
+    container_name: llm-service
     build:
       context: .
       dockerfile: Dockerfile
