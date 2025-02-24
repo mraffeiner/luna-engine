@@ -1,12 +1,9 @@
 services:
-  app:
+  tts-service:
     image: tts-service
     container_name: tts-service
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     ports:
       - "5002:5002"
-    environment:
-      AZURE_SUBSCRIPTION: ${AZURE_SUBSCRIPTION}
-      AZURE_ENDPOINT: ${AZURE_ENDPOINT}
+    env_file:
+      - .env
