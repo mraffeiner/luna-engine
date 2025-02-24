@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import Body, FastAPI, HTTPException, Response
 from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
@@ -77,6 +78,60 @@ async def stop_container(container_name: str):
         logging.error(f"Unexpected error stopping container '{container_name}': {e}")
         raise HTTPException(
             status_code=500, detail=f"Failed to stop container '{container_name}'"
+        )
+
+
+@app.get("/container_logs/{container_name}")
+async def get_container_logs(container_name: str):
+    try:
+        container = client.containers.get(container_name)
+
+        async def log_streamer():
+            loop = asyncio.get_running_loop()
+            logs_iterator = container.logs(stream=True, follow=True, tail="100")
+            try:
+                while True:
+                    log_line = await loop.run_in_executor(
+                        None, next, logs_iterator, None
+                    )
+                    if log_line is None:
+                        break
+                    yield f"data: {log_line.decode('utf-8')}\n\n"
+            except asyncio.CancelledError as e:
+                # If the client disconnects, propagate cancellation.
+                logging.warning(f"Log streaming cancelled: {e}")
+                raise
+            finally:
+                # Ensure that the logs iterator is closed to free up resources.
+                if hasattr(logs_iterator, "close"):
+                    logs_iterator.close()
+                    logging.info(f"Iterator closed")
+                else:
+                    logging.critical(f"Iterator can't be closed!")
+
+        logging.info(f"Streaming logs for container '{container_name}'")
+        return StreamingResponse(log_streamer(), media_type="text/event-stream")
+
+    except docker.errors.NotFound as e:
+        logging.error(f"Error getting logs for container '{container_name}': {e}")
+        raise HTTPException(
+            status_code=404, detail=f"Container '{container_name}' not found"
+        )
+    except docker.errors.APIError as e:
+        logging.error(
+            f"Docker API error getting logs for container '{container_name}': {e}"
+        )
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get logs for container '{container_name}'",
+        )
+    except Exception as e:
+        logging.error(
+            f"Unexpected error getting logs for container '{container_name}': {e}"
+        )
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get logs for container '{container_name}'",
         )
 
 
