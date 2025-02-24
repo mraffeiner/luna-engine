@@ -1,11 +1,9 @@
 services:
-  app:
+  llm-service:
     image: llm-service
     container_name: llm-service
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     ports:
       - "5001:5001"
-    environment:
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    env_file:
+      - .env
