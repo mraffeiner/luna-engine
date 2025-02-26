@@ -1,187 +1,187 @@
 import asyncio
-from fastapi import Body, FastAPI, HTTPException, Response
-from fastapi.responses import StreamingResponse
+from fastapi import Body, FastAPI, HTTPException, Response, Request
+from fastapi.responses import StreamingResponse, JSONResponse
 from dotenv import load_dotenv
 import logging
-import docker
+import aiodocker
 import httpx
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+# Constants
+DOCKER_TIMEOUT = 30
+CONTROL_PANEL_BACKEND_URL = "http://control-panel-backend:5000"
+LLM_SERVICE_URL = "http://llm-service:5001"
+TTS_SERVICE_URL = "http://tts-service:5002"
 
+# Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
+logger = logging.getLogger(__name__)
 
 
-app = FastAPI()
+# Models
+class ContainerStatusResponse(BaseModel):
+    running: bool
+    status: str
 
+
+class ContainerResponse(BaseModel):
+    message: str
+
+
+class LLMRequest(BaseModel):
+    model: str = Field(..., description="The LLM model to use")
+    prompt: str = Field(..., description="The prompt to send to the model")
+
+
+class TTSRequest(BaseModel):
+    language: str = Field(..., description="The language for TTS")
+    voice: str = Field(..., description="The voice to use")
+    style: str = Field(..., description="The speaking style")
+    rate: str = Field(..., description="The speaking rate")
+    pitch: str = Field(..., description="The voice pitch")
+    text: str = Field(..., description="The text to convert to speech")
+
+
+# Initialize FastAPI and Docker client
+app = FastAPI(title="Luna Engine Control Panel")
 load_dotenv()
+docker_client = aiodocker.Docker()
 
-client = docker.from_env()
+active_log_streams = {}
 
 
+# API endpoints
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
 
 
-@app.post("/start_container/{container_name}")
+@app.get("/container_status/{container_name}", response_model=ContainerStatusResponse)
+async def get_container_status(container_name: str):
+    try:
+        container = await docker_client.containers.get(container_name)
+        container_info = await container.show()
+        status = container_info.get("State", {}).get("Status")
+        return ContainerStatusResponse(
+            running=status == "running",
+            status=status,
+        )
+    except Exception as e:
+        logger.error(f"Error getting container status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/start_container/{container_name}", response_model=ContainerResponse)
 async def start_container(container_name: str):
     try:
-        container = client.containers.get(container_name)
-        if container.status != "running":
-            container.start()
-            logging.info(f"Container '{container_name}' started successfully")
-            return {"message": f"Container '{container_name}' started successfully"}
-        else:
-            logging.info(f"Container '{container_name}' is already running")
-            return {"message": f"Container '{container_name}' is already running"}
-    except docker.errors.NotFound as e:
-        logging.error(f"Error starting container '{container_name}': {e}")
-        raise HTTPException(
-            status_code=404, detail=f"Container '{container_name}' not found"
-        )
-    except docker.errors.APIError as e:
-        logging.error(f"Docker API error starting container '{container_name}': {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to start container '{container_name}'"
+        container = await docker_client.containers.get(container_name)
+        container_info = await container.show()
+        status = container_info.get("State", {}).get("Status")
+        if status != "running":
+            await container.start()
+            logger.info(f"Container '{container_name}' started successfully")
+            return ContainerResponse(
+                message=f"Container '{container_name}' started successfully"
+            )
+        return ContainerResponse(
+            message=f"Container '{container_name}' is already running"
         )
     except Exception as e:
-        logging.error(f"Unexpected error starting container '{container_name}': {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to start container '{container_name}'"
-        )
+        logger.error(f"Error starting container: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/stop_container/{container_name}")
+@app.post("/stop_container/{container_name}", response_model=ContainerResponse)
 async def stop_container(container_name: str):
     try:
-        container = client.containers.get(container_name)
-        if container.status == "running":
-            container.stop()
-            logging.info(f"Container '{container_name}' stopped successfully")
-            return {"message": f"Container '{container_name}' stopped successfully"}
-        else:
-            logging.info(f"Container '{container_name}' is not running")
-            return {"message": f"Container '{container_name}' is not running"}
-    except docker.errors.NotFound as e:
-        logging.error(f"Error stopping container '{container_name}': {e}")
-        raise HTTPException(
-            status_code=404, detail=f"Container '{container_name}' not found"
-        )
-    except docker.errors.APIError as e:
-        logging.error(f"Docker API error stopping container '{container_name}': {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to stop container {container_name}"
-        )
+        container = await docker_client.containers.get(container_name)
+        container_info = await container.show()
+        status = container_info.get("State", {}).get("Status")
+        if status == "running":
+            await container.stop(timeout=DOCKER_TIMEOUT)
+            logger.info(f"Container '{container_name}' stopped successfully")
+            return ContainerResponse(
+                message=f"Container '{container_name}' stopped successfully"
+            )
+        return ContainerResponse(message=f"Container '{container_name}' is not running")
     except Exception as e:
-        logging.error(f"Unexpected error stopping container '{container_name}': {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to stop container '{container_name}'"
-        )
+        logger.error(f"Error stopping container: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/container_logs/{container_name}")
 async def get_container_logs(container_name: str):
-    try:
-        container = client.containers.get(container_name)
+    global active_log_streams
 
-        async def log_streamer():
-            loop = asyncio.get_running_loop()
-            logs_iterator = container.logs(stream=True, follow=True, tail="100")
-            try:
-                while True:
-                    log_line = await loop.run_in_executor(
-                        None, next, logs_iterator, None
-                    )
-                    if log_line is None:
-                        break
-                    yield f"data: {log_line.decode('utf-8')}\n\n"
-            except asyncio.CancelledError as e:
-                # If the client disconnects, propagate cancellation.
-                logging.warning(f"Log streaming cancelled: {e}")
-                raise
-            finally:
-                # Ensure that the logs iterator is closed to free up resources.
-                if hasattr(logs_iterator, "close"):
-                    logs_iterator.close()
-                    logging.info(f"Iterator closed")
-                else:
-                    logging.critical(f"Iterator can't be closed!")
+    if container_name not in active_log_streams:
+        active_log_streams[container_name] = 0
 
-        logging.info(f"Streaming logs for container '{container_name}'")
-        return StreamingResponse(log_streamer(), media_type="text/event-stream")
+    async def stream_logs(container_name):
+        try:
+            container = await docker_client.containers.get(container_name)
+            log_iterator = container.log(stdout=True, stderr=True, follow=True, tail=0)
 
-    except docker.errors.NotFound as e:
-        logging.error(f"Error getting logs for container '{container_name}': {e}")
-        raise HTTPException(
-            status_code=404, detail=f"Container '{container_name}' not found"
-        )
-    except docker.errors.APIError as e:
-        logging.error(
-            f"Docker API error getting logs for container '{container_name}': {e}"
-        )
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get logs for container '{container_name}'",
-        )
-    except Exception as e:
-        logging.error(
-            f"Unexpected error getting logs for container '{container_name}': {e}"
-        )
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get logs for container '{container_name}'",
-        )
+            active_log_streams[container_name] += 1
+            id = active_log_streams[container_name]
 
+            async for log in log_iterator:
+                yield f"data: {log.strip()}\n\n"
+                if id != active_log_streams[container_name]:
+                    break
+        except asyncio.exceptions.CancelledError:
+            logger.error(f"Log stream for {container_name} cancelled.")
+        except asyncio.exceptions.TimeoutError:
+            logger.error(f"Log stream for {container_name} timed out.")
+        except Exception as e:
+            logger.error(f"Unexpected error during log stream for {container_name}:", e)
+        finally:
+            logger.info(f"Log stream for {container_name} closed.")
 
-class LLMRequest(BaseModel):
-    model: str
-    prompt: str
+    return StreamingResponse(
+        stream_logs(container_name), media_type="text/event-stream"
+    )
 
 
 @app.post("/llm/chat")
-async def llm_chat(request: LLMRequest = Body()):
+async def llm_chat(request: LLMRequest = Body(...)):
     async def stream_response():
         async with httpx.AsyncClient() as client:
             try:
                 async with client.stream(
-                    "POST", "http://llm-service:5001/chat", json=request.model_dump()
+                    "POST",
+                    f"{LLM_SERVICE_URL}/chat",
+                    json=request.model_dump(),
+                    timeout=30.0,
                 ) as response:
                     response.raise_for_status()
                     async for chunk in response.aiter_text():
                         if chunk:
                             yield chunk
-            except httpx.HTTPError as e:
-                logging.error(f"Error proxying to llm-service: {e}")
-                raise HTTPException(
-                    status_code=500,
-                    detail="Failed to communicate with llm-service",
-                )
+            except Exception as e:
+                logger.error(f"Error in LLM service: {e}")
+                yield f'event: error\ndata: {{"status": 500, "message": "Error in LLM service: {str(e)}"}}\n\n'
 
     return StreamingResponse(stream_response(), media_type="text/event-stream")
 
 
-class TTSRequest(BaseModel):
-    language: str
-    voice: str
-    style: str
-    rate: str
-    pitch: str
-    text: str
-
-
 @app.post("/tts/speech")
-async def tts_speech(request: TTSRequest = Body()):
-    async with httpx.AsyncClient() as client:
-        try:
+async def tts_speech(request: TTSRequest = Body(...)):
+    try:
+        async with httpx.AsyncClient() as client:
             response = await client.post(
-                "http://tts-service:5002/tts", json=request.model_dump()
+                f"{TTS_SERVICE_URL}/tts", json=request.model_dump(), timeout=30.0
             )
+            response.raise_for_status()
             return Response(content=response.content, media_type="audio/wav")
-        except httpx.HTTPError as e:
-            logging.error(f"Error proxying to tts-service: {e}")
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to communicate with tts-service",
-            )
+    except httpx.HTTPStatusError as e:
+        status_code = e.response.status_code
+        error_detail = (
+            f"TTS service error: {e.response.text[:200] if e.response.text else str(e)}"
+        )
+        logger.error(error_detail)
+        raise HTTPException(status_code=status_code, detail=error_detail)
+    except Exception as e:
+        logger.error(f"Error in TTS service: {e}")
+        raise HTTPException(status_code=500, detail=f"Error in TTS service: {str(e)}")
