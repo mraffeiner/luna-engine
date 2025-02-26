@@ -121,7 +121,7 @@ async def get_container_logs(container_name: str):
     async def stream_logs(container_name):
         try:
             container = await docker_client.containers.get(container_name)
-            log_iterator = container.log(stdout=True, stderr=True, follow=True, tail=0)
+            log_iterator = container.log(stdout=True, stderr=True, follow=True, tail=10)
 
             active_log_streams[container_name] += 1
             id = active_log_streams[container_name]
@@ -214,3 +214,22 @@ async def get_tts_options():
             {"value": "whispering", "label": "Whispering"},
         ],
     }
+
+
+@app.get("/llm/options")
+async def get_llm_options():
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(f"{LLM_SERVICE_URL}/models")
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            status_code = e.response.status_code
+            error_detail = f"LLM service error: {e.response.text[:200] if e.response.text else str(e)}"
+            logger.error(error_detail)
+            raise HTTPException(status_code=status_code, detail=error_detail)
+        except Exception as e:
+            logger.error(f"Error in LLM service: {e}")
+            raise HTTPException(
+                status_code=500, detail=f"Error in LLM service: {str(e)}"
+            )
