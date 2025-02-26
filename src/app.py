@@ -185,3 +185,32 @@ async def tts_speech(request: TTSRequest = Body(...)):
     except Exception as e:
         logger.error(f"Error in TTS service: {e}")
         raise HTTPException(status_code=500, detail=f"Error in TTS service: {str(e)}")
+
+
+@app.get("/tts/options")
+async def get_tts_options():
+    return {
+        "languages": [
+            {"value": "en-US", "label": "English (US)"},
+            {"value": "en-GB", "label": "English (GB)"},
+            {"value": "fr-FR", "label": "French (France)"},
+            {"value": "es-ES", "label": "Spanish (Spain)"},
+            {"value": "de-DE", "label": "German (Germany)"},
+        ],
+        "voices": [
+            {"value": "en-US-AriaNeural", "label": "Aria (en-US)"},
+            {"value": "en-US-GuyNeural", "label": "Guy (en-US)"},
+            {"value": "en-US-NancyNeural", "label": "Nancy (en-US)"},
+            {"value": "en-GB-MiaNeural", "label": "Mia (en-GB)"},
+            {"value": "fr-FR-HenriNeural", "label": "Henri (fr-FR)"},
+            {"value": "es-ES-ElviraNeural", "label": "Elvira (es-ES)"},
+            {"value": "de-DE-KatjaNeural", "label": "Katja (de-DE)"},
+        ],
+        "styles": [
+            {"value": "default", "label": "Default"},
+            {"value": "cheerful", "label": "Cheerful"},
+            {"value": "sad", "label": "Sad"},
+            {"value": "angry", "label": "Angry"},
+            {"value": "whispering", "label": "Whispering"},
+        ],
+    }
