@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Body
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 import openai
 import os
@@ -28,6 +28,18 @@ class LLMRequest(BaseModel):
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+
+@app.get("/models")
+async def get_models():
+    return JSONResponse(
+        content={
+            "models": [
+                {"value": "gpt-4o-mini", "label": "GPT-4o Mini"},
+                {"value": "gpt-3.5-turbo", "label": "GPT-3.5 Turbo"},
+            ]
+        }
+    )
 
 
 @app.post("/chat")
