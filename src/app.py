@@ -6,6 +6,8 @@ import logging
 import aiodocker
 import httpx
 from pydantic import BaseModel, Field
+from enum import Enum
+from typing import Literal
 
 # Constants
 DOCKER_TIMEOUT = 30
@@ -35,13 +37,40 @@ class LLMRequest(BaseModel):
     prompt: str = Field(..., description="The prompt to send to the model")
 
 
-class TTSRequest(BaseModel):
-    language: str = Field(..., description="The language for TTS")
-    voice: str = Field(..., description="The voice to use")
-    style: str = Field(..., description="The speaking style")
-    rate: str = Field(..., description="The speaking rate")
-    pitch: str = Field(..., description="The voice pitch")
-    text: str = Field(..., description="The text to convert to speech")
+class TTSEngine(str, Enum):
+    """Supported TTS engines"""
+
+    AZURE = "azure"
+    KOKORO = "kokoro"
+
+
+class BaseTTSRequest(BaseModel):
+    """Base model for TTS synthesis requests"""
+
+    language: str = Field(..., description="Language code (e.g., en-US)")
+    voice: str = Field(..., description="Voice identifier")
+    text: str = Field(..., description="Text to synthesize")
+
+
+class AzureTTSRequest(BaseTTSRequest):
+    """Azure-specific TTS request model"""
+
+    engine: Literal[TTSEngine.AZURE] = TTSEngine.AZURE
+    style: str = Field("default", description="Speaking style")
+    rate: str = Field("0%", description="Speaking rate (-100% to 100%)")
+    pitch: str = Field("0%", description="Voice pitch (-100% to 100%)")
+
+
+class KokoroTTSRequest(BaseTTSRequest):
+    """Kokoro-specific TTS request model"""
+
+    engine: Literal[TTSEngine.KOKORO] = TTSEngine.KOKORO
+    speed: float = Field(1.0, description="Speaking speed multiplier (0.5-2.0)")
+    pitch: float = Field(1.0, description="Voice pitch multiplier (0.5-2.0)")
+
+
+# Union type for request validation
+TTSRequest = AzureTTSRequest | KokoroTTSRequest
 
 
 # Initialize FastAPI and Docker client
@@ -169,9 +198,17 @@ async def llm_chat(request: LLMRequest = Body(...)):
 @app.post("/tts/speech")
 async def tts_speech(request: TTSRequest = Body(...)):
     try:
+        # Convert the request to a dict for sending to the TTS service
+        request_data = request.model_dump()
+
+        # Log the request type for debugging
+        logger.info(
+            f"Processing TTS request for engine: {request_data.get('engine', 'unknown')}"
+        )
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                f"{TTS_SERVICE_URL}/tts", json=request.model_dump(), timeout=30.0
+                f"{TTS_SERVICE_URL}/tts", json=request_data, timeout=30.0
             )
             response.raise_for_status()
             return Response(content=response.content, media_type="audio/wav")
@@ -189,31 +226,21 @@ async def tts_speech(request: TTSRequest = Body(...)):
 
 @app.get("/tts/options")
 async def get_tts_options():
-    return {
-        "languages": [
-            {"value": "en-US", "label": "English (US)"},
-            {"value": "en-GB", "label": "English (GB)"},
-            {"value": "fr-FR", "label": "French (France)"},
-            {"value": "es-ES", "label": "Spanish (Spain)"},
-            {"value": "de-DE", "label": "German (Germany)"},
-        ],
-        "voices": [
-            {"value": "en-US-AriaNeural", "label": "Aria (en-US)"},
-            {"value": "en-US-GuyNeural", "label": "Guy (en-US)"},
-            {"value": "en-US-NancyNeural", "label": "Nancy (en-US)"},
-            {"value": "en-GB-MiaNeural", "label": "Mia (en-GB)"},
-            {"value": "fr-FR-HenriNeural", "label": "Henri (fr-FR)"},
-            {"value": "es-ES-ElviraNeural", "label": "Elvira (es-ES)"},
-            {"value": "de-DE-KatjaNeural", "label": "Katja (de-DE)"},
-        ],
-        "styles": [
-            {"value": "default", "label": "Default"},
-            {"value": "cheerful", "label": "Cheerful"},
-            {"value": "sad", "label": "Sad"},
-            {"value": "angry", "label": "Angry"},
-            {"value": "whispering", "label": "Whispering"},
-        ],
-    }
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{TTS_SERVICE_URL}/options", timeout=5.0)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as e:
+        status_code = e.response.status_code
+        error_detail = (
+            f"TTS service error: {e.response.text[:200] if e.response.text else str(e)}"
+        )
+        logger.error("error_detail")
+        raise HTTPException(status_code=status_code, detail=error_detail)
+    except Exception as e:
+        logger.error(f"Error fetching TTS options: {e}")
+        raise HTTPException(status_code=500, detail=f"Error in TTS service: {str(e)}")
 
 
 @app.get("/llm/options")
