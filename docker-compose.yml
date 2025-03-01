@@ -2,9 +2,7 @@ services:
   control-panel-backend:
     image: control-panel-backend
     container_name: control-panel-backend
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     ports:
       - "5000:5000"
     volumes:
