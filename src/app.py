@@ -1,6 +1,6 @@
 import asyncio
-from fastapi import Body, FastAPI, HTTPException, Response, Request
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import Body, FastAPI, File, HTTPException, Response, UploadFile
+from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
 import logging
 import aiodocker
@@ -14,6 +14,7 @@ DOCKER_TIMEOUT = 30
 CONTROL_PANEL_BACKEND_URL = "http://control-panel-backend:5000"
 LLM_SERVICE_URL = "http://llm-service:5001"
 TTS_SERVICE_URL = "http://tts-service:5002"
+STT_SERVICE_URL = "http://stt-service:5003"
 
 # Configure logging
 logging.basicConfig(
@@ -236,7 +237,7 @@ async def get_tts_options():
         error_detail = (
             f"TTS service error: {e.response.text[:200] if e.response.text else str(e)}"
         )
-        logger.error("error_detail")
+        logger.error(error_detail)
         raise HTTPException(status_code=status_code, detail=error_detail)
     except Exception as e:
         logger.error(f"Error fetching TTS options: {e}")
@@ -260,3 +261,39 @@ async def get_llm_options():
             raise HTTPException(
                 status_code=500, detail=f"Error in LLM service: {str(e)}"
             )
+
+
+@app.post("/stt")
+async def stt_proxy(audio: UploadFile = File(...)):
+    """
+    Proxy endpoint for the STT service.
+    Accepts an audio file upload and forwards it to the STT service.
+    """
+    try:
+        # Read the file content
+        audio_content = await audio.read()
+
+        async with httpx.AsyncClient() as client:
+            # Forward the file to the STT service
+            files = {"audio": (audio.filename, audio_content, audio.content_type)}
+
+            response = await client.post(
+                f"{STT_SERVICE_URL}/stt", files=files, timeout=30.0
+            )
+
+            response.raise_for_status()
+            return response.json()
+
+    except httpx.HTTPStatusError as e:
+        status_code = e.response.status_code
+        try:
+            error_detail = e.response.json()
+            logger.error(f"STT service error: {error_detail}")
+            raise HTTPException(status_code=status_code, detail=error_detail)
+        except:
+            error_detail = f"STT service error: {str(e)}"
+            logger.error(error_detail)
+            raise HTTPException(status_code=status_code, detail=error_detail)
+    except Exception as e:
+        logger.error(f"Error in STT service: {e}")
+        raise HTTPException(status_code=500, detail=f"Error in STT service: {str(e)}")
