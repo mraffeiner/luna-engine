@@ -1,4 +1,4 @@
-import { config } from "./deps.ts";
+import { load as config } from "std/dotenv/mod.ts";
 
 // Load environment variables
 try {

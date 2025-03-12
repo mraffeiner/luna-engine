@@ -3,8 +3,8 @@ import {
   createAudioPlayer,
   VoiceConnectionStatus,
   EndBehaviorType,
-} from "./deps.ts";
-import type { VoiceBasedChannel } from "npm:discord.js@14.14.1";
+} from "@discordjs/voice";
+import type { VoiceBasedChannel } from "discord.js";
 
 // Map to track active voice connections by guild ID
 const activeConnections = new Map();
@@ -35,8 +35,8 @@ export function connectToVoiceChannel(channel: VoiceBasedChannel) {
     channelId: channel.id,
     guildId: channel.guild.id,
     adapterCreator: channel.guild.voiceAdapterCreator,
-    selfDeaf: false, // We need to hear audio
-    selfMute: true, // We don't need to speak
+    selfDeaf: false,
+    selfMute: false,
   });
 
   // Create audio player

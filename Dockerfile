@@ -2,11 +2,8 @@ FROM denoland/deno:1.41.3
 
 WORKDIR /app
 
-# Cache dependencies as a separate layer
-COPY src/deps.ts .
-RUN deno cache deps.ts
-
 # Copy source code
+COPY deno.json .
 COPY src ./src
 
 # Cache the main application

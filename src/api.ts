@@ -1,4 +1,3 @@
-import { serve } from "./deps.ts";
 import { API_PORT, API_HOST } from "./config.ts";
 import { client } from "./bot.ts";
 import { getUserAudioStream, getAllAudioStreams } from "./voice.ts";
@@ -8,10 +7,13 @@ export function startApiServer() {
   console.log(`Starting API server on ${API_HOST}:${API_PORT}`);
 
   // Start the server
-  serve(handleRequest, {
-    port: API_PORT,
-    hostname: API_HOST,
-  });
+  Deno.serve(
+    {
+      port: API_PORT,
+      hostname: API_HOST,
+    },
+    handleRequest
+  );
 
   console.log(`API server running at http://${API_HOST}:${API_PORT}/`);
 }

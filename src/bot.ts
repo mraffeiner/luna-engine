@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Events } from "./deps.ts";
+import { Client, GatewayIntentBits, Events } from "discord.js";
 import { DISCORD_TOKEN } from "./config.ts";
 import { connectToVoiceChannel, disconnectFromVoiceChannel } from "./voice.ts";
 
