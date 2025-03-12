@@ -56,6 +56,17 @@ export function connectToVoiceChannel(channel: VoiceBasedChannel) {
   // Set up audio receivers for users in the channel
   connection.receiver.speaking.on("start", (userId: string) => {
     console.log(`User ${userId} started speaking`);
+
+    // Check for and destroy existing stream
+    if (audioStreams.has(userId)) {
+      const oldStream = audioStreams.get(userId);
+      if (oldStream) {
+        console.log(`Destroying existing stream for user ${userId}`);
+        oldStream.destroy();
+      }
+      audioStreams.delete(userId); // Ensure map entry is removed
+    }
+
     // Create a readable stream for this user's audio
     const audioStream = connection.receiver.subscribe(userId, {
       end: {
