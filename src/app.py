@@ -15,6 +15,7 @@ CONTROL_PANEL_BACKEND_URL = "http://control-panel-backend:5000"
 LLM_SERVICE_URL = "http://llm-service:5001"
 TTS_SERVICE_URL = "http://tts-service:5002"
 STT_SERVICE_URL = "http://stt-service:5003"
+DISCORD_SERVICE_URL = "http://discord-service:5004"
 
 # Configure logging
 logging.basicConfig(
@@ -297,3 +298,153 @@ async def stt_proxy(audio: UploadFile = File(...)):
     except Exception as e:
         logger.error(f"Error in STT service: {e}")
         raise HTTPException(status_code=500, detail=f"Error in STT service: {str(e)}")
+
+
+@app.get("/discord/health")
+async def discord_health():
+    """
+    Proxy endpoint for the Discord service health check.
+    """
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{DISCORD_SERVICE_URL}/health", timeout=5.0)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as e:
+        status_code = e.response.status_code
+        error_detail = f"Discord service error: {e.response.text[:200] if e.response.text else str(e)}"
+        logger.error(error_detail)
+        raise HTTPException(status_code=status_code, detail=error_detail)
+    except Exception as e:
+        logger.error(f"Error in Discord service: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Error in Discord service: {str(e)}"
+        )
+
+
+@app.get("/discord/voice-channels")
+async def discord_voice_channels(guildId: str):
+    """
+    Proxy endpoint to get voice channels from a Discord guild.
+    """
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{DISCORD_SERVICE_URL}/voice-channels?guildId={guildId}", timeout=5.0
+            )
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as e:
+        status_code = e.response.status_code
+        error_detail = f"Discord service error: {e.response.text[:200] if e.response.text else str(e)}"
+        logger.error(error_detail)
+        raise HTTPException(status_code=status_code, detail=error_detail)
+    except Exception as e:
+        logger.error(f"Error in Discord service: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Error in Discord service: {str(e)}"
+        )
+
+
+@app.post("/discord/join-voice")
+async def discord_join_voice(request: dict = Body(...)):
+    """
+    Proxy endpoint to join a Discord voice channel.
+    """
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{DISCORD_SERVICE_URL}/join-voice", json=request, timeout=10.0
+            )
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as e:
+        status_code = e.response.status_code
+        error_detail = f"Discord service error: {e.response.text[:200] if e.response.text else str(e)}"
+        logger.error(error_detail)
+        raise HTTPException(status_code=status_code, detail=error_detail)
+    except Exception as e:
+        logger.error(f"Error in Discord service: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Error in Discord service: {str(e)}"
+        )
+
+
+@app.post("/discord/leave-voice")
+async def discord_leave_voice(request: dict = Body(...)):
+    """
+    Proxy endpoint to leave a Discord voice channel.
+    """
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{DISCORD_SERVICE_URL}/leave-voice", json=request, timeout=5.0
+            )
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as e:
+        status_code = e.response.status_code
+        error_detail = f"Discord service error: {e.response.text[:200] if e.response.text else str(e)}"
+        logger.error(error_detail)
+        raise HTTPException(status_code=status_code, detail=error_detail)
+    except Exception as e:
+        logger.error(f"Error in Discord service: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Error in Discord service: {str(e)}"
+        )
+
+
+@app.get("/discord/active-streams")
+async def discord_active_streams():
+    """
+    Proxy endpoint to get active Discord audio streams.
+    """
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{DISCORD_SERVICE_URL}/active-streams", timeout=5.0
+            )
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as e:
+        status_code = e.response.status_code
+        error_detail = f"Discord service error: {e.response.text[:200] if e.response.text else str(e)}"
+        logger.error(error_detail)
+        raise HTTPException(status_code=status_code, detail=error_detail)
+    except Exception as e:
+        logger.error(f"Error in Discord service: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Error in Discord service: {str(e)}"
+        )
+
+
+@app.get("/discord/audio-stream/{user_id}")
+async def discord_audio_stream(user_id: str):
+    """
+    Proxy endpoint to stream audio from a Discord user.
+    """
+    try:
+
+        async def stream_response():
+            async with httpx.AsyncClient() as client:
+                async with client.stream(
+                    "GET",
+                    f"{DISCORD_SERVICE_URL}/audio-stream/{user_id}",
+                    timeout=None,  # Streaming connection should not timeout
+                ) as response:
+                    response.raise_for_status()
+                    async for chunk in response.aiter_bytes():
+                        if chunk:
+                            yield chunk
+
+        return StreamingResponse(stream_response(), media_type="audio/ogg")
+    except httpx.HTTPStatusError as e:
+        status_code = e.response.status_code
+        error_detail = f"Discord service error: {e.response.text[:200] if e.response.text else str(e)}"
+        logger.error(error_detail)
+        raise HTTPException(status_code=status_code, detail=error_detail)
+    except Exception as e:
+        logger.error(f"Error in Discord service: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Error in Discord service: {str(e)}"
+        )
