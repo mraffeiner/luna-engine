@@ -420,7 +420,8 @@ async def synthesize_with_kokoro(request: KokoroTTSRequest) -> bytes:
                 f"{KOKORO_API_URL}/v1/audio/speech",
                 json={
                     "model": "kokoro",
-                    "input": request.text,
+                    "input": request.text.replace("\n", ". "),
+                    "voice": request.voice,
                     "language": request.language,
                     "voice": request.voice,
                     "response_format": "wav",
