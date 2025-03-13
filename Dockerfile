@@ -7,10 +7,10 @@ COPY deno.json .
 COPY src ./src
 
 # Cache the main application
-RUN deno cache src/mod.ts
+RUN deno cache src/main.ts
 
 # Expose API port
 EXPOSE 5004
 
 # Run the application
-CMD ["deno", "run", "--allow-net", "--allow-read", "--allow-env", "src/mod.ts"]
+CMD ["deno", "run", "--allow-net", "--allow-read", "--allow-env", "src/main.ts"]

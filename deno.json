@@ -1,11 +1,10 @@
 {
   "tasks": {
-    "start": "deno run --allow-net --allow-read --allow-env src/mod.ts"
+    "start": "deno run --allow-net --allow-read --allow-env src/main.ts"
   },
   "imports": {
     "discord.js": "npm:discord.js@14.18.0",
-    "@discordjs/voice": "npm:@discordjs/voice@0.18.0",
-    "std/": "https://deno.land/std@0.224.0/"
+    "@discordjs/voice": "npm:@discordjs/voice"
   },
   "compilerOptions": {
     "allowJs": true,
