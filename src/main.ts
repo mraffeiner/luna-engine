@@ -18,6 +18,7 @@ const client = new Client({
 let connection: VoiceConnection | null = null;
 let audioWebSocket: WebSocket | null = null;
 const audioStreams = new Set();
+const activeStreams = new Map();
 
 client.on("ready", () => {
   console.log(`Logged in as ${client.user?.tag}!`);
@@ -30,6 +31,12 @@ if (!token) {
 client.login(token);
 
 async function connectToVoiceChannel(guildId: string, channelId: string) {
+  console.log(
+    "connectToVoiceChannel called with guildId:",
+    guildId,
+    "channelId:",
+    channelId
+  ); // Log
   if (connection) {
     return;
   }
@@ -48,6 +55,28 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
   console.log(
     `Connected to voice channel ${channel.name} in guild ${guild.name}`
   );
+
+  connection.receiver.speaking.on("start", (userId) => {
+    console.log(`User ${userId} started speaking`);
+    const stream = connection!.receiver.subscribe(userId);
+    activeStreams.set(userId, stream);
+
+    stream.on("data", (chunk: Uint8Array) => {
+      // Send the chunk through the WebSocket connection.
+      if (audioWebSocket?.readyState === WebSocket.OPEN) {
+        audioWebSocket.send(chunk);
+      }
+    });
+  });
+
+  connection.receiver.speaking.on("end", (userId) => {
+    console.log(`User ${userId} stopped speaking`);
+    const stream = activeStreams.get(userId);
+    if (stream) {
+      stream.destroy();
+      activeStreams.delete(userId);
+    }
+  });
 }
 
 function disconnectFromVoiceChannel() {
@@ -57,11 +86,18 @@ function disconnectFromVoiceChannel() {
     audioStreams.clear();
     console.log("Disconnected from voice channel");
   }
+  if (audioWebSocket) {
+    audioWebSocket.close();
+    audioWebSocket = null;
+  }
 }
 
 // Helper function for API responses
 function apiResponse(body: string, status = 200) {
-  return new Response(body, { status });
+  return new Response(JSON.stringify({ message: body }), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 // Helper function to handle API errors
@@ -74,81 +110,56 @@ function handleApiError(error: unknown) {
 
 function handleWebSocket(request: Request) {
   const { socket, response } = Deno.upgradeWebSocket(request);
+  audioWebSocket = socket; // Store the WebSocket connection
 
-  socket.onopen = () => {
+  audioWebSocket.onopen = () => {
     console.log("WebSocket connection established");
   };
 
-  socket.onmessage = (event: MessageEvent) => {
+  audioWebSocket.onmessage = (event: MessageEvent) => {
     console.log("Received message from WebSocket client:", event.data);
-    // In this example, we don't expect messages from the client,
+    // We don't expect messages *from* the client in this example,
     // but you could handle them here if needed.
   };
 
-  socket.onclose = () => {
+  audioWebSocket.onclose = () => {
     console.log("WebSocket connection closed");
+    audioWebSocket = null;
   };
 
-  socket.onerror = (event: Event) => {
+  audioWebSocket.onerror = (event: Event) => {
     console.error("WebSocket error:", event);
   };
-  return { socket, response };
+  return response;
 }
 
 // Combined API and WebSocket server
 const handler = async (request: Request): Promise<Response> => {
+  console.log("Request received:", request.url); // Log every request
   const url = new URL(request.url);
 
   if (request.headers.get("upgrade") === "websocket") {
-    const { socket, response } = handleWebSocket(request);
-    audioWebSocket = socket;
-    return response;
+    return handleWebSocket(request);
   }
 
   if (url.pathname === "/join-voice") {
     try {
+      console.log("Handling /join-voice request"); // Log
       const { guildId, channelId } = await request.json();
+      console.log("Parsed request body:", { guildId, channelId }); // Log parsed body
       if (!guildId || !channelId) {
         return apiResponse("Missing guildId or channelId", 400);
       }
       await connectToVoiceChannel(guildId, channelId);
+      console.log("connectToVoiceChannel called"); // Log
       return apiResponse("Connected to voice channel");
     } catch (error) {
+      console.error("Error in /join-voice handler:", error); // Log errors
       return handleApiError(error);
     }
   } else if (url.pathname === "/leave-voice") {
     disconnectFromVoiceChannel();
     return apiResponse("Disconnected from voice channel");
-  } else if (url.pathname === "/record") {
-    const { userId } = await request.json();
-
-    if (!connection) {
-      return apiResponse("Not connected to a voice channel", 400);
-    }
-    if (!userId) {
-      return apiResponse("Missing userId", 400);
-    }
-
-    try {
-      const stream = connection.receiver.subscribe(userId, {
-        end: {
-          behavior: 1, //EndBehaviorType.AfterSilence,
-          duration: 500,
-        },
-      });
-
-      // Send data to WebSocket server (itself now)
-      stream.on("data", (chunk: Uint8Array) => {
-        if (audioWebSocket?.readyState === WebSocket.OPEN) {
-          audioWebSocket.send(chunk);
-        }
-      });
-      audioStreams.add(userId);
-
-      return apiResponse(`Recording started for user ${userId}`);
-    } catch (error) {
-      return handleApiError(error);
-    }
   } else if (url.pathname === "/health") {
     return apiResponse("OK");
   }
