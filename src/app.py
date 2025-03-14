@@ -326,30 +326,6 @@ async def discord_join_voice(request: dict = Body(...)):
         )
 
 
-@app.post("/discord/record")
-async def discord_record(request: dict = Body(...)):
-    """
-    Proxy endpoint to start recording a Discord user.
-    """
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{DISCORD_SERVICE_URL}/record", json=request, timeout=10.0
-            )
-            response.raise_for_status()
-            return response.json()
-    except httpx.HTTPStatusError as e:
-        status_code = e.response.status_code
-        error_detail = f"Discord service error: {e.response.text[:200] if e.response.text else str(e)}"
-        logger.error(error_detail)
-        raise HTTPException(status_code=status_code, detail=error_detail)
-    except Exception as e:
-        logger.error(f"Error in Discord service: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Error in Discord service: {str(e)}"
-        )
-
-
 @app.post("/discord/leave-voice")
 async def discord_leave_voice(request: dict = Body(...)):
     """
