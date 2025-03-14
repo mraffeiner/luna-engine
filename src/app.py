@@ -374,7 +374,7 @@ async def discord_leave_voice(request: dict = Body(...)):
         )
 
 
-@app.websocket("/api/discord/ws")
+@app.websocket("/discord/ws")
 async def websocket_proxy(websocket: WebSocket):
     await websocket.accept()
     try:
