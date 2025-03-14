@@ -76,7 +76,6 @@ class KokoroTTSRequest(BaseTTSRequest):
 # Union type for request validation
 TTSRequest = AzureTTSRequest | KokoroTTSRequest
 
-
 # Initialize FastAPI and Docker client
 app = FastAPI(title="Luna Engine Control Panel")
 load_dotenv()
@@ -358,15 +357,26 @@ async def websocket_proxy(websocket: WebSocket):
 
             async def forward_to_backend():
                 while True:
-                    data = await websocket.receive_bytes()
-                    await backend_socket.send(data)
+                    if not (
+                        websocket.state == websockets.protocol.State.CLOSING
+                        or websocket.state == websockets.protocol.State.CLOSED
+                    ):
+                        data = await websocket.receive_bytes()
+                        await backend_socket.send(data)
+                    else:
+                        break
 
             async def forward_to_frontend():
                 while True:
-                    data = await backend_socket.recv()
-                    await websocket.send_bytes(data)
+                    if not (
+                        backend_socket.state == websockets.protocol.State.CLOSING
+                        or backend_socket.state == websockets.protocol.State.CLOSED
+                    ):
+                        data = await backend_socket.recv()
+                        await websocket.send_bytes(data)
+                    else:
+                        break
 
             await asyncio.gather(forward_to_backend(), forward_to_frontend())
     except Exception as e:
         logger.error(f"Error in WebSocket proxy: {e}")
-        await websocket.close(code=1011, reason=str(e))
