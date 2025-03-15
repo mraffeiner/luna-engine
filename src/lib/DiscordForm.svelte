@@ -10,13 +10,15 @@
 	let forwardToStt = $state(false);
 
 	async function connect() {
-		await discordService.connect(guildId, channelId);
-		await discordService.connectWebSocket(async (username, audioBlob) => {
-			speakerAudio.set(username, URL.createObjectURL(audioBlob));
-			if (forwardToStt) {
-				discordOutput.set({ username: username, audioBlob: audioBlob });
-			}
-		});
+		const success = await discordService.connect(guildId, channelId);
+		if (success) {
+			await discordService.connectWebSocket(async (username, audioBlob) => {
+				speakerAudio.set(username, URL.createObjectURL(audioBlob));
+				if (forwardToStt) {
+					discordOutput.set({ username: username, audioBlob: audioBlob });
+				}
+			});
+		}
 	}
 
 	async function disconnect() {
