@@ -67,8 +67,10 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
 
   let pcmData: Buffer[] = [];
 
-  connection.receiver.speaking.on("start", (userId) => {
-    console.log(`User ${userId} started speaking`);
+  connection.receiver.speaking.on("start", async (userId) => {
+    const user = await client.users.fetch(userId);
+    const username = user.displayName;
+    console.log(`${username} started speaking`);
 
     if (!connection) {
       console.error("Connection is null when user started speaking.");
@@ -90,8 +92,10 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
     });
   });
 
-  connection.receiver.speaking.on("end", (userId) => {
-    console.log(`User ${userId} stopped speaking`);
+  connection.receiver.speaking.on("end", async (userId) => {
+    const user = await client.users.fetch(userId);
+    const username = user.displayName;
+    console.log(`${username} stopped speaking`);
 
     activeStreams.get(userId)?.destroy();
     activeStreams.delete(userId);
@@ -113,7 +117,28 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
     wav.fromScratch(2, 48000, "16", [leftChannel, rightChannel]);
 
     if (audioWebSocket?.readyState === WebSocket.OPEN) {
-      audioWebSocket.send(wav.toBuffer());
+      // Encode username as UTF-8 bytes
+      const usernameBytes = new TextEncoder().encode(username);
+      const usernameLength = usernameBytes.length;
+
+      // Create a buffer to hold username length, username, and audio data
+      const audioBuffer = wav.toBuffer();
+      const combinedBuffer = new Uint8Array(
+        4 + usernameLength + audioBuffer.length
+      );
+
+      // Write username length (4 bytes)
+      const dataView = new DataView(combinedBuffer.buffer);
+      dataView.setUint32(0, usernameLength, false); // Big-endian
+
+      // Write username bytes
+      combinedBuffer.set(usernameBytes, 4);
+
+      // Write audio data
+      combinedBuffer.set(audioBuffer, 4 + usernameLength);
+
+      // Send the combined buffer
+      audioWebSocket.send(combinedBuffer);
     } else {
       console.log("Audio websocket not open");
     }
