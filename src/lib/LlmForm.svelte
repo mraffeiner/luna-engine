@@ -15,7 +15,7 @@
 
 	async function fetchModels() {
 		try {
-			const response = await fetch('/api/llm/options');
+			const response = await fetch('/api/llm/models');
 			if (response.ok) {
 				const data = await response.json();
 				models = data.models;
@@ -37,7 +37,7 @@
 		responseText = '';
 		errorMessage = null;
 
-		const response = await fetch('/api/llm/chat', {
+		const response = await fetch('/api/llm/generate', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -79,13 +79,13 @@
 				generateResponse();
 			}
 		});
-		
+
 		fetchModels();
-		
+
 		return () => {
 			unsubscribe;
 			sttOutput.set(null);
-		}
+		};
 	});
 </script>
 
@@ -123,7 +123,11 @@
 
 	<div class="mt-4">
 		<label class="inline-flex items-center space-x-2">
-			<input type="checkbox" class="rounded border-gray-600 text-indigo-600 focus:ring-indigo-500" bind:checked={forwardToTts} />
+			<input
+				type="checkbox"
+				class="rounded border-gray-600 text-indigo-600 focus:ring-indigo-500"
+				bind:checked={forwardToTts}
+			/>
 			<span class="text-gray-200">Forward to TTS</span>
 		</label>
 	</div>

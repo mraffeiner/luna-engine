@@ -10,11 +10,17 @@
 	import LlmForm from '$lib/LlmForm.svelte';
 	import TtsForm from '$lib/TtsForm.svelte';
 	import DiscordForm from '$lib/DiscordForm.svelte';
-	
+
 	let { children } = $props();
 
 	// List of all services in the application
-	const services = ['control-panel-backend', 'llm-service', 'tts-service', 'stt-service', 'discord-service'];
+	const services = [
+		'discord-service',
+		'llm-service',
+		'tts-service',
+		'stt-service',
+		'discord-service'
+	];
 
 	function handleBeforeUnload() {
 		services.forEach((serviceName) => {

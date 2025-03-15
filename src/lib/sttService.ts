@@ -23,7 +23,7 @@ export async function transcribeAudio(audioBlob: Blob): Promise<string | null> {
 		formData.append('audio', audioBlob, 'recording.mp3');
 
 		// Send the request to the API
-		const response = await fetch('/api/stt', {
+		const response = await fetch('/api/stt/transcribe', {
 			method: 'POST',
 			body: formData
 		});

@@ -4,7 +4,7 @@
 
 	// Define the services
 	const services = [
-		{ id: 'control-panel-backend', name: 'Control Panel Backend', path: '/' },
+		{ id: 'docker-service', name: 'Docker Service', path: '/' },
 		{ id: 'llm-service', name: 'LLM Service', path: '/llm-service' },
 		{ id: 'tts-service', name: 'TTS Service', path: '/tts-service' },
 		{ id: 'stt-service', name: 'STT Service', path: '/stt-service' },

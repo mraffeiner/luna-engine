@@ -84,7 +84,7 @@ export async function generateSpeech(params: TtsRequestParams): Promise<Blob | n
 			}
 		}
 
-		const response = await fetch('/api/tts/speech', {
+		const response = await fetch('/api/tts/generate', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'

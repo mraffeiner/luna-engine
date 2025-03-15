@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import { containerService } from '$lib/containerService';
 
-	const serviceName = 'control-panel-backend';
+	const serviceName = 'discord-service';
 
 	// Check container status on mount
 	onMount(() => {
@@ -25,7 +25,6 @@
 			<li>Start/stop service containers</li>
 			<li>Stream container logs</li>
 			<li>Monitor container status</li>
-			<li>Proxy requests to services</li>
 		</ul>
 	</div>
 
