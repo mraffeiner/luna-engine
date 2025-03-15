@@ -29,12 +29,11 @@ export const discordService = {
 		}
 	},
 
-	async connectWebSocket(onAudioChunk: (chunk: Blob) => void): Promise<void> {
+	async connectWebSocket(onAudioReceived: (audioBlob: Blob) => void): Promise<void> {
 		if (audioWebSocket) {
 			return;
 		}
 		audioWebSocket = new WebSocket('/api/discord/ws');
-		audioWebSocket.binaryType = 'arraybuffer';
 
 		audioWebSocket.onopen = () => {
 			console.log('WebSocket connection established (discordService)');
@@ -42,14 +41,7 @@ export const discordService = {
 
 		audioWebSocket.onmessage = async (event: MessageEvent) => {
 			console.log('Received message from WebSocket (discordService):', event);
-			if (event.data instanceof ArrayBuffer) {
-				const chunk = new Blob([event.data], { type: 'audio/wav' });
-				onAudioChunk(chunk);
-			} else if (event.data instanceof Blob) {
-				onAudioChunk(event.data);
-			} else {
-				console.warn('Received unexpected data type from WebSocket (discordService):', event.data);
-			}
+			onAudioReceived(new Blob([event.data], { type: 'audio/wav' }));
 		};
 
 		audioWebSocket.onclose = () => {

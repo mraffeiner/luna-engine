@@ -4,57 +4,17 @@
 
 	let guildId: string = $state('1194692480805904384');
 	let channelId: string = $state('1349007184406642798');
-	let userAudioBuffers: Map<string, Blob[]> = $state(new Map());
-	let lastChunkTime: number = $state(0);
-	let currentUserKey: string = $state('user1');
-	let userCounter: number = $state(1);
-	let audioPlayer: HTMLAudioElement | null = $state(null);
-
-	const TIME_THRESHOLD = 100; // Milliseconds
+	let audioUrl: string = $state('');
 
 	async function connect() {
-		console.log('Connect function called');
-		const success = await discordService.connect(guildId, channelId);
-		if (success) {
-			await discordService.connectWebSocket((chunk: Blob) => {
-				console.log('Received audio chunk:', chunk);
-				const now = Date.now();
-				if (now - lastChunkTime > TIME_THRESHOLD) {
-					// Assume a new "user" is speaking
-					userCounter++;
-					currentUserKey = `user${userCounter}`;
-					console.log('New user key:', currentUserKey);
-				}
-				lastChunkTime = now;
-
-				if (userAudioBuffers.has(currentUserKey)) {
-					userAudioBuffers.set(currentUserKey, [...userAudioBuffers.get(currentUserKey)!, chunk]);
-				} else {
-					userAudioBuffers.set(currentUserKey, [chunk]);
-				}
-				userAudioBuffers = userAudioBuffers; // Trigger reactivity
-				console.log('userAudioBuffers:', userAudioBuffers);
-			});
-		}
+		await discordService.connect(guildId, channelId);
+		await discordService.connectWebSocket((audioBlob) => {
+			audioUrl = URL.createObjectURL(audioBlob);
+		});
 	}
 
 	async function disconnect() {
-		const success = await discordService.disconnect();
-	}
-
-	function playAudio(userKey: string) {
-		if (userAudioBuffers.has(userKey)) {
-			const audioBlob = new Blob(userAudioBuffers.get(userKey), { type: 'audio/wav' });
-			const audioUrl = URL.createObjectURL(audioBlob);
-
-			if (!audioPlayer) {
-				audioPlayer = new Audio(audioUrl);
-			} else {
-				audioPlayer.src = audioUrl;
-			}
-
-			audioPlayer.play().catch((e) => console.error('Error playing audio:', e));
-		}
+		await discordService.disconnect();
 	}
 
 	// Clean up resources when component is destroyed
@@ -140,14 +100,27 @@
 			Disconnect
 		</button>
 	</div>
-	<div class="mt-6">
-		{#each Array(userCounter) as _, i}
-			<button
-				onclick={() => playAudio(`user${i + 1}`)}
-				class="rounded-md bg-indigo-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-indigo-700"
-			>
-				Play User {i + 1}
-			</button>
-		{/each}
-	</div>
+
+	{#if audioUrl}
+		<div class="mt-6 rounded-lg border border-gray-600 bg-gray-800 p-4">
+			<h4 class="mb-2 flex items-center text-sm font-medium text-gray-300">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="mr-1 h-4 w-4 text-green-500"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+					/>
+				</svg>
+				Last Spoken Audio
+			</h4>
+			<audio controls autoplay={true} src={audioUrl} class="w-full rounded-md"></audio>
+		</div>
+	{/if}
 </div>
