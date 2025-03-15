@@ -39,7 +39,7 @@ async def health_check():
     return {"status": "ok"}
 
 
-@app.post("/stt", response_model=SttResponse, summary="Transcribe audio to text")
+@app.post("/transcribe", response_model=SttResponse, summary="Transcribe audio to text")
 async def stt_endpoint(audio: UploadFile = File(...)):
     """
     Transcribe audio file to text using OpenAI's Whisper API.
