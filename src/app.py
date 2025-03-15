@@ -42,8 +42,8 @@ async def get_models():
     )
 
 
-@app.post("/chat")
-async def chat_endpoint(request: LLMRequest = Body()):
+@app.post("/generate")
+async def generate_endpoint(request: LLMRequest = Body()):
     async def stream_response():
         try:
             stream = openai.chat.completions.create(
