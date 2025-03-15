@@ -1,0 +1,97 @@
+@import 'tailwindcss';
+
+/* Custom global styles */
+:root {
+	color-scheme: dark;
+}
+
+html {
+	scrollbar-color: #4b5563 #1f2937;
+	scrollbar-width: thin;
+}
+
+body {
+	@apply bg-gray-900 text-gray-100;
+	font-family:
+		-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans',
+		'Helvetica Neue', sans-serif;
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: #1f2937;
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #4b5563;
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #6b7280;
+}
+
+/* Focus styles for better accessibility */
+*:focus-visible {
+	@apply ring-2 ring-indigo-500 outline-none;
+}
+
+/* Improved form controls */
+input[type='range'] {
+	@apply accent-indigo-500;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+	@apply rounded border-gray-600 bg-gray-700 text-indigo-600 focus:ring-indigo-500;
+}
+
+/* Transitions for smoother interactions */
+button,
+select,
+input,
+textarea,
+a {
+	@apply transition-all duration-200;
+}
+
+/* Base card style */
+.card {
+	@apply rounded-lg border border-gray-700 bg-gray-800 p-6 shadow-md;
+}
+
+/* Heading styles */
+h1 {
+	@apply mb-6 text-3xl font-bold text-white;
+}
+
+h2 {
+	@apply mb-4 text-2xl font-bold text-white;
+}
+
+h3 {
+	@apply mb-3 text-xl font-semibold text-white;
+}
+
+.card-title {
+	@apply mb-2 text-lg font-semibold text-gray-300;
+}
+
+.sidebar-title {
+	@apply mb-3 px-2 text-xs font-semibold tracking-wider text-gray-400 uppercase;
+}
+
+.error-title {
+	@apply mb-1 block text-lg font-bold text-red-400;
+}
+
+/* Custom selection color */
+::selection {
+	@apply bg-indigo-900 text-white;
+}

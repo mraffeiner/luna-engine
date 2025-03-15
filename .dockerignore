@@ -1,0 +1,37 @@
+# Node modules and build artifacts
+node_modules
+.output
+.vercel
+.netlify
+.wrangler
+.svelte-kit
+build
+
+# Git-related files
+.git
+.gitignore
+
+# Environment files (except examples)
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Editor-specific files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Docker-specific files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*

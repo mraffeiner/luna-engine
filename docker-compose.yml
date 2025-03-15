@@ -1,0 +1,7 @@
+services:
+  control-panel-frontend:
+    image: control-panel-frontend
+    container_name: control-panel-frontend
+    build: .
+    ports:
+      - "8080:80"
