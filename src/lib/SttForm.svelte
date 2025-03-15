@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { sttOutput } from './stores';
-	
+
 	import { transcribeAudio, sttError, sttStatus } from './sttService';
-	
+
 	let mediaRecorder: MediaRecorder | null = $state(null);
 	let audioChunks: Blob[] = $state([]);
 	let transcribedText: string | null = $state(null);
@@ -50,7 +50,6 @@
 			};
 
 			mediaRecorder = new MediaRecorder(audioStream, options);
-			console.log('Using mimeType:', mediaRecorder.mimeType);
 
 			// Set up event handlers
 			mediaRecorder.ondataavailable = (event) => {
@@ -125,7 +124,7 @@
 
 	const buttonLabel = $derived(isRecording ? 'Stop Recording' : 'Start Recording');
 	const isTranscribing = $derived($sttStatus === 'transcribing');
-	
+
 	// Clean up resources when component is destroyed
 	$effect(() => {
 		return cleanup;
@@ -175,7 +174,11 @@
 
 	<div class="mt-4">
 		<label class="inline-flex items-center space-x-2">
-			<input type="checkbox" class="rounded border-gray-600 text-indigo-600 focus:ring-indigo-500" bind:checked={forwardToLlm} />
+			<input
+				type="checkbox"
+				class="rounded border-gray-600 text-indigo-600 focus:ring-indigo-500"
+				bind:checked={forwardToLlm}
+			/>
 			<span class="text-gray-200">Forward to LLM</span>
 		</label>
 	</div>

@@ -6,7 +6,6 @@ let audioWebSocket: WebSocket | null = null;
 
 export const discordService = {
 	async connect(guildId: string, channelId: string): Promise<boolean> {
-		console.log('discordService.connect called with guildId:', guildId, 'channelId:', channelId);
 		try {
 			const response = await fetch(`${API_BASE_URL}/join-voice`, {
 				method: 'POST',
@@ -15,7 +14,6 @@ export const discordService = {
 				},
 				body: JSON.stringify({ guildId, channelId })
 			});
-			console.log('discordService.connect response:', response);
 			if (!response.ok) {
 				const error = await response.text();
 				console.error('discordService.connect error:', error);
@@ -29,28 +27,35 @@ export const discordService = {
 		}
 	},
 
-	async connectWebSocket(onAudioReceived: (audioBlob: Blob) => void): Promise<void> {
+	async connectWebSocket(
+		onAudioReceived: (username: string, audioBlob: Blob) => void
+	): Promise<void> {
 		if (audioWebSocket) {
 			return;
 		}
 		audioWebSocket = new WebSocket('/api/discord/ws');
+		audioWebSocket.binaryType = 'arraybuffer';
 
-		audioWebSocket.onopen = () => {
-			console.log('WebSocket connection established (discordService)');
-		};
+		audioWebSocket.onopen = () => {};
 
 		audioWebSocket.onmessage = async (event: MessageEvent) => {
-			console.log('Received message from WebSocket (discordService):', event);
-			onAudioReceived(new Blob([event.data], { type: 'audio/wav' }));
+			// Extract username and audio blob
+			const dataView = new DataView(event.data);
+			const usernameLength = dataView.getUint32(0, false);
+			const usernameBytes = new Uint8Array(event.data, 4, usernameLength);
+			const username = new TextDecoder().decode(usernameBytes);
+			const audioData = new Uint8Array(event.data, 4 + usernameLength);
+			const audioBlob = new Blob([audioData], { type: 'audio/wav' });
+
+			onAudioReceived(username, audioBlob);
 		};
 
 		audioWebSocket.onclose = () => {
-			console.log('WebSocket connection closed (discordService)');
 			audioWebSocket = null;
 		};
 
 		audioWebSocket.onerror = (event: Event) => {
-			console.error('WebSocket error (discordService):', event);
+			console.error('WebSocket error:', event);
 			serviceError.set('WebSocket error: ' + String(event));
 			audioWebSocket = null;
 		};

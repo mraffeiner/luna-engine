@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { discordService } from '$lib/discordService';
 	import { serviceError } from '$lib/containerService';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	let guildId: string = $state('1194692480805904384');
 	let channelId: string = $state('1349007184406642798');
-	let audioUrl: string = $state('');
+	let speakerAudio: SvelteMap<string, string> = $state(new SvelteMap());
 
 	async function connect() {
 		await discordService.connect(guildId, channelId);
-		await discordService.connectWebSocket((audioBlob) => {
-			audioUrl = URL.createObjectURL(audioBlob);
+		await discordService.connectWebSocket((username, audioBlob) => {
+			speakerAudio.set(username, URL.createObjectURL(audioBlob));
 		});
 	}
 
@@ -101,7 +102,7 @@
 		</button>
 	</div>
 
-	{#if audioUrl}
+	{#each [...speakerAudio] as [username, audioUrl]}
 		<div class="mt-6 rounded-lg border border-gray-600 bg-gray-800 p-4">
 			<h4 class="mb-2 flex items-center text-sm font-medium text-gray-300">
 				<svg
@@ -118,9 +119,9 @@
 						d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
 					/>
 				</svg>
-				Last Spoken Audio
+				{username}
 			</h4>
 			<audio controls autoplay={true} src={audioUrl} class="w-full rounded-md"></audio>
 		</div>
-	{/if}
+	{/each}
 </div>
