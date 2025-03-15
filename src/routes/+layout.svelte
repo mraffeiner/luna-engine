@@ -10,12 +10,13 @@
 	import LlmForm from '$lib/LlmForm.svelte';
 	import TtsForm from '$lib/TtsForm.svelte';
 	import DiscordForm from '$lib/DiscordForm.svelte';
+	import DockerServiceForm from '$lib/DockerServiceForm.svelte';
 
 	let { children } = $props();
 
 	// List of all services in the application
 	const services = [
-		'discord-service',
+		'docker-service',
 		'llm-service',
 		'tts-service',
 		'stt-service',
@@ -133,6 +134,12 @@
 			<div class:hidden={currentPath !== '/discord-service'}>
 				<ServicePage serviceName="discord-service" title="Discord Service">
 					<DiscordForm />
+				</ServicePage>
+			</div>
+
+			<div class:hidden={currentPath !== '/docker-service'}>
+				<ServicePage serviceName="docker-service" title="Docker Service">
+					<DockerServiceForm />
 				</ServicePage>
 			</div>
 		{/if}
