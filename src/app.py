@@ -446,8 +446,8 @@ async def synthesize_with_kokoro(request: KokoroTTSRequest) -> bytes:
         raise HTTPException(status_code=500, detail=f"Error with Kokoro TTS: {str(e)}")
 
 
-@app.post("/tts", summary="Generate speech from text")
-async def tts_endpoint(request: TTSRequest = Body(...)):
+@app.post("/generate", summary="Generate speech from text")
+async def generate_endpoint(request: TTSRequest = Body(...)):
     """
     Generate speech from text using the specified engine
 
