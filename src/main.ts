@@ -4,8 +4,13 @@ import {
   VoiceChannel,
   ChannelType,
 } from "discord.js";
-import { joinVoiceChannel, VoiceConnection } from "@discordjs/voice";
+import {
+  AudioReceiveStream,
+  joinVoiceChannel,
+  VoiceConnection,
+} from "@discordjs/voice";
 import { opus } from "prism-media";
+import { Buffer } from "node:buffer";
 
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
@@ -22,7 +27,6 @@ const client = new Client({
 
 let connection: VoiceConnection | null = null;
 let audioWebSocket: WebSocket | null = null;
-const audioStreams = new Set();
 const activeStreams = new Map();
 
 client.on("ready", () => {
@@ -61,39 +65,60 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
     `Connected to voice channel ${channel.name} in guild ${guild.name}`
   );
 
-  const decoder = new opus.Decoder({
-    channels: 2,
-    frameSize: 960,
-    rate: 48000,
-  });
+  let pcmData: Buffer[] = [];
 
   connection.receiver.speaking.on("start", (userId) => {
     console.log(`User ${userId} started speaking`);
-    const stream = connection!.receiver.subscribe(userId);
+
+    if (!connection) {
+      console.error("Connection is null when user started speaking.");
+      return;
+    }
+
+    const stream: AudioReceiveStream = connection.receiver.subscribe(userId);
     activeStreams.set(userId, stream);
+
+    const decoder = new opus.Decoder({
+      channels: 2,
+      frameSize: 960,
+      rate: 48000,
+    });
 
     stream.pipe(decoder);
     decoder.on("data", (chunk) => {
-      // Convert PCM to WAV
-      const wav = new wave.WaveFile();
-      wav.fromScratch(2, 48000, "16", chunk);
-
-      // Send the chunk through the WebSocket connection.
-      if (audioWebSocket?.readyState === WebSocket.OPEN) {
-        audioWebSocket.send(wav.toBuffer());
-      } else {
-        console.log("Audio websocket not open");
-      }
+      pcmData.push(chunk);
     });
   });
 
   connection.receiver.speaking.on("end", (userId) => {
     console.log(`User ${userId} stopped speaking`);
-    const stream = activeStreams.get(userId);
-    if (stream) {
-      stream.destroy();
-      activeStreams.delete(userId);
+
+    activeStreams.get(userId)?.destroy();
+    activeStreams.delete(userId);
+
+    const concatenatedPcmData = Buffer.concat(pcmData);
+
+    // Deinterleave stereo pcm data
+    const totalFrames = concatenatedPcmData.length / 4;
+    const leftChannel = new Int16Array(totalFrames);
+    const rightChannel = new Int16Array(totalFrames);
+    for (let i = 0; i < totalFrames; i++) {
+      // For each frame, read 2 bytes for left and 2 bytes for right.
+      leftChannel[i] = concatenatedPcmData.readInt16LE(i * 4);
+      rightChannel[i] = concatenatedPcmData.readInt16LE(i * 4 + 2);
     }
+
+    // Convert to wav
+    const wav = new wave.WaveFile();
+    wav.fromScratch(2, 48000, "16", [leftChannel, rightChannel]);
+
+    if (audioWebSocket?.readyState === WebSocket.OPEN) {
+      audioWebSocket.send(wav.toBuffer());
+    } else {
+      console.log("Audio websocket not open");
+    }
+
+    pcmData = [];
   });
 }
 
@@ -101,7 +126,6 @@ function disconnectFromVoiceChannel() {
   if (connection) {
     connection.destroy();
     connection = null;
-    audioStreams.clear();
     console.log("Disconnected from voice channel");
   }
   if (audioWebSocket) {
