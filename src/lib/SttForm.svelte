@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { sttOutput } from './stores';
+	import { sttOutput, discordOutput } from './stores';
 
 	import { transcribeAudio, sttError, sttStatus } from './sttService';
 
@@ -12,6 +12,27 @@
 	let audioStream: MediaStream | null = $state(null);
 
 	let forwardToLlm = $state(false);
+
+	async function handleTranscribeAudio(audioBlob: Blob, prefix?: string) {
+		// Transcribe the audio
+		const transcription = await transcribeAudio(audioBlob);
+
+		if (transcription) {
+			transcribedText = prefix + transcription;
+		}
+
+		isRecording = false;
+
+		// Release media stream
+		if (audioStream) {
+			audioStream.getTracks().forEach((track) => track.stop());
+			audioStream = null;
+		}
+
+		if (forwardToLlm && transcribedText) {
+			sttOutput.set(transcribedText);
+		}
+	}
 
 	// Cleanup function to stop recording and release resources
 	function cleanup() {
@@ -74,24 +95,7 @@
 				const audioBlob = new Blob(audioChunks, { type: options.mimeType });
 				audioChunks = []; // Clear chunks after processing
 
-				// Transcribe the audio
-				const text = await transcribeAudio(audioBlob);
-
-				if (text) {
-					transcribedText = text;
-				}
-
-				isRecording = false;
-
-				// Release media stream
-				if (audioStream) {
-					audioStream.getTracks().forEach((track) => track.stop());
-					audioStream = null;
-				}
-
-				if (forwardToLlm && transcribedText) {
-					sttOutput.set(transcribedText);
-				}
+				await handleTranscribeAudio(audioBlob);
 			};
 
 			// Start recording
@@ -127,7 +131,15 @@
 
 	// Clean up resources when component is destroyed
 	$effect(() => {
-		return cleanup;
+		const unsubscribe = discordOutput.subscribe(async (newAudio) => {
+			if (newAudio) {
+				await handleTranscribeAudio(newAudio.audioBlob, newAudio.username + ': ');
+			}
+		});
+		return () => {
+			unsubscribe;
+			cleanup;
+		};
 	});
 </script>
 

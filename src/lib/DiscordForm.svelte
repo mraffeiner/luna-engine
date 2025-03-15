@@ -2,15 +2,20 @@
 	import { discordService } from '$lib/discordService';
 	import { serviceError } from '$lib/containerService';
 	import { SvelteMap } from 'svelte/reactivity';
+	import { discordOutput } from '$lib/stores';
 
 	let guildId: string = $state('1194692480805904384');
 	let channelId: string = $state('1349007184406642798');
 	let speakerAudio: SvelteMap<string, string> = $state(new SvelteMap());
+	let forwardToStt = $state(false);
 
 	async function connect() {
 		await discordService.connect(guildId, channelId);
-		await discordService.connectWebSocket((username, audioBlob) => {
+		await discordService.connectWebSocket(async (username, audioBlob) => {
 			speakerAudio.set(username, URL.createObjectURL(audioBlob));
+			if (forwardToStt) {
+				discordOutput.set({ username: username, audioBlob: audioBlob });
+			}
 		});
 	}
 
@@ -85,6 +90,16 @@
 			class="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 p-2 text-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
 		/>
 	</div>
+	<div class="mt-4">
+		<label class="inline-flex items-center space-x-2">
+			<input
+				type="checkbox"
+				class="rounded border-gray-600 text-indigo-600 focus:ring-indigo-500"
+				bind:checked={forwardToStt}
+			/>
+			<span class="text-gray-200">Forward to STT</span>
+		</label>
+	</div>
 
 	<div class="mt-6">
 		<button
@@ -121,7 +136,7 @@
 				</svg>
 				{username}
 			</h4>
-			<audio controls autoplay={true} src={audioUrl} class="w-full rounded-md"></audio>
+			<audio controls src={audioUrl} class="w-full rounded-md"></audio>
 		</div>
 	{/each}
 </div>
