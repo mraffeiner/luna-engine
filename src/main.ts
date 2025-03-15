@@ -5,6 +5,11 @@ import {
   ChannelType,
 } from "discord.js";
 import { joinVoiceChannel, VoiceConnection } from "@discordjs/voice";
+import { opus } from "prism-media";
+
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
+const wave = require("wavefile");
 
 const client = new Client({
   intents: [
@@ -56,15 +61,28 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
     `Connected to voice channel ${channel.name} in guild ${guild.name}`
   );
 
+  const decoder = new opus.Decoder({
+    channels: 2,
+    frameSize: 960,
+    rate: 48000,
+  });
+
   connection.receiver.speaking.on("start", (userId) => {
     console.log(`User ${userId} started speaking`);
     const stream = connection!.receiver.subscribe(userId);
     activeStreams.set(userId, stream);
 
-    stream.on("data", (chunk: Uint8Array) => {
+    stream.pipe(decoder);
+    decoder.on("data", (chunk) => {
+      // Convert PCM to WAV
+      const wav = new wave.WaveFile();
+      wav.fromScratch(2, 48000, "16", chunk);
+
       // Send the chunk through the WebSocket connection.
       if (audioWebSocket?.readyState === WebSocket.OPEN) {
-        audioWebSocket.send(chunk);
+        audioWebSocket.send(wav.toBuffer());
+      } else {
+        console.log("Audio websocket not open");
       }
     });
   });
