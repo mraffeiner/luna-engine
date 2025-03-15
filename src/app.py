@@ -350,33 +350,30 @@ async def discord_leave_voice(request: dict = Body(...)):
 
 
 @app.websocket("/discord/ws")
-async def websocket_proxy(websocket: WebSocket):
-    await websocket.accept()
+async def websocket_proxy(frontend_websocket: WebSocket):
+    await frontend_websocket.accept()
+
     try:
         async with websockets.connect(f"{DISCORD_SERVICE_WS_URL}") as backend_socket:
+            backend_websocket = backend_socket
 
             async def forward_to_backend():
-                while True:
-                    if not (
-                        websocket.state == websockets.protocol.State.CLOSING
-                        or websocket.state == websockets.protocol.State.CLOSED
-                    ):
-                        data = await websocket.receive_bytes()
-                        await backend_socket.send(data)
-                    else:
-                        break
+                while frontend_websocket.state == websockets.protocol.State.OPEN:
+                    data = await frontend_websocket.receive_bytes()
+                    await backend_socket.send(data)
 
             async def forward_to_frontend():
-                while True:
-                    if not (
-                        backend_socket.state == websockets.protocol.State.CLOSING
-                        or backend_socket.state == websockets.protocol.State.CLOSED
-                    ):
-                        data = await backend_socket.recv()
-                        await websocket.send_bytes(data)
-                    else:
-                        break
+                while backend_socket.state == websockets.protocol.State.OPEN:
+                    data = await backend_socket.recv()
+                    await frontend_websocket.send_bytes(data)
 
             await asyncio.gather(forward_to_backend(), forward_to_frontend())
+    except websockets.ConnectionClosedOK:
+        logger.info("WebSocket connection closed normally")
+    except websockets.ConnectionClosed:
+        logger.warning("WebSocket connection closed unexpectedly")
     except Exception as e:
         logger.error(f"Error in WebSocket proxy: {e}")
+    finally:
+        await frontend_websocket.close()
+        await backend_websocket.close()
