@@ -6,7 +6,9 @@
 		savePromptTemplate,
 		loadPromptTemplate,
 		listPromptNames,
-		deletePromptTemplate
+		deletePromptTemplate,
+		dynamicPrompt,
+		fetchDynamicPrompt
 	} from './promptService';
 
 	let promptNames: string[] = $state(listPromptNames());
@@ -35,6 +37,10 @@
 		} else if (promptNames.length > 0) {
 			selectedPrompt = promptNames[0];
 		}
+	});
+
+	$effect(() => {
+		fetchDynamicPrompt();
 	});
 </script>
 
@@ -120,4 +126,9 @@
 			<option value={name}>{name}</option>
 		{/each}
 	</select>
+
+	<h2 class="mb-2 text-lg font-medium text-gray-200">Dynamic Prompt</h2>
+	<div class="mb-4 rounded-md border border-gray-600 bg-gray-700 p-2 text-white">
+		{$dynamicPrompt}
+	</div>
 </div>

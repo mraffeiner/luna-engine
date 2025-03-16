@@ -3,6 +3,7 @@ import { writable } from 'svelte/store';
 export const promptName = writable('');
 export const promptTemplate = writable('');
 export const promptError = writable<string | null>(null);
+export const dynamicPrompt = writable<string>('');
 
 export function savePromptTemplate(name: string, template: string) {
 	if (name) {
@@ -46,4 +47,22 @@ export function listPromptNames(): string[] {
 		}
 	}
 	return keys;
+}
+
+export async function fetchDynamicPrompt(): Promise<void> {
+	try {
+		const response = await fetch('/api/prompt/prompt');
+		if (response.ok) {
+			const data = await response.json();
+			dynamicPrompt.set(data.prompt);
+		} else {
+			const errorMsg = `Failed to fetch dynamic prompt: ${response.status} ${response.statusText}`;
+			console.error(errorMsg);
+			promptError.set(errorMsg);
+		}
+	} catch (error) {
+		const errorMsg = `Error fetching dynamic prompt: ${error}`;
+		console.error(errorMsg);
+		promptError.set(errorMsg);
+	}
 }
