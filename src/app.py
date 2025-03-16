@@ -30,6 +30,7 @@ class TTSEngine(str, Enum):
 
     AZURE = "azure"
     KOKORO = "kokoro"
+    SESAME = "sesame"
 
 
 # Azure TTS configuration
@@ -45,13 +46,13 @@ if os.getenv("AZURE_SUBSCRIPTION") and os.getenv("AZURE_ENDPOINT"):
 
 # Kokoro TTS configuration
 KOKORO_API_URL = os.getenv("KOKORO_API_URL", "http://kokoro-tts:8880")
+SESAME_API_URL = os.getenv("SESAME_API_URL", "http://sesame-tts:8000")
 
 
 # API Models
 class BaseTTSRequest(BaseModel):
     """Base model for TTS synthesis requests"""
 
-    language: str = Field(..., description="Language code (e.g., en-US)")
     voice: str = Field(..., description="Voice identifier")
     text: str = Field(..., description="Text to synthesize")
 
@@ -60,6 +61,7 @@ class AzureTTSRequest(BaseTTSRequest):
     """Azure-specific TTS request model"""
 
     engine: Literal[TTSEngine.AZURE] = TTSEngine.AZURE
+    language: str = Field(..., description="Language code (e.g., en-US)")
     style: str = Field("default", description="Speaking style")
     rate: str = Field("0%", description="Speaking rate (-100% to 100%)")
     pitch: str = Field("0%", description="Voice pitch (-100% to 100%)")
@@ -69,12 +71,19 @@ class KokoroTTSRequest(BaseTTSRequest):
     """Kokoro-specific TTS request model"""
 
     engine: Literal[TTSEngine.KOKORO] = TTSEngine.KOKORO
+    language: str = Field(..., description="Language code (e.g., en-US)")
     speed: float = Field(1.0, description="Speaking speed multiplier (0.5-2.0)")
     pitch: float = Field(1.0, description="Voice pitch multiplier (0.5-2.0)")
 
 
+class SesameTTSRequest(BaseTTSRequest):
+    """Sesame-specific TTS request model"""
+
+    engine: Literal[TTSEngine.SESAME] = TTSEngine.SESAME
+
+
 # Union type for request validation
-TTSRequest = AzureTTSRequest | KokoroTTSRequest
+TTSRequest = AzureTTSRequest | KokoroTTSRequest | SesameTTSRequest
 
 
 class TTSEngineOptions(BaseModel):
@@ -105,16 +114,26 @@ async def health_check():
     except Exception as e:
         logger.warning(f"Kokoro health check failed: {e}")
 
+    # Check Sesame
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{SESAME_API_URL}/health", timeout=2.0)
+            if response.status_code == 200:
+                status["engines"].append("sesame")
+    except Exception as e:
+        logger.warning(f"Sesame health check failed: {e}")
+
     return status
 
 
 @app.get("/options", response_model=TTSEngineOptions, summary="Get TTS options")
 async def get_tts_options():
     """Get available TTS options for all engines including languages, voices, and styles"""
-    return {
+    options = {
         "engines": [
             {"value": "azure", "label": "Azure TTS"},
             {"value": "kokoro", "label": "Kokoro TTS"},
+            {"value": "sesame", "label": "Sesame TTS"},
         ],
         "languages": [
             {"value": "en-US", "label": "English (US)"},
@@ -311,6 +330,8 @@ async def get_tts_options():
                 "label": "Yunyang (Chinese Male)",
                 "engine": "kokoro",
             },
+            # Sesame voices
+            {"value": "alloy", "label": "Alloy (Sesame)", "engine": "sesame"},
         ],
         "styles": [
             {"value": "default", "label": "Default"},
@@ -320,6 +341,7 @@ async def get_tts_options():
             {"value": "whispering", "label": "Whispering"},
         ],
     }
+    return options
 
 
 # TTS Engine Implementations
@@ -423,7 +445,6 @@ async def synthesize_with_kokoro(request: KokoroTTSRequest) -> bytes:
                     "input": request.text.replace("\n", ". "),
                     "voice": request.voice,
                     "language": request.language,
-                    "voice": request.voice,
                     "response_format": "wav",
                     "speed": request.speed,
                     "pitch": request.pitch,
@@ -444,6 +465,48 @@ async def synthesize_with_kokoro(request: KokoroTTSRequest) -> bytes:
     except Exception as e:
         logger.error(f"Error with Kokoro TTS: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error with Kokoro TTS: {str(e)}")
+
+
+async def synthesize_with_sesame(request: SesameTTSRequest) -> bytes:
+    """
+    Synthesize speech using Sesame TTS
+
+    Args:
+        request: The Sesame TTS request containing all parameters
+
+    Returns:
+        Audio data as bytes
+
+    Raises:
+        HTTPException: If synthesis fails
+    """
+    try:
+        # Call Sesame API
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{SESAME_API_URL}/v1/audio/speech",
+                json={
+                    "model": "csm-1b",
+                    "input": request.text,
+                    "voice": request.voice,
+                    "response_format": "wav",
+                },
+                timeout=30.0,
+            )
+
+            response.raise_for_status()
+            logger.info(f"Sesame speech synthesized for text: {request.text[:50]}...")
+            return response.content
+
+    except httpx.HTTPStatusError as e:
+        logger.error(f"Sesame API error: {e.response.status_code} - {e.response.text}")
+        raise HTTPException(
+            status_code=e.response.status_code,
+            detail=f"Sesame API error: {e.response.text}",
+        )
+    except Exception as e:
+        logger.error(f"Error with Sesame TTS: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error with Sesame TTS: {str(e)}")
 
 
 @app.post("/generate", summary="Generate speech from text")
@@ -468,6 +531,8 @@ async def generate_endpoint(request: TTSRequest = Body(...)):
             audio_data = await synthesize_with_azure(request)
         elif isinstance(request, KokoroTTSRequest):
             audio_data = await synthesize_with_kokoro(request)
+        elif isinstance(request, SesameTTSRequest):
+            audio_data = await synthesize_with_sesame(request)
         else:
             raise HTTPException(
                 status_code=400, detail=f"Unsupported TTS engine: {request.engine}"
