@@ -1,10 +1,14 @@
 import { writable } from 'svelte/store';
 
+export interface EngineOptions {
+	label: string;
+	voices: { value: string; label: string }[];
+	languages?: { value: string; label: string }[];
+	styles?: { value: string; label: string }[];
+}
+
 export interface TtsOptions {
-	engines: { value: string; label: string }[];
-	languages: { value: string; label: string }[];
-	voices: { value: string; label: string; engine?: string }[];
-	styles: { value: string; label: string }[];
+	engines: { [key: string]: EngineOptions };
 }
 
 // Request interfaces matching backend models
@@ -46,10 +50,7 @@ export type TtsRequestParams =
 
 // Shared store for TTS options
 export const ttsOptions = writable<TtsOptions>({
-	engines: [],
-	languages: [],
-	voices: [],
-	styles: []
+	engines: {}
 });
 
 // Shared store for error messages
@@ -112,32 +113,4 @@ export async function generateSpeech(params: TtsRequestParams): Promise<Blob | n
 		ttsError.set(errorMsg);
 		return null;
 	}
-}
-
-/**
- * Filters voices by engine
- */
-export function getVoicesByEngine(engine: string): { value: string; label: string }[] {
-	let allVoices: { value: string; label: string; engine?: string }[] = [];
-	ttsOptions.subscribe((options) => {
-		allVoices = options.voices;
-	})();
-
-	return allVoices.filter((v) => v.engine === engine || (!v.engine && engine === 'azure'));
-}
-
-/**
- * Filters languages by supported values (for Kokoro)
- */
-export function getLanguagesByEngine(engine: string): { value: string; label: string }[] {
-	let allLanguages: { value: string; label: string }[] = [];
-	ttsOptions.subscribe((options) => {
-		allLanguages = options.languages;
-	})();
-
-	if (engine === 'kokoro') {
-		return allLanguages.filter((l) => ['en-US', 'ja-JP', 'ko-KR', 'zh-CN'].includes(l.value));
-	}
-
-	return allLanguages;
 }

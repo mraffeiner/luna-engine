@@ -1,10 +1,5 @@
 <script lang="ts">
-	import {
-		generateSpeech,
-		getVoicesByEngine,
-		ttsError,
-		type SesameTtsRequestParams
-	} from './ttsService';
+	import { generateSpeech, ttsError, ttsOptions, type SesameTtsRequestParams } from './ttsService';
 
 	let text = $state('Hi there hello');
 	let voice = $state('alloy');
@@ -75,9 +70,11 @@
 					bind:value={voice}
 					class="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-3 text-white shadow-sm transition-colors duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 sm:text-sm"
 				>
-					{#each getVoicesByEngine('sesame') as voiceOption}
-						<option value={voiceOption.value}>{voiceOption.label}</option>
-					{/each}
+					{#if $ttsOptions.engines['sesame']?.voices}
+						{#each $ttsOptions.engines['sesame'].voices as voiceOption}
+							<option value={voiceOption.value}>{voiceOption.label}</option>
+						{/each}
+					{/if}
 				</select>
 				<div
 					class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400"

@@ -2,10 +2,9 @@
 	import {
 		ttsError,
 		generateSpeech,
-		getVoicesByEngine,
-		getLanguagesByEngine,
 		type KokoroTtsRequestParams,
-		type VoiceWeight
+		type VoiceWeight,
+		ttsOptions
 	} from './ttsService';
 
 	let text = $state('Hi there hello');
@@ -27,7 +26,7 @@
 	let loading = $state(false);
 
 	function addVoice() {
-		const kokoroVoices = getVoicesByEngine('kokoro');
+		const kokoroVoices = $ttsOptions.engines['kokoro']?.voices || [];
 		// Find a voice that's not already in the mix
 		const unusedVoice = kokoroVoices.find((v) => !voiceMix.some((mix) => mix.voice === v.value));
 
@@ -120,9 +119,11 @@
 					bind:value={language}
 					class="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-3 text-white shadow-sm transition-colors duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 sm:text-sm"
 				>
-					{#each getLanguagesByEngine('kokoro') as lang}
-						<option value={lang.value}>{lang.label}</option>
-					{/each}
+					{#if $ttsOptions.engines['kokoro']?.languages}
+						{#each $ttsOptions.engines['kokoro'].languages as lang}
+							<option value={lang.value}>{lang.label}</option>
+						{/each}
+					{/if}
 				</select>
 				<div
 					class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400"
@@ -166,9 +167,11 @@
 						bind:value={voice}
 						class="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-3 text-white shadow-sm transition-colors duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 sm:text-sm"
 					>
-						{#each getVoicesByEngine('kokoro') as voiceOption}
-							<option value={voiceOption.value}>{voiceOption.label}</option>
-						{/each}
+						{#if $ttsOptions.engines['kokoro']?.voices}
+							{#each $ttsOptions.engines['kokoro'].voices as voiceOption}
+								<option value={voiceOption.value}>{voiceOption.label}</option>
+							{/each}
+						{/if}
 					</select>
 					<div
 						class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400"
@@ -199,7 +202,7 @@
 						id="addVoice"
 						type="button"
 						onclick={addVoice}
-						disabled={voiceMix.length >= getVoicesByEngine('kokoro').length}
+						disabled={voiceMix.length >= ($ttsOptions.engines['kokoro']?.voices.length || 0)}
 						class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-colors duration-200 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						<span class="flex items-center">
@@ -232,9 +235,11 @@
 										onchange={(e) => updateVoiceSelection(i, e.currentTarget.value)}
 										class="w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-2 text-sm text-white"
 									>
-										{#each getVoicesByEngine('kokoro') as voiceOption}
-											<option value={voiceOption.value}>{voiceOption.label}</option>
-										{/each}
+										{#if $ttsOptions.engines['kokoro']?.voices}
+											{#each $ttsOptions.engines['kokoro'].voices as voiceOption}
+												<option value={voiceOption.value}>{voiceOption.label}</option>
+											{/each}
+										{/if}
 									</select>
 									<div
 										class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400"

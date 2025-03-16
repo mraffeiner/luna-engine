@@ -1,11 +1,5 @@
 <script lang="ts">
-	import {
-		ttsOptions,
-		ttsError,
-		generateSpeech,
-		getVoicesByEngine,
-		type AzureTtsRequestParams
-	} from './ttsService';
+	import { ttsError, generateSpeech, type AzureTtsRequestParams, ttsOptions } from './ttsService';
 
 	let text = $state('Hi there hello');
 	let language = $state('en-US');
@@ -83,9 +77,11 @@
 					bind:value={language}
 					class="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-3 text-white shadow-sm transition-colors duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 sm:text-sm"
 				>
-					{#each $ttsOptions.languages as lang}
-						<option value={lang.value}>{lang.label}</option>
-					{/each}
+					{#if $ttsOptions.engines['azure']?.languages}
+						{#each $ttsOptions.engines['azure']?.languages as lang}
+							<option value={lang.value}>{lang.label}</option>
+						{/each}
+					{/if}
 				</select>
 				<div
 					class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400"
@@ -111,9 +107,11 @@
 					bind:value={voice}
 					class="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-3 text-white shadow-sm transition-colors duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 sm:text-sm"
 				>
-					{#each getVoicesByEngine('azure') as voiceOption}
-						<option value={voiceOption.value}>{voiceOption.label}</option>
-					{/each}
+					{#if $ttsOptions.engines['azure']?.voices}
+						{#each $ttsOptions.engines['azure'].voices as voiceOption}
+							<option value={voiceOption.value}>{voiceOption.label}</option>
+						{/each}
+					{/if}
 				</select>
 				<div
 					class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400"
@@ -140,9 +138,11 @@
 					bind:value={style}
 					class="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-3 text-white shadow-sm transition-colors duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 sm:text-sm"
 				>
-					{#each $ttsOptions.styles as styleOption}
-						<option value={styleOption.value}>{styleOption.label}</option>
-					{/each}
+					{#if $ttsOptions.engines['azure']?.styles}
+						{#each $ttsOptions.engines['azure'].styles as styleOption}
+							<option value={styleOption.value}>{styleOption.label}</option>
+						{/each}
+					{/if}
 				</select>
 				<div
 					class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400"

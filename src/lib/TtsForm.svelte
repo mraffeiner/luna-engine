@@ -60,8 +60,8 @@
 				bind:value={selectedEngine}
 				class="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-2 text-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
 			>
-				{#each $ttsOptions.engines as engineOption}
-					<option value={engineOption.value}>{engineOption.label}</option>
+				{#each Object.entries($ttsOptions.engines) as [engineKey, engineOption]}
+					<option value={engineKey}>{engineOption.label}</option>
 				{/each}
 			</select>
 			<div
