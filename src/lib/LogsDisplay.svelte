@@ -38,13 +38,6 @@
 		}
 	});
 
-	// Watch for changes to autoScroll and scroll when it's enabled
-	$effect(() => {
-		if (autoScroll) {
-			scrollToBottom();
-		}
-	});
-
 	// Setup and cleanup
 	$effect(() => {
 		// Setup
