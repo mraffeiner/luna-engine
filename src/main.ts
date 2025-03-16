@@ -59,6 +59,8 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
   connection = joinVoiceChannel({
     channelId: channel.id,
     guildId: channel.guild.id,
+    selfDeaf: false,
+    selfMute: false,
     adapterCreator: (channel as VoiceChannel).guild.voiceAdapterCreator,
   });
   console.log(
