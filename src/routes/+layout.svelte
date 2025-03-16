@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import Sidebar from '$lib/Sidebar.svelte';
-	import { serviceError } from '$lib/containerService';
+	import { serviceError } from '$lib/dockerService';
 	import { page } from '$app/state';
 	import ServicePage from '$lib/ServicePage.svelte';
 	import SttForm from '$lib/SttForm.svelte';

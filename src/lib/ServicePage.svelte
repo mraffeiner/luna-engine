@@ -1,6 +1,6 @@
 <script lang="ts">
 	import LogsDisplay from './LogsDisplay.svelte';
-	import { containerService, containerStatus } from './containerService';
+	import { dockerService, containerStatus } from './dockerService';
 
 	// Define props using $props rune
 	const { children, serviceName, title } = $props();
@@ -16,13 +16,13 @@
 
 	// Check container status on mount
 	$effect(() => {
-		containerService.checkContainerStatus(serviceName);
+		dockerService.checkContainerStatus(serviceName);
 	});
 
 	// Start log stream if service is running
 	$effect(() => {
 		if (status.isRunning) {
-			containerService.startLogStream(serviceName);
+			dockerService.startLogStream(serviceName);
 		}
 	});
 </script>
@@ -52,8 +52,8 @@
 		<button
 			onclick={() =>
 				status.isRunning
-					? containerService.stopContainer(serviceName)
-					: containerService.startContainer(serviceName)}
+					? dockerService.stopContainer(serviceName)
+					: dockerService.startContainer(serviceName)}
 			class="rounded-md font-bold {status.isRunning
 				? 'bg-red-700 hover:bg-red-800'
 				: 'bg-green-700 hover:bg-green-600'} px-5 py-2.5 font-medium text-white shadow-sm focus:outline-none focus:ring-2 {status.isRunning
@@ -87,7 +87,7 @@
 		</button>
 
 		<button
-			onclick={() => containerService.clearLogs(serviceName)}
+			onclick={() => dockerService.clearLogs(serviceName)}
 			class="rounded-md bg-gray-700 px-5 py-2.5 font-medium text-white shadow-sm transition-colors duration-200 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
 			disabled={status.isStarting || status.isStopping}
 		>

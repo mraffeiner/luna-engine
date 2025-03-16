@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { containerService } from './containerService';
+	import { dockerService } from './dockerService';
 
 	// Define props using $props rune
 	const props = $props();
@@ -42,13 +42,13 @@
 	$effect(() => {
 		// Setup
 		const handleBeforeUnload = () => {
-			containerService.stopLogStream(props.serviceName);
+			dockerService.stopLogStream(props.serviceName);
 		};
 
 		window.addEventListener('beforeunload', handleBeforeUnload);
 
-		containerService.startLogStream(props.serviceName);
-		const logsStore = containerService.getLogsStore(props.serviceName);
+		dockerService.startLogStream(props.serviceName);
+		const logsStore = dockerService.getLogsStore(props.serviceName);
 		const unsubscribe = logsStore.subscribe((updatedLogs) => {
 			logs = updatedLogs;
 		});

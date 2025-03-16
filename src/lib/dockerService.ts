@@ -25,7 +25,7 @@ export const containerStatus = writable<Record<string, ContainerStatus>>({});
 // Private state
 const logStreams = new Map<string, EventSource>();
 const serviceLogs = new Map<string, Writable<string[]>>();
-const API_BASE_URL = '/api';
+const API_BASE_URL = '/api/docker';
 
 // Default container status
 const DEFAULT_STATUS = {
@@ -91,7 +91,7 @@ function updateStatus(serviceName: string, updates: Partial<ContainerStatus>): v
 /**
  * Service for managing container operations
  */
-export const containerService = {
+export const dockerService = {
 	/**
 	 * Starts a container
 	 */
@@ -101,7 +101,7 @@ export const containerService = {
 		try {
 			await apiRequest(`/start_container/${serviceName}`, serviceName, 'start', { method: 'POST' });
 			updateStatus(serviceName, { isRunning: true });
-			containerService.startLogStream(serviceName);
+			dockerService.startLogStream(serviceName);
 		} finally {
 			updateStatus(serviceName, { isStarting: false });
 		}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { containerStatus } from './containerService';
+	import { containerStatus } from './dockerService';
 
 	// Define the services
 	const services = [

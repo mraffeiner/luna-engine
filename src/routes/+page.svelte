@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { containerService } from '$lib/containerService';
+	import { dockerService } from '$lib/dockerService';
 
 	const services = [
 		'docker-service',
@@ -12,7 +12,7 @@
 
 	$effect(() => {
 		services.forEach((serviceName) => {
-			containerService.checkContainerStatus(serviceName);
+			dockerService.checkContainerStatus(serviceName);
 		});
 	});
 </script>
