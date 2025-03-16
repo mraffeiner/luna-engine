@@ -1,6 +1,7 @@
 <script lang="ts">
 	import AzureTtsForm from './AzureTtsForm.svelte';
 	import KokoroTtsForm from './KokoroTtsForm.svelte';
+	import SesameTtsForm from './SesameTtsForm.svelte';
 	import { ttsOptions, ttsError, fetchTtsOptions } from './ttsService';
 
 	let selectedEngine = $state('kokoro');
@@ -86,6 +87,8 @@
 			<AzureTtsForm />
 		{:else if selectedEngine === 'kokoro'}
 			<KokoroTtsForm />
+		{:else if selectedEngine === 'sesame'}
+			<SesameTtsForm />
 		{:else}
 			<div class="rounded-md border border-yellow-800 bg-yellow-900 bg-opacity-30 p-4">
 				<p class="flex items-center text-yellow-400">

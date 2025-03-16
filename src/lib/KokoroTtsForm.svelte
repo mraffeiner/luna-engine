@@ -27,22 +27,6 @@
 	let audioUrl = $state<string | null>(null);
 	let loading = $state(false);
 
-	// Set default voice if available
-	$effect(() => {
-		const kokoroVoices = getVoicesByEngine('kokoro');
-		if (kokoroVoices.length > 0) {
-			// Set default for single voice mode
-			if (!kokoroVoices.some((v) => v.value === voice)) {
-				voice = kokoroVoices[0].value;
-			}
-
-			// Set default for voice mix if empty
-			if (voiceMix.length === 0) {
-				voiceMix = [{ voice: kokoroVoices[0].value, weight: 1.0 }];
-			}
-		}
-	});
-
 	function addVoice() {
 		const kokoroVoices = getVoicesByEngine('kokoro');
 		// Find a voice that's not already in the mix
@@ -103,7 +87,7 @@
 		return () => {
 			unsubscribe;
 			llmOutput.set(null);
-		}
+		};
 	});
 </script>
 

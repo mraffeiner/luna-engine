@@ -9,13 +9,13 @@ export interface TtsOptions {
 
 // Request interfaces matching backend models
 export interface BaseTtsRequestParams {
-	language: string;
 	voice: string;
 	text: string;
 }
 
 export interface AzureTtsRequestParams extends BaseTtsRequestParams {
 	engine: 'azure';
+	language: string;
 	style: string;
 	rate: string;
 	pitch: string;
@@ -28,13 +28,21 @@ export interface VoiceWeight {
 
 export interface KokoroTtsRequestParams extends BaseTtsRequestParams {
 	engine: 'kokoro';
+	language: string;
 	speed: number;
 	pitch?: number;
 	voiceMix?: VoiceWeight[];
 }
 
+export interface SesameTtsRequestParams extends BaseTtsRequestParams {
+	engine: 'sesame';
+}
+
 // Union type for request parameters
-export type TtsRequestParams = AzureTtsRequestParams | KokoroTtsRequestParams;
+export type TtsRequestParams =
+	| AzureTtsRequestParams
+	| KokoroTtsRequestParams
+	| SesameTtsRequestParams;
 
 // Shared store for TTS options
 export const ttsOptions = writable<TtsOptions>({

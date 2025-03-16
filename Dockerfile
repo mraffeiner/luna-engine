@@ -1,5 +1,5 @@
 # Stage 1: Build the SvelteKit application with Deno
-FROM denoland/deno:ubuntu-2.2.3 as build
+FROM denoland/deno:ubuntu-2.2.3 AS build
 
 WORKDIR /app
 
