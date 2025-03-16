@@ -417,9 +417,12 @@ async def synthesize_with_azure(request: AzureTTSRequest) -> bytes:
                 detail="Unexpected error during Azure speech synthesis",
             )
 
-    except Exception as e:
-        logger.error(f"Error with Azure TTS: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error with Azure TTS: {str(e)}")
+    except Exception:
+        logger.error("Unexpected error synthesizing speech with Azure TTS")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error synthesizing speech with Azure TTS",
+        )
 
 
 async def synthesize_with_kokoro(request: KokoroTTSRequest) -> bytes:
@@ -449,7 +452,6 @@ async def synthesize_with_kokoro(request: KokoroTTSRequest) -> bytes:
                     "speed": request.speed,
                     "pitch": request.pitch,
                 },
-                timeout=30.0,
             )
 
             response.raise_for_status()
@@ -462,9 +464,12 @@ async def synthesize_with_kokoro(request: KokoroTTSRequest) -> bytes:
             status_code=e.response.status_code,
             detail=f"Kokoro API error: {e.response.text}",
         )
-    except Exception as e:
-        logger.error(f"Error with Kokoro TTS: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error with Kokoro TTS: {str(e)}")
+    except Exception:
+        logger.error("Unexpected error synthesizing speech with Kokoro TTS")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error synthesizing speech with Kokoro TTS",
+        )
 
 
 async def synthesize_with_sesame(request: SesameTTSRequest) -> bytes:
@@ -491,7 +496,7 @@ async def synthesize_with_sesame(request: SesameTTSRequest) -> bytes:
                     "voice": request.voice,
                     "response_format": "wav",
                 },
-                timeout=30.0,
+                timeout=60.0,
             )
 
             response.raise_for_status()
@@ -504,9 +509,12 @@ async def synthesize_with_sesame(request: SesameTTSRequest) -> bytes:
             status_code=e.response.status_code,
             detail=f"Sesame API error: {e.response.text}",
         )
-    except Exception as e:
-        logger.error(f"Error with Sesame TTS: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error with Sesame TTS: {str(e)}")
+    except Exception:
+        logger.error("Unexpected error synthesizing speech with Sesame TTS")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error synthesizing speech with Sesame TTS",
+        )
 
 
 @app.post("/generate", summary="Generate speech from text")
@@ -523,7 +531,7 @@ async def generate_endpoint(request: TTSRequest = Body(...)):
     Raises:
         HTTPException: If synthesis fails or engine is not supported
     """
-    logger.info(f"TTS request received for engine: {request.engine}")
+    logger.info(f"TTS request received for {request.engine}")
 
     try:
         # Route to appropriate engine based on request type
@@ -547,12 +555,9 @@ async def generate_endpoint(request: TTSRequest = Body(...)):
             },
         )
 
-    except HTTPException:
-        # Re-raise HTTP exceptions
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected error in TTS endpoint: {str(e)}")
+    except Exception:
+        logger.exception("Unexpected error during speech synthesis")
         raise HTTPException(
             status_code=500,
-            detail=f"Unexpected error during speech synthesis: {str(e)}",
+            detail=f"Unexpected error during speech synthesis",
         )
