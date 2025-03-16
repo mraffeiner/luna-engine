@@ -6,7 +6,9 @@
 	import { ttsOptions, ttsError, fetchTtsOptions } from './ttsService';
 
 	let selectedEngine = $state('kokoro');
-	let selectedTtsForm = $state<AzureTtsForm | KokoroTtsForm | SesameTtsForm | null>(null);
+	let azureTtsForm: AzureTtsForm | null = null;
+	let kokoroTtsForm: KokoroTtsForm | null = null;
+	let sesameTtsForm: SesameTtsForm | null = null;
 
 	$effect(() => {
 		fetchTtsOptions();
@@ -15,7 +17,13 @@
 	$effect(() => {
 		const unsubscribe = llmOutput.subscribe((newText) => {
 			if (newText) {
-				selectedTtsForm!.handleGenerateSpeech(undefined, newText);
+				if (selectedEngine === 'azure') {
+					azureTtsForm!.handleGenerateSpeech(undefined, newText);
+				} else if (selectedEngine === 'kokoro') {
+					kokoroTtsForm!.handleGenerateSpeech(undefined, newText);
+				} else if (selectedEngine === 'sesame') {
+					sesameTtsForm!.handleGenerateSpeech(undefined, newText);
+				}
 			}
 		});
 		return () => {
@@ -96,32 +104,14 @@
 	{/if}
 
 	<div class="mt-2">
-		{#if selectedEngine === 'azure'}
-			<AzureTtsForm bind:this={selectedTtsForm} />
-		{:else if selectedEngine === 'kokoro'}
-			<KokoroTtsForm bind:this={selectedTtsForm} />
-		{:else if selectedEngine === 'sesame'}
-			<SesameTtsForm bind:this={selectedTtsForm} />
-		{:else}
-			<div class="rounded-md border border-yellow-800 bg-yellow-900 bg-opacity-30 p-4">
-				<p class="flex items-center text-yellow-400">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="mr-2 h-5 w-5"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-						/>
-					</svg>
-					Unsupported TTS engine selected: {selectedEngine}
-				</p>
-			</div>
-		{/if}
+		<div class:hidden={selectedEngine !== 'azure'}>
+			<AzureTtsForm bind:this={azureTtsForm} />
+		</div>
+		<div class:hidden={selectedEngine !== 'kokoro'}>
+			<KokoroTtsForm bind:this={kokoroTtsForm} />
+		</div>
+		<div class:hidden={selectedEngine !== 'sesame'}>
+			<SesameTtsForm bind:this={sesameTtsForm} />
+		</div>
 	</div>
 </div>
