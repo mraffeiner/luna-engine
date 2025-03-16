@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { llmOutput } from './stores';
 	import {
 		ttsError,
 		generateSpeech,
@@ -49,7 +48,11 @@
 		voiceMix = voiceMix.map((v, i) => (i === index ? { ...v, voice: voiceValue } : v));
 	}
 
-	async function handleGenerateSpeech() {
+	export async function handleGenerateSpeech(_event?: MouseEvent, newText?: string): Promise<void> {
+		if (newText) {
+			text = newText;
+		}
+
 		loading = true;
 		audioUrl = null;
 		ttsError.set(null);
@@ -76,19 +79,6 @@
 
 		loading = false;
 	}
-
-	$effect(() => {
-		const unsubscribe = llmOutput.subscribe((newText) => {
-			if (newText) {
-				text = newText;
-				handleGenerateSpeech();
-			}
-		});
-		return () => {
-			unsubscribe;
-			llmOutput.set(null);
-		};
-	});
 </script>
 
 <div class="card p-6">

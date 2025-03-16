@@ -2,13 +2,26 @@
 	import AzureTtsForm from './AzureTtsForm.svelte';
 	import KokoroTtsForm from './KokoroTtsForm.svelte';
 	import SesameTtsForm from './SesameTtsForm.svelte';
+	import { llmOutput } from './stores';
 	import { ttsOptions, ttsError, fetchTtsOptions } from './ttsService';
 
 	let selectedEngine = $state('kokoro');
+	let selectedTtsForm = $state<AzureTtsForm | KokoroTtsForm | SesameTtsForm | null>(null);
 
-	// Initialize options on component mount
 	$effect(() => {
 		fetchTtsOptions();
+	});
+
+	$effect(() => {
+		const unsubscribe = llmOutput.subscribe((newText) => {
+			if (newText) {
+				selectedTtsForm!.handleGenerateSpeech(undefined, newText);
+			}
+		});
+		return () => {
+			unsubscribe;
+			llmOutput.set(null);
+		};
 	});
 </script>
 
@@ -84,11 +97,11 @@
 
 	<div class="mt-2">
 		{#if selectedEngine === 'azure'}
-			<AzureTtsForm />
+			<AzureTtsForm bind:this={selectedTtsForm} />
 		{:else if selectedEngine === 'kokoro'}
-			<KokoroTtsForm />
+			<KokoroTtsForm bind:this={selectedTtsForm} />
 		{:else if selectedEngine === 'sesame'}
-			<SesameTtsForm />
+			<SesameTtsForm bind:this={selectedTtsForm} />
 		{:else}
 			<div class="rounded-md border border-yellow-800 bg-yellow-900 bg-opacity-30 p-4">
 				<p class="flex items-center text-yellow-400">
