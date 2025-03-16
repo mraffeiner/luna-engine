@@ -49,13 +49,13 @@
 	}
 
 	export async function handleGenerateSpeech(_event?: MouseEvent, newText?: string): Promise<void> {
+		ttsError.set(null);
+		audioUrl = null;
+		loading = true;
+
 		if (newText) {
 			text = newText;
 		}
-
-		loading = true;
-		audioUrl = null;
-		ttsError.set(null);
 
 		const params: KokoroTtsRequestParams = {
 			engine: 'kokoro',

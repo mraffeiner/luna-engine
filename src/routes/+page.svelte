@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { containerService } from '$lib/containerService';
 
 	const services = [
 		'docker-service',
+		'discord-service',
+		'stt-service',
 		'llm-service',
 		'tts-service',
-		'stt-service',
-		'discord-service'
+		'prompt-service'
 	];
 
-	onMount(() => {
+	$effect(() => {
 		services.forEach((serviceName) => {
 			containerService.checkContainerStatus(serviceName);
 		});

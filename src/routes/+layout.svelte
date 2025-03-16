@@ -1,56 +1,17 @@
 <script lang="ts">
 	import '../app.css';
 	import Sidebar from '$lib/Sidebar.svelte';
-	import { serviceError, containerService } from '$lib/containerService';
-	import { onMount } from 'svelte';
-	import { beforeNavigate } from '$app/navigation';
+	import { serviceError } from '$lib/containerService';
 	import { page } from '$app/state';
 	import ServicePage from '$lib/ServicePage.svelte';
 	import SttForm from '$lib/SttForm.svelte';
 	import LlmForm from '$lib/LlmForm.svelte';
 	import TtsForm from '$lib/TtsForm.svelte';
 	import DiscordForm from '$lib/DiscordForm.svelte';
-	import DockerServiceForm from '$lib/DockerServiceForm.svelte';
+	import DockerForm from '$lib/DockerForm.svelte';
 	import PromptForm from '$lib/PromptForm.svelte';
 
 	let { children } = $props();
-
-	// List of all services in the application
-	const services = [
-		'docker-service',
-		'llm-service',
-		'tts-service',
-		'stt-service',
-		'discord-service'
-	];
-
-	function handleBeforeUnload() {
-		services.forEach((serviceName) => {
-			containerService.stopLogStream(serviceName);
-		});
-	}
-
-	// Initialize the application
-	onMount(() => {
-		window.addEventListener('beforeunload', handleBeforeUnload);
-
-		// Clear any existing errors
-		serviceError.set(null);
-
-		// Check the status of all services
-		services.forEach((serviceName) => {
-			containerService.checkContainerStatus(serviceName);
-		});
-
-		return () => {
-			window.removeEventListener('beforeunload', handleBeforeUnload);
-		};
-	});
-
-	// Clear errors on navigation
-	beforeNavigate(() => {
-		serviceError.set(null);
-	});
 
 	// Get the current route path
 	const currentPath = $derived(page.url.pathname);
@@ -114,6 +75,18 @@
 			{@render children()}
 		{:else}
 			<!-- Service Pages - Always mounted, conditionally displayed -->
+			<div class:hidden={currentPath !== '/docker-service'}>
+				<ServicePage serviceName="docker-service" title="Docker Service">
+					<DockerForm />
+				</ServicePage>
+			</div>
+
+			<div class:hidden={currentPath !== '/discord-service'}>
+				<ServicePage serviceName="discord-service" title="Discord Service">
+					<DiscordForm />
+				</ServicePage>
+			</div>
+
 			<div class:hidden={currentPath !== '/stt-service'}>
 				<ServicePage serviceName="stt-service" title="Speech-to-Text Service">
 					<SttForm />
@@ -129,18 +102,6 @@
 			<div class:hidden={currentPath !== '/tts-service'}>
 				<ServicePage serviceName="tts-service" title="Text-to-Speech Service">
 					<TtsForm />
-				</ServicePage>
-			</div>
-
-			<div class:hidden={currentPath !== '/discord-service'}>
-				<ServicePage serviceName="discord-service" title="Discord Service">
-					<DiscordForm />
-				</ServicePage>
-			</div>
-
-			<div class:hidden={currentPath !== '/docker-service'}>
-				<ServicePage serviceName="docker-service" title="Docker Service">
-					<DockerServiceForm />
 				</ServicePage>
 			</div>
 

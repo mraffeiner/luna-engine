@@ -14,9 +14,16 @@
 		}
 	);
 
-	// Check container status on mount using $effect
+	// Check container status on mount
 	$effect(() => {
 		containerService.checkContainerStatus(serviceName);
+	});
+
+	// Start log stream if service is running
+	$effect(() => {
+		if (status.isRunning) {
+			containerService.startLogStream(serviceName);
+		}
 	});
 </script>
 
