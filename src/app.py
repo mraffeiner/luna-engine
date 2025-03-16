@@ -50,9 +50,14 @@ async def get_container_status(container_name: str):
             running=status == "running",
             status=status,
         )
-    except Exception as e:
-        logger.error(f"Error getting container status: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception(
+            f"Unexpected error getting container status for {container_name}"
+        )
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error getting container status for {container_name}",
+        )
 
 
 @app.post("/start_container/{container_name}", response_model=ContainerResponse)
@@ -70,9 +75,12 @@ async def start_container(container_name: str):
         return ContainerResponse(
             message=f"Container '{container_name}' is already running"
         )
-    except Exception as e:
-        logger.error(f"Error starting container: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception(f"Unexpected error starting container {container_name}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error starting container {container_name}",
+        )
 
 
 @app.post("/stop_container/{container_name}", response_model=ContainerResponse)
@@ -88,9 +96,12 @@ async def stop_container(container_name: str):
                 message=f"Container '{container_name}' stopped successfully"
             )
         return ContainerResponse(message=f"Container '{container_name}' is not running")
-    except Exception as e:
-        logger.error(f"Error stopping container: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception(f"Unexpected error stopping container {container_name}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error stopping container {container_name}",
+        )
 
 
 @app.get("/container_logs/{container_name}")
@@ -116,8 +127,8 @@ async def get_container_logs(container_name: str):
             logger.error(f"Log stream for {container_name} cancelled.")
         except asyncio.exceptions.TimeoutError:
             logger.error(f"Log stream for {container_name} timed out.")
-        except Exception as e:
-            logger.error(f"Unexpected error during log stream for {container_name}:", e)
+        except Exception:
+            logger.exception(f"Unexpected error during log stream for {container_name}")
         finally:
             logger.info(f"Log stream for {container_name} closed.")
 
