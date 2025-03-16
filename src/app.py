@@ -73,11 +73,13 @@ async def stt_endpoint(audio: UploadFile = File(...)):
             if os.path.exists(temp_filename):
                 os.remove(temp_filename)
 
-    except openai.APIError as e:
-        logger.error(f"OpenAI API error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"OpenAI API error: {str(e)}")
-    except Exception as e:
-        logger.error(f"Error during transcription: {str(e)}")
+    except openai.APIError:
+        logger.exception("OpenAI API error")
         raise HTTPException(
-            status_code=500, detail=f"Error during transcription: {str(e)}"
+            status_code=500, detail=f"OpenAI API error during transcription"
+        )
+    except Exception:
+        logger.exception("Unexpected error during transcription")
+        raise HTTPException(
+            status_code=500, detail=f"Unexpected error during transcription"
         )
