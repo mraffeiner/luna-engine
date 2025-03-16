@@ -11,6 +11,7 @@
 	import TtsForm from '$lib/TtsForm.svelte';
 	import DiscordForm from '$lib/DiscordForm.svelte';
 	import DockerServiceForm from '$lib/DockerServiceForm.svelte';
+	import PromptForm from '$lib/PromptForm.svelte';
 
 	let { children } = $props();
 
@@ -140,6 +141,12 @@
 			<div class:hidden={currentPath !== '/docker-service'}>
 				<ServicePage serviceName="docker-service" title="Docker Service">
 					<DockerServiceForm />
+				</ServicePage>
+			</div>
+
+			<div class:hidden={currentPath !== '/prompt-service'}>
+				<ServicePage serviceName="prompt-service" title="Prompt Service">
+					<PromptForm />
 				</ServicePage>
 			</div>
 		{/if}

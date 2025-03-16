@@ -8,7 +8,8 @@
 		{ id: 'discord-service', name: 'Discord Service', path: '/discord-service' },
 		{ id: 'stt-service', name: 'STT Service', path: '/stt-service' },
 		{ id: 'llm-service', name: 'LLM Service', path: '/llm-service' },
-		{ id: 'tts-service', name: 'TTS Service', path: '/tts-service' }
+		{ id: 'tts-service', name: 'TTS Service', path: '/tts-service' },
+		{ id: 'prompt-service', name: 'Prompt Service', path: '/prompt-service' }
 	];
 </script>
 
