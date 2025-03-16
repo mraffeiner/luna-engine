@@ -18,7 +18,7 @@
 		const transcription = await transcribeAudio(audioBlob);
 
 		if (transcription) {
-			transcribedText = prefix + transcription;
+			transcribedText = prefix ? prefix + transcription : transcription;
 		}
 
 		isRecording = false;
