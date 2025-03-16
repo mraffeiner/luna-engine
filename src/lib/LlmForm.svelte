@@ -89,15 +89,31 @@
 	});
 </script>
 
-<div class="rounded-lg bg-gray-700 p-6 shadow-md">
-	<h2 class="mb-4 text-2xl font-semibold text-white">LLM Service</h2>
+<div class="card p-6">
+	<h2 class="mb-6 flex items-center">
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			class="mr-2 h-6 w-6 text-indigo-400"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke="currentColor"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				stroke-width="2"
+				d="M13 10V3L4 14h7v7l9-11h-7z"
+			/>
+		</svg>
+		LLM Service
+	</h2>
 
 	<div class="mb-4">
-		<label for="model" class="block text-sm font-medium text-gray-200">Model</label>
+		<label for="model" class="block text-sm font-medium text-gray-300">Model</label>
 		<select
 			id="model"
 			bind:value={model}
-			class="mt-1 block w-full rounded-md border-gray-600 bg-gray-800 p-2 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+			class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 p-2 text-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
 		>
 			{#each models as modelOption}
 				<option value={modelOption.value}>{modelOption.label}</option>
@@ -107,12 +123,12 @@
 
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-1">
 		<div class="mb-4">
-			<label for="prompt" class="block text-sm font-medium text-gray-200">Prompt</label>
+			<label for="prompt" class="block text-sm font-medium text-gray-300">Prompt</label>
 			<textarea
 				id="prompt"
 				bind:value={prompt}
 				rows="4"
-				class="mt-1 block w-full rounded-md border-gray-600 bg-gray-800 p-2 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+				class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 p-2 text-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
 			></textarea>
 		</div>
 	</div>
@@ -128,7 +144,7 @@
 				class="rounded border-gray-600 text-indigo-600 focus:ring-indigo-500"
 				bind:checked={forwardToTts}
 			/>
-			<span class="text-gray-200">Forward to TTS</span>
+			<span class="text-gray-300">Forward to TTS</span>
 		</label>
 	</div>
 
@@ -136,7 +152,7 @@
 		<button
 			onclick={generateResponse}
 			disabled={loading}
-			class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+			class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			{#if loading}
 				<svg
@@ -160,7 +176,7 @@
 
 	{#if responseText}
 		<div class="mt-4">
-			<h3 class="text-lg font-semibold text-white">Response</h3>
+			<h3 class="text-lg font-medium text-gray-300">Response</h3>
 			<div class="mt-2 rounded-md bg-gray-800 p-2 text-white" style="white-space: pre-wrap;">
 				{responseText}
 			</div>

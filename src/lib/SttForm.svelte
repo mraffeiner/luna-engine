@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { sttOutput, discordOutput } from './stores';
-
 	import { transcribeAudio, sttError, sttStatus } from './sttService';
 
 	let mediaRecorder: MediaRecorder | null = $state(null);
@@ -191,7 +190,7 @@
 				class="rounded border-gray-600 text-indigo-600 focus:ring-indigo-500"
 				bind:checked={forwardToLlm}
 			/>
-			<span class="text-gray-200">Forward to LLM</span>
+			<span class="text-gray-300">Forward to LLM</span>
 		</label>
 	</div>
 
@@ -199,7 +198,7 @@
 		<button
 			onclick={() => (isRecording ? stopRecording() : recordAudio())}
 			disabled={isTranscribing}
-			class="rounded-md bg-indigo-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-indigo-700 disabled:bg-gray-500"
+			class="rounded-md bg-indigo-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-indigo-700 disabled:opacity-50"
 		>
 			{buttonLabel}
 		</button>
@@ -223,7 +222,7 @@
 
 	{#if transcribedText}
 		<div class="mt-6">
-			<h3 class="mb-2 text-lg font-medium text-gray-200">Transcribed Text:</h3>
+			<h3 class="mb-2 text-lg font-medium text-gray-300">Transcribed Text:</h3>
 			<div class="whitespace-pre-wrap rounded-md border border-gray-600 bg-gray-700 p-4 text-white">
 				{transcribedText}
 			</div>

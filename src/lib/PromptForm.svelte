@@ -45,7 +45,7 @@
 </script>
 
 <div class="card p-6">
-	<h1 class="mb-6 flex items-center">
+	<h2 class="mb-6 flex items-center">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			class="mr-2 h-6 w-6 text-indigo-400"
@@ -61,7 +61,7 @@
 			/>
 		</svg>
 		Prompt Templates
-	</h1>
+	</h2>
 
 	{#if $promptError}
 		<div class="mb-6 rounded-md border border-red-800 bg-red-900 bg-opacity-30 p-3">
@@ -86,21 +86,25 @@
 	{/if}
 
 	<div class="mb-4">
-		<label for="prompt-name" class="mb-2 block text-gray-200">Prompt Name:</label>
+		<label for="prompt-name" class="mb-2 block text-sm font-medium text-gray-300"
+			>Prompt Name:</label
+		>
 		<input
 			type="text"
 			id="prompt-name"
 			bind:value={$promptName}
-			class="block w-full rounded-md border border-gray-600 bg-gray-700 p-2 text-white"
+			class="block w-full rounded-md border border-gray-600 bg-gray-700 p-2 text-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
 		/>
 	</div>
 
 	<div class="mb-4">
-		<label for="prompt-template" class="mb-2 block text-gray-200">Prompt Template:</label>
+		<label for="prompt-template" class="mb-2 block text-sm font-medium text-gray-300"
+			>Prompt Template:</label
+		>
 		<textarea
 			id="prompt-template"
 			bind:value={$promptTemplate}
-			class="block w-full rounded-md border border-gray-600 bg-gray-700 p-2 text-white"
+			class="block w-full rounded-md border border-gray-600 bg-gray-700 p-2 text-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
 		></textarea>
 	</div>
 
@@ -112,22 +116,22 @@
 		>
 		<button
 			onclick={handleDeletePrompt}
-			class="ml-2 rounded-md bg-red-800 px-4 py-2 text-white transition-colors duration-200 hover:bg-red-900"
+			class="ml-2 rounded-md bg-red-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-red-700"
 			>Delete</button
 		>
 	</div>
 
-	<h2 class="mb-2 text-lg font-medium text-gray-200">Saved Prompts</h2>
+	<h2 class="mb-2 text-lg font-medium text-gray-300">Saved Prompts</h2>
 	<select
 		bind:value={selectedPrompt}
-		class="mb-4 rounded-md border border-gray-600 bg-gray-700 p-2 text-white"
+		class="mb-4 rounded-md border border-gray-600 bg-gray-700 p-2 text-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
 	>
 		{#each promptNames as name}
 			<option value={name}>{name}</option>
 		{/each}
 	</select>
 
-	<h2 class="mb-2 text-lg font-medium text-gray-200">Dynamic Prompt</h2>
+	<h2 class="mb-2 text-lg font-medium text-gray-300">Dynamic Prompt</h2>
 	<div class="mb-4 rounded-md border border-gray-600 bg-gray-700 p-2 text-white">
 		{$dynamicPrompt}
 	</div>

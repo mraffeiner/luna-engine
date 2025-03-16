@@ -13,7 +13,7 @@
 	];
 </script>
 
-<aside class="flex h-full w-64 flex-col border-r border-gray-700 bg-gray-800 text-white shadow-xl">
+<aside class="flex h-full w-48 flex-col border-r border-gray-700 bg-gray-800 text-white shadow-xl">
 	<div class="border-b border-gray-700 bg-gray-900 p-4">
 		<h2 class="flex items-center">
 			<svg
@@ -35,7 +35,7 @@
 	</div>
 
 	<nav class="flex-1 overflow-y-auto p-4">
-		<h3 class="sidebar-title">Services</h3>
+		<h3 class="sidebar-title text-xs font-semibold uppercase text-gray-500">Services</h3>
 		<ul class="space-y-1">
 			{#each services as service}
 				{#if $containerStatus[service.id]}

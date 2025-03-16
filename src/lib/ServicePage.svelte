@@ -1,6 +1,7 @@
 <script lang="ts">
+	import { onNavigate } from '$app/navigation';
 	import LogsDisplay from './LogsDisplay.svelte';
-	import { dockerService, containerStatus } from './dockerService';
+	import { dockerService, containerStatus, serviceError } from './dockerService';
 
 	// Define props using $props rune
 	const { children, serviceName, title } = $props();
@@ -14,6 +15,8 @@
 		}
 	);
 
+	let activeTab = $state('configuration');
+
 	// Check container status on mount
 	$effect(() => {
 		dockerService.checkContainerStatus(serviceName);
@@ -24,6 +27,10 @@
 		if (status.isRunning) {
 			dockerService.startLogStream(serviceName);
 		}
+	});
+
+	onNavigate(() => {
+		serviceError.set(null);
 	});
 </script>
 
@@ -86,30 +93,6 @@
 			</span>
 		</button>
 
-		<button
-			onclick={() => dockerService.clearLogs(serviceName)}
-			class="rounded-md bg-gray-700 px-5 py-2.5 font-medium text-white shadow-sm transition-colors duration-200 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
-			disabled={status.isStarting || status.isStopping}
-		>
-			<span class="flex items-center">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="mr-1.5 h-4 w-4"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-					/>
-				</svg>
-				Clear Logs
-			</span>
-		</button>
-
 		<div class="ml-auto flex items-center rounded-md border border-gray-600 bg-gray-700 px-4 py-2">
 			<span class="mr-2 text-sm font-medium text-gray-300">Status:</span>
 			<div class="flex items-center">
@@ -128,12 +111,37 @@
 		</div>
 	</div>
 
-	<div class="flex flex-col gap-6 lg:flex-row">
-		<div class="w-full lg:w-1/2">
-			{@render children()}
-		</div>
-		<div class="w-full lg:w-1/2">
-			<LogsDisplay {serviceName} />
-		</div>
+	<div class="mb-4 flex border-b border-gray-700">
+		<button
+			class="tab-button flex-1 px-4 py-2 text-sm font-medium {activeTab === 'configuration'
+				? 'border-b-2 border-indigo-500 text-indigo-200'
+				: 'text-gray-300 hover:text-gray-100'}"
+			onclick={() => (activeTab = 'configuration')}
+		>
+			Configuration
+		</button>
+		<button
+			class="tab-button flex-1 px-4 py-2 text-sm font-medium {activeTab === 'logs'
+				? 'border-b-2 border-indigo-500 text-indigo-200'
+				: 'text-gray-300 hover:text-gray-100'}"
+			onclick={() => (activeTab = 'logs')}
+		>
+			Logs
+		</button>
+	</div>
+
+	<div class:hidden={activeTab !== 'configuration'}>
+		{@render children()}
+	</div>
+	<div class:hidden={activeTab !== 'logs'}>
+		<LogsDisplay {serviceName} />
 	</div>
 </div>
+
+<style>
+	.tab-button {
+		transition:
+			color 0.2s ease,
+			border-color 0.2s ease;
+	}
+</style>

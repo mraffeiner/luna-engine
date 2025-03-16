@@ -76,7 +76,7 @@
 				class="rounded border-gray-600 text-indigo-600 focus:ring-indigo-500"
 				bind:checked={forwardToStt}
 			/>
-			<span class="text-gray-200">Forward to STT</span>
+			<span class="text-gray-300">Forward to STT</span>
 		</label>
 	</div>
 

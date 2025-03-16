@@ -53,12 +53,12 @@
 	</h2>
 
 	<div class="mb-6">
-		<label for="engine" class="mb-2 block text-sm font-medium text-gray-200">TTS Engine</label>
+		<label for="engine" class="mb-2 block text-sm font-medium text-gray-300">TTS Engine</label>
 		<div class="relative">
 			<select
 				id="engine"
 				bind:value={selectedEngine}
-				class="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-3 text-white shadow-sm transition-colors duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 sm:text-sm"
+				class="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-2 text-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
 			>
 				{#each $ttsOptions.engines as engineOption}
 					<option value={engineOption.value}>{engineOption.label}</option>
