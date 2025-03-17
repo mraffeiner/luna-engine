@@ -1,4 +1,5 @@
 import asyncio
+import json
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
@@ -15,6 +16,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+active_log_tasks = None
+
 
 # Models
 class ContainerStatusResponse(BaseModel):
@@ -30,8 +33,6 @@ class ContainerResponse(BaseModel):
 app = FastAPI(title="Luna Engine Control Panel")
 load_dotenv()
 docker_client = aiodocker.Docker()
-
-active_log_streams = {}
 
 
 # API endpoints
@@ -104,34 +105,56 @@ async def stop_container(container_name: str):
         )
 
 
-@app.get("/container_logs/{container_name}")
-async def get_container_logs(container_name: str):
-    global active_log_streams
+@app.get("/container_logs")
+async def get_container_logs():
+    global active_log_tasks
 
-    if container_name not in active_log_streams:
-        active_log_streams[container_name] = 0
+    if active_log_tasks:
+        for task in active_log_tasks:
+            logger.warning(
+                f"Only one log stream is allowed at a time. Cancelling previous log stream."
+            )
+            task.cancel()
 
-    async def stream_logs(container_name):
+    active_log_tasks = []
+    queue = asyncio.Queue()
+
+    async def stream_container_logs(container):
         try:
-            container = await docker_client.containers.get(container_name)
-            log_iterator = container.log(stdout=True, stderr=True, follow=True, tail=10)
-
-            active_log_streams[container_name] += 1
-            id = active_log_streams[container_name]
-
-            async for log in log_iterator:
-                yield f"data: {log.strip()}\n\n"
-                if id != active_log_streams[container_name]:
-                    break
-        except asyncio.exceptions.CancelledError:
-            logger.error(f"Log stream for {container_name} cancelled.")
-        except asyncio.exceptions.TimeoutError:
-            logger.error(f"Log stream for {container_name} timed out.")
+            container_info = await container.show()
+            name = container_info.get("Name", "Unknown").lstrip("/")
+            async for log in container.log(
+                stdout=True, stderr=True, follow=True, tail=10
+            ):
+                data = {"service": name, "log": log.strip()}
+                await queue.put(f"data: {json.dumps(data)}\n\n")
+        except asyncio.CancelledError:
+            logger.error(f"Log stream for container {name} cancelled.")
+            raise
         except Exception:
-            logger.exception(f"Unexpected error during log stream for {container_name}")
-        finally:
-            logger.info(f"Log stream for {container_name} closed.")
+            logger.exception(f"Unexpected error during log stream for container {name}")
 
-    return StreamingResponse(
-        stream_logs(container_name), media_type="text/event-stream"
-    )
+    async def stream_logs():
+        global active_log_tasks
+
+        try:
+            containers = await docker_client.containers.list(
+                filters={"network": ["luna-engine_default"]}
+            )
+            # Spawn a task for each container
+            for container in containers:
+                task = asyncio.create_task(stream_container_logs(container))
+                active_log_tasks.append(task)
+
+            # Continue yielding logs as they become available
+            while True:
+                log_data = await queue.get()
+                yield log_data
+        except asyncio.CancelledError:
+            for task in active_log_tasks:
+                task.cancel()
+            raise
+        finally:
+            logger.info("Log stream closed.")
+
+    return StreamingResponse(stream_logs(), media_type="text/event-stream")
