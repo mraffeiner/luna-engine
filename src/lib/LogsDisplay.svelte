@@ -24,9 +24,8 @@
 	function handleScroll() {
 		if (!logsContainer) return;
 
-		// If user scrolls up more than 100px from bottom, disable auto-scroll
 		const isNearBottom =
-			logsContainer.scrollHeight - logsContainer.scrollTop - logsContainer.clientHeight < 100;
+			logsContainer.scrollHeight - logsContainer.scrollTop - logsContainer.clientHeight < 10;
 		autoScroll = isNearBottom;
 	}
 
