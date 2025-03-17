@@ -10,7 +10,9 @@ from typing import List, Dict, Literal
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="[%(asctime)s] - %(levelname)s: %(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%SZ",
 )
 logger = logging.getLogger(__name__)
 
@@ -417,7 +419,6 @@ async def synthesize_with_azure(request: AzureTTSRequest) -> bytes:
                     logger.error(
                         f"Azure Speech SDK error: {cancellation_details.error_details}"
                     )
-
             raise HTTPException(
                 status_code=500,
                 detail=f"Azure speech synthesis canceled: {cancellation_details.reason}",
