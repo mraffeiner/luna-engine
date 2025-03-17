@@ -22,13 +22,6 @@
 		dockerService.checkContainerStatus(serviceName);
 	});
 
-	// Start log stream if service is running
-	$effect(() => {
-		if (status.isRunning) {
-			dockerService.startLogStream(serviceName);
-		}
-	});
-
 	onNavigate(() => {
 		serviceError.set(null);
 	});

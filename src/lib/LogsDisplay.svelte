@@ -5,9 +5,9 @@
 	const { serviceName } = $props();
 
 	// Use $state for local state
-	let logs = $state<string[]>([]);
 	let autoScroll = $state(true);
 	let logsContainer = $state<HTMLDivElement | null>(null);
+	let logs: string[] = $state([]);
 
 	/**
 	 * Scroll to the bottom of the logs container
@@ -40,23 +40,13 @@
 
 	// Setup and cleanup
 	$effect(() => {
-		// Setup
-		const handleBeforeUnload = () => {
-			dockerService.stopLogStream(serviceName);
-		};
-
-		window.addEventListener('beforeunload', handleBeforeUnload);
-
-		dockerService.startLogStream(serviceName);
-		const logsStore = dockerService.getLogsStore(serviceName);
-		const unsubscribe = logsStore.subscribe((updatedLogs) => {
+		const unsubscribe = dockerService.getLogsStore(serviceName).subscribe((updatedLogs) => {
 			logs = updatedLogs;
 		});
 
 		// Cleanup
 		return () => {
 			unsubscribe();
-			window.removeEventListener('beforeunload', handleBeforeUnload);
 		};
 	});
 </script>

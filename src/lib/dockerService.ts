@@ -1,4 +1,4 @@
-import { get, writable, type Writable } from 'svelte/store';
+import { writable, type Writable } from 'svelte/store';
 
 /**
  * Interface matching backend ContainerStatusResponse
@@ -23,9 +23,9 @@ export const serviceError = writable<string | null>(null);
 export const containerStatus = writable<Record<string, ContainerStatus>>({});
 
 // Private state
-const logStreams = new Map<string, EventSource>();
 const serviceLogs = new Map<string, Writable<string[]>>();
 const API_BASE_URL = '/api/docker';
+let logStream: EventSource | null = null; // Single EventSource for all logs
 
 // Default container status
 const DEFAULT_STATUS = {
@@ -94,7 +94,6 @@ export const dockerService = {
 		try {
 			await apiRequest(`/start_container/${serviceName}`, serviceName, 'start', { method: 'POST' });
 			updateStatus(serviceName, { isRunning: true });
-			dockerService.startLogStream(serviceName);
 		} finally {
 			updateStatus(serviceName, { isStarting: false });
 		}
@@ -115,50 +114,48 @@ export const dockerService = {
 	},
 
 	/**
-	 * Starts a log stream for a container
+	 * Starts the global log stream
 	 */
-	startLogStream: async (serviceName: string): Promise<void> => {
-		if (logStreams.has(serviceName) || !get(containerStatus)[serviceName]?.isRunning) {
+	startLogsStream: async (): Promise<void> => {
+		if (logStream) {
 			return;
-		}
-		// Initialize or reset logs store
-		const logsStore = serviceLogs.get(serviceName) || writable<string[]>([]);
-		if (!serviceLogs.has(serviceName)) {
-			serviceLogs.set(serviceName, logsStore);
-		} else {
-			logsStore.set([]);
 		}
 
 		try {
-			const eventSource = new EventSource(`${API_BASE_URL}/container_logs/${serviceName}`);
-			logStreams.set(serviceName, eventSource);
+			logStream = new EventSource(`${API_BASE_URL}/container_logs`);
 
-			eventSource.onmessage = (event) => {
-				logsStore.update((logs) => [...logs, event.data + '\n']);
+			logStream.onmessage = (event) => {
+				const data = JSON.parse(event.data);
+				const serviceName = data.service;
+				const logMessage = data.log + '\n';
+
+				if (serviceName) {
+					if (!serviceLogs.has(serviceName)) {
+						serviceLogs.set(serviceName, writable<string[]>([]));
+					}
+					serviceLogs.get(serviceName)!.update((logs) => [...logs, logMessage]);
+				}
 			};
 
-			eventSource.onerror = (error) => {
-				if (!get(containerStatus)[serviceName].isStopping) {
-					serviceError.set(`Failed to stream logs for ${serviceName}`);
-					console.error(`Log stream error for ${serviceName}:`, error);
+			logStream.onerror = (error) => {
+				serviceError.set('Failed to stream logs');
+				console.error('Log stream error:', error);
+				if (logStream) {
+					logStream.close();
+					logStream = null;
 				}
-
-				eventSource.close();
-				logStreams.delete(serviceName);
 			};
 		} catch (error) {
-			console.error(`Failed to start log stream for ${serviceName}:`, error);
+			console.error('Failed to start global log stream:', error);
 		}
 	},
-
 	/**
-	 * Stops a log stream for a container
+	 *  Stops the global log stream
 	 */
-	stopLogStream: (serviceName: string): void => {
-		const eventSource = logStreams.get(serviceName);
-		if (eventSource) {
-			eventSource.close();
-			logStreams.delete(serviceName);
+	stopLogsStream: (): void => {
+		if (logStream) {
+			logStream.close();
+			logStream = null;
 		}
 	},
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import Sidebar from '$lib/Sidebar.svelte';
-	import { serviceError } from '$lib/dockerService';
+	import { serviceError, dockerService } from '$lib/dockerService';
 	import { page } from '$app/state';
 	import ServicePage from '$lib/ServicePage.svelte';
 	import SttForm from '$lib/SttForm.svelte';
@@ -15,6 +15,20 @@
 
 	// Get the current route path
 	const currentPath = $derived(page.url.pathname);
+
+	const handleBeforeUnload = () => {
+		dockerService.stopLogsStream();
+	};
+
+	$effect(() => {
+		window.addEventListener('beforeunload', handleBeforeUnload);
+
+		dockerService.startLogsStream();
+
+		return () => {
+			window.removeEventListener('beforeunload', handleBeforeUnload);
+		};
+	});
 </script>
 
 <div class="flex h-screen bg-gray-900 text-white">
