@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from pydantic import BaseModel
 import openai
@@ -13,10 +14,27 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    uvicorn_access_logger = logging.getLogger("uvicorn.access")
+    handler = logging.StreamHandler()
+    handler.setFormatter(
+        logging.Formatter(
+            "[%(asctime)s] - %(levelname)s: %(message)s",
+            datefmt="%Y-%m-%dT%H:%M:%SZ",
+        )
+    )
+    uvicorn_access_logger.handlers.clear()
+    uvicorn_access_logger.addHandler(handler)
+    yield
+
+
 # Initialize FastAPI app
 app = FastAPI(
     title="STT Service API",
     description="Speech-to-Text service using OpenAI's Whisper API",
+    lifespan=lifespan,
 )
 
 # Load OpenAI API key
