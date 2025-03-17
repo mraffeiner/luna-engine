@@ -1,3 +1,4 @@
+import * as log from "https://deno.land/std@0.224.0/log/mod.ts";
 import {
   Client,
   GatewayIntentBits,
@@ -16,6 +17,27 @@ import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 const wave = require("wavefile");
 
+log.setup({
+  handlers: {
+    console: new log.ConsoleHandler("INFO", {
+      useColors: false,
+      formatter: (record: log.LogRecord) =>
+        `[${record.datetime.toISOString()}] - ${record.levelName}: ${
+          record.msg
+        }`,
+    }),
+  },
+
+  loggers: {
+    default: {
+      level: "INFO",
+      handlers: ["console"],
+    },
+  },
+});
+
+const logger = log.getLogger();
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -30,7 +52,7 @@ let audioWebSocket: WebSocket | null = null;
 const activeStreams = new Map();
 
 client.on("ready", () => {
-  console.log(`Logged in as ${client.user?.tag}!`);
+  logger.info(`Logged in as ${client.user?.tag}!`);
 });
 
 const token = Deno.env.get("DISCORD_TOKEN");
@@ -40,10 +62,9 @@ if (!token) {
 client.login(token);
 
 async function connectToVoiceChannel(guildId: string, channelId: string) {
-  console.log(
-    "connectToVoiceChannel called with guildId:",
+  logger.info(
+    "connectToVoiceChannel called with guildId: %s, channelId: %s",
     guildId,
-    "channelId:",
     channelId
   ); // Log
   if (connection) {
@@ -63,7 +84,7 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
     selfMute: false,
     adapterCreator: (channel as VoiceChannel).guild.voiceAdapterCreator,
   });
-  console.log(
+  logger.info(
     `Connected to voice channel ${channel.name} in guild ${guild.name}`
   );
 
@@ -72,10 +93,10 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
   connection.receiver.speaking.on("start", async (userId) => {
     const user = await client.users.fetch(userId);
     const username = user.displayName;
-    console.log(`${username} started speaking`);
+    logger.info(`${username} started speaking`);
 
     if (!connection) {
-      console.error("Connection is null when user started speaking.");
+      logger.error("Connection is null when user started speaking.");
       return;
     }
 
@@ -97,7 +118,7 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
   connection.receiver.speaking.on("end", async (userId) => {
     const user = await client.users.fetch(userId);
     const username = user.displayName;
-    console.log(`${username} stopped speaking`);
+    logger.info(`${username} stopped speaking`);
 
     activeStreams.get(userId)?.destroy();
     activeStreams.delete(userId);
@@ -142,7 +163,7 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
       // Send the combined buffer
       audioWebSocket.send(combinedBuffer);
     } else {
-      console.log("Audio websocket not open");
+      logger.info("Audio websocket not open");
     }
 
     pcmData = [];
@@ -153,7 +174,7 @@ function disconnectFromVoiceChannel() {
   if (connection) {
     connection.destroy();
     connection = null;
-    console.log("Disconnected from voice channel");
+    logger.info("Disconnected from voice channel");
   }
 }
 
@@ -178,29 +199,29 @@ function handleWebSocket(request: Request) {
   audioWebSocket = socket; // Store the WebSocket connection
 
   audioWebSocket.onopen = () => {
-    console.log("WebSocket connection established");
+    logger.info("WebSocket connection established");
   };
 
   audioWebSocket.onmessage = (event: MessageEvent) => {
-    console.log("Received message from WebSocket client:", event.data);
+    logger.info("Received message from WebSocket client:", event.data);
     // We don't expect messages *from* the client in this example,
     // but you could handle them here if needed.
   };
 
   audioWebSocket.onclose = () => {
-    console.log("WebSocket connection closed");
+    logger.info("WebSocket connection closed");
     audioWebSocket = null;
   };
 
   audioWebSocket.onerror = (event: Event) => {
-    console.error("WebSocket error:", event);
+    logger.error("WebSocket error:", event);
   };
   return response;
 }
 
 // Combined API and WebSocket server
 const handler = async (request: Request): Promise<Response> => {
-  console.log("Request received:", request.url); // Log every request
+  logger.info("Request received:", request.url); // Log every request
   const url = new URL(request.url);
 
   if (request.headers.get("upgrade") === "websocket") {
@@ -209,17 +230,17 @@ const handler = async (request: Request): Promise<Response> => {
 
   if (url.pathname === "/join-voice") {
     try {
-      console.log("Handling /join-voice request"); // Log
+      logger.info("Handling /join-voice request"); // Log
       const { guildId, channelId } = await request.json();
-      console.log("Parsed request body:", { guildId, channelId }); // Log parsed body
+      logger.info("Parsed request body:", { guildId, channelId }); // Log parsed body
       if (!guildId || !channelId) {
         return apiResponse("Missing guildId or channelId", 400);
       }
       await connectToVoiceChannel(guildId, channelId);
-      console.log("connectToVoiceChannel called"); // Log
+      logger.info("connectToVoiceChannel called"); // Log
       return apiResponse("Connected to voice channel");
     } catch (error) {
-      console.error("Error in /join-voice handler:", error); // Log errors
+      logger.error("Error in /join-voice handler:", error); // Log errors
       return handleApiError(error);
     }
   } else if (url.pathname === "/leave-voice") {
