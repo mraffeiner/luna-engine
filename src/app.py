@@ -110,10 +110,10 @@ async def get_container_logs():
     global active_log_tasks
 
     if active_log_tasks:
+        logger.warning(
+            f"Only one log stream is allowed at a time. Cancelling previous log stream."
+        )
         for task in active_log_tasks:
-            logger.warning(
-                f"Only one log stream is allowed at a time. Cancelling previous log stream."
-            )
             task.cancel()
 
     active_log_tasks = []
