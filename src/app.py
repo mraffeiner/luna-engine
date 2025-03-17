@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Body
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
@@ -16,7 +17,27 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    uvicorn_access_logger = logging.getLogger("uvicorn.access")
+    handler = logging.StreamHandler()
+    handler.setFormatter(
+        logging.Formatter(
+            "[%(asctime)s] - %(levelname)s: %(message)s",
+            datefmt="%Y-%m-%dT%H:%M:%SZ",
+        )
+    )
+    uvicorn_access_logger.handlers.clear()
+    uvicorn_access_logger.addHandler(handler)
+    yield
+
+
+# Initialize FastAPI app
+app = FastAPI(
+    title="LLM Service API",
+    description="LLM service using OpenAI's models to generate responses",
+    lifespan=lifespan,
+)
 
 load_dotenv()
 
