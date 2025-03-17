@@ -12,7 +12,9 @@ DOCKER_TIMEOUT = 30
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="[%(asctime)s] - %(levelname)s: %(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%SZ",
 )
 logger = logging.getLogger(__name__)
 
