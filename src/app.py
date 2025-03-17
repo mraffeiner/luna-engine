@@ -7,10 +7,13 @@ from dotenv import load_dotenv
 import logging
 from fastapi import HTTPException
 
-
+# Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="[%(asctime)s] - %(levelname)s: %(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%SZ",
 )
+logger = logging.getLogger(__name__)
 
 
 app = FastAPI()
@@ -54,16 +57,18 @@ async def generate_endpoint(request: LLMRequest = Body()):
             for chunk in stream:
                 content = chunk.choices[0].delta.content
                 if content:
-                    logging.info(f"Chunk: {content}")
+                    logger.info(f"Chunk: {content}")
                     yield content
-            logging.info("Stream finished")
-        except openai.APIError as e:
-            logging.error(f"OpenAI API error: {e}")
+            logger.info("Stream finished")
+        except openai.APIError:
+            logger.exception("OpenAI API error")
             raise HTTPException(
                 status_code=500, detail="Failed to get response from OpenAI API"
             )
-        except Exception as e:
-            logging.error(f"Unexpected error: {e}")
-            raise HTTPException(status_code=500, detail="An unexpected error occurred")
+        except Exception:
+            logger.exception("Unexpected error during response generation")
+            raise HTTPException(
+                status_code=500, detail="Unexpected error during response generation"
+            )
 
     return StreamingResponse(stream_response(), media_type="text/event-stream")
