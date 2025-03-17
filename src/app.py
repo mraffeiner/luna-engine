@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import asynccontextmanager
 import json
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
@@ -31,9 +32,29 @@ class ContainerResponse(BaseModel):
     message: str
 
 
-# Initialize FastAPI and Docker client
-app = FastAPI(title="Luna Engine Control Panel")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    uvicorn_access_logger = logging.getLogger("uvicorn.access")
+    handler = logging.StreamHandler()
+    handler.setFormatter(
+        logging.Formatter(
+            "[%(asctime)s] - %(levelname)s: %(message)s",
+            datefmt="%Y-%m-%dT%H:%M:%SZ",
+        )
+    )
+    uvicorn_access_logger.handlers.clear()
+    uvicorn_access_logger.addHandler(handler)
+    yield
+
+
+# Initialize FastAPI app
+app = FastAPI(
+    title="Docker Service API",
+    description="Docker Service for managing containers and streaming logs",
+    lifespan=lifespan,
+)
 load_dotenv()
+
 docker_client = aiodocker.Docker()
 
 
