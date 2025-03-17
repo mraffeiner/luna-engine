@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Body, Response, HTTPException
 from pydantic import BaseModel, Field
 import azure.cognitiveservices.speech as speechsdk
@@ -16,10 +17,27 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    uvicorn_access_logger = logging.getLogger("uvicorn.access")
+    handler = logging.StreamHandler()
+    handler.setFormatter(
+        logging.Formatter(
+            "[%(asctime)s] - %(levelname)s: %(message)s",
+            datefmt="%Y-%m-%dT%H:%M:%SZ",
+        )
+    )
+    uvicorn_access_logger.handlers.clear()
+    uvicorn_access_logger.addHandler(handler)
+    yield
+
+
 # Initialize FastAPI app
 app = FastAPI(
     title="TTS Service API",
     description="Text-to-Speech service supporting multiple engines",
+    lifespan=lifespan,
 )
 
 # Load environment variables
