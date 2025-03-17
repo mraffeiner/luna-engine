@@ -48,14 +48,7 @@ async function apiRequest<T>(
 		const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
 
 		if (!response.ok) {
-			let errorText: string;
-			try {
-				const errorJson = await response.json();
-				errorText = errorJson.detail || JSON.stringify(errorJson);
-			} catch {
-				errorText = await response.text();
-			}
-
+			const errorText = await response.text();
 			const message = `API error for ${serviceName} (${operation}): ${response.status} ${response.statusText} - ${errorText}`;
 			serviceError.set(message);
 			console.error(`API error for ${serviceName}:`, message);
