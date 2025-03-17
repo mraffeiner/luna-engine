@@ -62,6 +62,7 @@ export const discordService = {
 
 	async disconnect(): Promise<boolean> {
 		try {
+			audioWebSocket?.close();
 			const response = await fetch(`${API_BASE_URL}/leave-voice`, {
 				method: 'POST',
 				headers: {
@@ -77,11 +78,6 @@ export const discordService = {
 		} catch (error) {
 			serviceError.set(error instanceof Error ? error.message : String(error));
 			return false;
-		} finally {
-			if (audioWebSocket) {
-				audioWebSocket.close();
-				audioWebSocket = null;
-			}
 		}
 	}
 };
