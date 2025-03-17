@@ -33,10 +33,9 @@ export const discordService = {
 		if (audioWebSocket) {
 			return;
 		}
-		audioWebSocket = new WebSocket('/api/discord/ws');
-		audioWebSocket.binaryType = 'arraybuffer';
 
-		audioWebSocket.onopen = () => {};
+		audioWebSocket = new WebSocket(`${API_BASE_URL}/`);
+		audioWebSocket.binaryType = 'arraybuffer';
 
 		audioWebSocket.onmessage = async (event: MessageEvent) => {
 			// Extract username and audio blob
