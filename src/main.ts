@@ -155,10 +155,6 @@ function disconnectFromVoiceChannel() {
     connection = null;
     console.log("Disconnected from voice channel");
   }
-  if (audioWebSocket) {
-    audioWebSocket.close();
-    audioWebSocket = null;
-  }
 }
 
 // Helper function for API responses
