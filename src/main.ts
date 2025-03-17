@@ -204,8 +204,6 @@ function handleWebSocket(request: Request) {
 
   audioWebSocket.onmessage = (event: MessageEvent) => {
     logger.info("Received message from WebSocket client:", event.data);
-    // We don't expect messages *from* the client in this example,
-    // but you could handle them here if needed.
   };
 
   audioWebSocket.onclose = () => {
