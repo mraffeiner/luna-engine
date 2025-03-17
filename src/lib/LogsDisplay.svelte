@@ -36,13 +36,11 @@
 		let colorClass = 'text-gray-300'; // Default color
 
 		if (log.toLowerCase().includes('error')) {
-			colorClass = 'text-red-500';
+			colorClass = 'text-red-300';
 		} else if (log.toLowerCase().includes('warning')) {
-			colorClass = 'text-yellow-400';
-		} else if (log.toLowerCase().includes('info')) {
-			colorClass = 'text-blue-400';
+			colorClass = 'text-yellow-300';
 		} else if (log.toLowerCase().includes('debug')) {
-			colorClass = 'text-green-400';
+			colorClass = 'text-blue-300';
 		}
 
 		return `<span class="${colorClass}">${log}</span>`;
