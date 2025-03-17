@@ -29,6 +29,25 @@
 		autoScroll = isNearBottom;
 	}
 
+	/**
+	 *  Colorize the log based on keywords
+	 */
+	function colorizeLog(log: string) {
+		let colorClass = 'text-gray-300'; // Default color
+
+		if (log.toLowerCase().includes('error')) {
+			colorClass = 'text-red-500';
+		} else if (log.toLowerCase().includes('warning')) {
+			colorClass = 'text-yellow-400';
+		} else if (log.toLowerCase().includes('info')) {
+			colorClass = 'text-blue-400';
+		} else if (log.toLowerCase().includes('debug')) {
+			colorClass = 'text-green-400';
+		}
+
+		return `<span class="${colorClass}">${log}</span>`;
+	}
+
 	// Watch for changes to logs array and scroll if autoScroll is enabled
 	$effect(() => {
 		if (logs.length > 0 && autoScroll) {
@@ -122,7 +141,7 @@
 				</div>
 			{:else}
 				{#each logs as log}
-					<div class="py-0.5">{log}</div>
+					{@html colorizeLog(log)}
 				{/each}
 			{/if}
 		</div>
