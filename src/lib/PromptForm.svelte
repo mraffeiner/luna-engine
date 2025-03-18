@@ -122,7 +122,7 @@
 	$effect(() => {
 		const unsubscribe = llmOutput.subscribe((newText) => {
 			if (newText) {
-				dynamicPrompts.update((prompts) => updateConversation(prompts, newText));
+				dynamicPrompts.update((prompts) => updateConversation(prompts, `Luna: ${newText}`));
 			}
 		});
 
