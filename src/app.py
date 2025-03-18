@@ -193,6 +193,9 @@ async def get_container_logs():
             logger.warning("Log stream cancelled")
         except Exception:
             logger.exception("Unexpected error streaming logs")
+            raise HTTPException(
+                status_code=500, detail="Unexpected error streaming logs"
+            )
         finally:
             # Cancel all log tasks
             for task in active_log_tasks:
