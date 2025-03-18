@@ -19,7 +19,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-active_log_tasks = None
+active_log_tasks = []
 
 
 # Models
@@ -138,33 +138,49 @@ async def get_container_logs():
         )
         for task in active_log_tasks:
             task.cancel()
+        active_log_tasks.clear()
 
-    active_log_tasks = []
     queue = asyncio.Queue()
 
     async def stream_container_logs(container):
-        try:
-            container_info = await container.show()
-            name = container_info.get("Name", "Unknown").lstrip("/")
-            async for log in container.log(
-                stdout=True, stderr=True, follow=True, tail=10
-            ):
-                data = {"service": name, "log": log.strip()}
-                await queue.put(f"data: {json.dumps(data)}\n\n")
-        except asyncio.CancelledError:
-            logger.error(f"Log stream for container {name} cancelled.")
-            raise
-        except Exception:
-            logger.exception(f"Unexpected error during log stream for container {name}")
+        container_info = await container.show()
+        name = container_info.get("Name", "Unknown").lstrip("/")
+        logger.info(f"Log task for {name} started")
+        while True:
+            try:
+                async for log in container.log(
+                    stdout=True, stderr=True, follow=True, tail=10
+                ):
+                    data = {"service": name, "log": log.strip()}
+                    await queue.put(f"data: {json.dumps(data)}\n\n")
+            except asyncio.TimeoutError:
+                logger.warning(f"Continuing log stream for {name} after timeout")
+                continue
+            except asyncio.CancelledError:
+                logger.warning(f"Log stream for {name} cancelled")
+                raise
+            except Exception:
+                logger.error(f"Error streaming logs for {name}")
+                raise
+
+    async def heartbeat():
+        logger.info("Heartbeat task for log stream started")
+        while True:
+            await asyncio.sleep(30)
+            logger.info("Log stream heartbeat")
 
     async def stream_logs():
         global active_log_tasks
 
         try:
+            # Create log task for heartbeat
+            heartbeat_task = asyncio.create_task(heartbeat())
+            active_log_tasks.append(heartbeat_task)
+
+            # Create log task for each container on the network
             containers = await docker_client.containers.list(
                 filters={"network": ["luna-engine_default"]}
             )
-            # Spawn a task for each container
             for container in containers:
                 task = asyncio.create_task(stream_container_logs(container))
                 active_log_tasks.append(task)
@@ -174,10 +190,14 @@ async def get_container_logs():
                 log_data = await queue.get()
                 yield log_data
         except asyncio.CancelledError:
+            logger.warning("Log stream cancelled")
+        except Exception:
+            logger.exception("Unexpected error streaming logs")
+        finally:
+            # Cancel all log tasks
             for task in active_log_tasks:
                 task.cancel()
-            raise
-        finally:
-            logger.info("Log stream closed.")
+            active_log_tasks.clear()
+            logger.info("Log stream closed")
 
     return StreamingResponse(stream_logs(), media_type="text/event-stream")
