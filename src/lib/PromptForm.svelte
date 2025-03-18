@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import {
 		promptTemplate,
 		promptError,
@@ -28,6 +29,9 @@
 	let editPromptName: string = $state('');
 	let editPromptContent: string = $state('');
 
+	// For prompt deletion confirmation
+	let deletionConfirmationMode: boolean = $state(false);
+
 	let forwardOutput = $state(false);
 
 	function handleSavePrompt() {
@@ -37,14 +41,29 @@
 	}
 
 	function handleDeletePrompt() {
-		if (selectedPrompt) {
-			deletePromptTemplate(selectedPrompt);
-			const i = promptNames.indexOf(selectedPrompt);
-			promptNames.splice(i, 1);
-			selectedPrompt = promptNames.length > 0 ? promptNames[i] : '';
-		} else {
+		if (!selectedPrompt) {
 			promptError.set('No prompt selected to delete.');
+			return;
 		}
+
+		if (!deletionConfirmationMode) {
+			// Enter confirmation mode
+			deletionConfirmationMode = true;
+			return;
+		}
+
+		// If we're already in confirmation mode, proceed with deletion
+		deletePromptTemplate(selectedPrompt);
+		const i = promptNames.indexOf(selectedPrompt);
+		promptNames.splice(i, 1);
+		selectedPrompt = promptNames.length > 0 ? promptNames[i] : '';
+
+		// Exit confirmation mode
+		deletionConfirmationMode = false;
+	}
+
+	function cancelDeletion() {
+		deletionConfirmationMode = false;
 	}
 
 	function handleAddDynamicPrompt() {
@@ -87,7 +106,7 @@
 	function updateConversation(prompts: DynamicPrompt[], newText: string): DynamicPrompt[] {
 		const conversationPrompt = prompts?.find((prompt) => prompt.name === 'Conversation');
 		if (conversationPrompt) {
-			conversationPrompt.content += newText;
+			conversationPrompt.content += `\n${newText.trim()}`;
 		}
 		return prompts;
 	}
@@ -113,10 +132,11 @@
 	});
 
 	$effect(() => {
-		const unsubscribe = sttOutput.subscribe((newText) => {
+		const unsubscribe = sttOutput.subscribe(async (newText) => {
 			if (newText) {
 				dynamicPrompts.update((prompts) => updateConversation(prompts, newText));
 				if (forwardOutput) {
+					await tick();
 					promptOutput.set($combinedPrompt);
 				}
 			}
@@ -347,10 +367,26 @@
 			class="rounded-md bg-indigo-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-indigo-700"
 			>Save Prompt</button
 		>
-		<button
-			onclick={handleDeletePrompt}
-			class="rounded-md bg-red-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-red-700"
-			>Delete Prompt</button
-		>
+		{#if !deletionConfirmationMode}
+			<button
+				onclick={handleDeletePrompt}
+				class="rounded-md bg-red-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-red-700"
+				>Delete Prompt</button
+			>
+		{:else}
+			<div class="flex items-center space-x-2">
+				<span class="text-yellow-400">Confirm deletion?</span>
+				<button
+					onclick={handleDeletePrompt}
+					class="rounded-md bg-red-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-red-700"
+					>Yes, Delete</button
+				>
+				<button
+					onclick={cancelDeletion}
+					class="rounded-md bg-gray-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-gray-700"
+					>Cancel</button
+				>
+			</div>
+		{/if}
 	</div>
 </div>
