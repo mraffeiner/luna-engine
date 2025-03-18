@@ -36,7 +36,7 @@ function updateCombinedPrompt() {
 
 	if (dynamicPromptsArray.length > 0) {
 		dynamicPromptsArray.forEach((dp) => {
-			combined += `\n\n# ${dp.name}\n${dp.content}\n`;
+			combined += `\n\n# ${dp.name}\n${dp.content}`;
 		});
 	}
 
@@ -90,29 +90,18 @@ export function loadPromptTemplate(name: string) {
 		if (loadedData !== null) {
 			try {
 				const parsedData = JSON.parse(loadedData);
-
-				// Check if it's the new format with dynamic prompts
-				if (typeof parsedData === 'object' && parsedData.mainTemplate) {
+				if (parsedData.mainTemplate) {
 					promptTemplate.set(parsedData.mainTemplate);
 					if (Array.isArray(parsedData.dynamicPrompts)) {
 						dynamicPrompts.set(parsedData.dynamicPrompts);
 					} else {
 						dynamicPrompts.set([]);
 					}
-				} else {
-					// Handle legacy format (just a string)
-					promptTemplate.set(parsedData);
-					dynamicPrompts.set([]);
 				}
-
 				promptError.set(null);
 				promptName.set(name);
 			} catch (error) {
-				// If parsing fails, assume it's the old format (just a string)
 				console.error('Error parsing prompt template:', error);
-				promptTemplate.set(loadedData);
-				promptName.set(name);
-				dynamicPrompts.set([]);
 			}
 		} else {
 			promptError.set(`Prompt "${name}" not found.`);

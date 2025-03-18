@@ -14,6 +14,7 @@
 		deleteDynamicPrompt,
 		type DynamicPrompt
 	} from './promptService';
+	import { llmOutput, promptOutput, sttOutput } from './stores';
 
 	let promptNames: string[] = $state(listPromptNames());
 	let selectedPrompt: string = $state('');
@@ -26,6 +27,8 @@
 	let editingPromptId: string | null = $state(null);
 	let editPromptName: string = $state('');
 	let editPromptContent: string = $state('');
+
+	let forwardOutput = $state(false);
 
 	function handleSavePrompt() {
 		savePromptTemplate($promptName, $promptTemplate);
@@ -81,12 +84,47 @@
 		}
 	}
 
+	function updateConversation(prompts: DynamicPrompt[], newText: string): DynamicPrompt[] {
+		const conversationPrompt = prompts?.find((prompt) => prompt.name === 'Conversation');
+		if (conversationPrompt) {
+			conversationPrompt.content += newText;
+		}
+		return prompts;
+	}
+
 	$effect(() => {
 		if (selectedPrompt) {
 			loadPromptTemplate(selectedPrompt);
 		} else if (promptNames.length > 0) {
 			selectedPrompt = promptNames[0];
 		}
+	});
+
+	$effect(() => {
+		const unsubscribe = llmOutput.subscribe((newText) => {
+			if (newText) {
+				dynamicPrompts.update((prompts) => updateConversation(prompts, newText));
+			}
+		});
+
+		return () => {
+			unsubscribe;
+		};
+	});
+
+	$effect(() => {
+		const unsubscribe = sttOutput.subscribe((newText) => {
+			if (newText) {
+				dynamicPrompts.update((prompts) => updateConversation(prompts, newText));
+				if (forwardOutput) {
+					promptOutput.set($combinedPrompt);
+				}
+			}
+		});
+
+		return () => {
+			unsubscribe;
+		};
 	});
 </script>
 
@@ -292,7 +330,18 @@
 		</div>
 	</div>
 
-	<div class="flex space-x-2">
+	<div class="mt-6">
+		<label class="inline-flex items-center space-x-2">
+			<input
+				type="checkbox"
+				class="rounded border-gray-600 text-indigo-600 focus:ring-indigo-500"
+				bind:checked={forwardOutput}
+			/>
+			<span class="text-gray-300">Forward Output</span>
+		</label>
+	</div>
+
+	<div class="mt-6 flex space-x-4">
 		<button
 			onclick={handleSavePrompt}
 			class="rounded-md bg-indigo-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-indigo-700"

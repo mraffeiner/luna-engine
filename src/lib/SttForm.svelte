@@ -10,7 +10,7 @@
 	let recordingTimer: number | null = $state(null);
 	let audioStream: MediaStream | null = $state(null);
 
-	let forwardToLlm = $state(false);
+	let forwardOutput = $state(false);
 
 	async function handleTranscribeAudio(audioBlob: Blob, prefix?: string) {
 		// Transcribe the audio
@@ -28,7 +28,7 @@
 			audioStream = null;
 		}
 
-		if (forwardToLlm && transcribedText) {
+		if (forwardOutput && transcribedText) {
 			sttOutput.set(transcribedText);
 		}
 	}
@@ -188,9 +188,9 @@
 			<input
 				type="checkbox"
 				class="rounded border-gray-600 text-indigo-600 focus:ring-indigo-500"
-				bind:checked={forwardToLlm}
+				bind:checked={forwardOutput}
 			/>
-			<span class="text-gray-300">Forward to LLM</span>
+			<span class="text-gray-300">Forward Output</span>
 		</label>
 	</div>
 

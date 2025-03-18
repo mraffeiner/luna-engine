@@ -6,14 +6,15 @@
 	let guildId: string = $state('1194692480805904384');
 	let channelId: string = $state('1349007184406642798');
 	let speakerAudio: SvelteMap<string, string> = $state(new SvelteMap());
-	let forwardToStt = $state(false);
+
+	let forwardOutput = $state(false);
 
 	async function connect() {
 		const success = await discordService.connect(guildId, channelId);
 		if (success) {
 			await discordService.connectWebSocket(async (username, audioBlob) => {
 				speakerAudio.set(username, URL.createObjectURL(audioBlob));
-				if (forwardToStt) {
+				if (forwardOutput) {
 					discordOutput.set({ username: username, audioBlob: audioBlob });
 				}
 			});
@@ -74,9 +75,9 @@
 			<input
 				type="checkbox"
 				class="rounded border-gray-600 text-indigo-600 focus:ring-indigo-500"
-				bind:checked={forwardToStt}
+				bind:checked={forwardOutput}
 			/>
-			<span class="text-gray-300">Forward to STT</span>
+			<span class="text-gray-300">Forward Output</span>
 		</label>
 	</div>
 

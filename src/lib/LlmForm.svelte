@@ -1,12 +1,13 @@
 <script lang="ts">
-	import { llmOutput, sttOutput } from './stores';
+	import { llmOutput, promptOutput } from './stores';
 
 	let model = $state('gpt-4o-mini');
 	let prompt = $state('Hi there');
 	let loading = $state(false);
 	let errorMessage = $state<string | null>(null);
 	let responseText = $state<string | null>(null);
-	let forwardToTts = $state(false);
+
+	let forwardOutput = $state(false);
 
 	let models = $state<{ value: string; label: string }[]>([]);
 	let localErrorMessage = $state<string | null>(null);
@@ -67,24 +68,25 @@
 
 		loading = false;
 
-		if (forwardToTts && responseText) {
+		if (forwardOutput && responseText) {
 			llmOutput.set(responseText);
 		}
 	}
 
 	$effect(() => {
-		const unsubscribe = sttOutput.subscribe((newPrompt) => {
-			if (newPrompt) {
+		fetchModels();
+	});
+
+	$effect(() => {
+		const unsubscribe = promptOutput.subscribe((newPrompt) => {
+			if (newPrompt && prompt !== newPrompt) {
 				prompt = newPrompt;
 				generateResponse();
 			}
 		});
 
-		fetchModels();
-
 		return () => {
-			unsubscribe;
-			sttOutput.set(null);
+			unsubscribe();
 		};
 	});
 </script>
@@ -142,9 +144,9 @@
 			<input
 				type="checkbox"
 				class="rounded border-gray-600 text-indigo-600 focus:ring-indigo-500"
-				bind:checked={forwardToTts}
+				bind:checked={forwardOutput}
 			/>
-			<span class="text-gray-300">Forward to TTS</span>
+			<span class="text-gray-300">Forward Output</span>
 		</label>
 	</div>
 
