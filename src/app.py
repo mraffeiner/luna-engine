@@ -149,7 +149,7 @@ async def get_container_logs():
         while True:
             try:
                 async for log in container.log(
-                    stdout=True, stderr=True, follow=True, tail=10
+                    stdout=True, stderr=True, follow=True, tail=20
                 ):
                     data = {"service": name, "log": log.strip()}
                     await queue.put(f"data: {json.dumps(data)}\n\n")
