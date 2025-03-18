@@ -11,6 +11,8 @@
 	let audioStream: MediaStream | null = $state(null);
 
 	let forwardOutput = $state(false);
+	let directInputPrefix = $state('TastiHam: ');
+	let directInputText = $state('');
 
 	async function handleTranscribeAudio(audioBlob: Blob, prefix?: string) {
 		// Transcribe the audio
@@ -125,6 +127,19 @@
 		return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 	}
 
+	function handleDirectTextInput() {
+		// Set the transcribed text with the prefix
+		transcribedText = directInputPrefix ? directInputPrefix + directInputText : directInputText;
+
+		// Forward the text if the checkbox is checked
+		if (forwardOutput && transcribedText) {
+			sttOutput.set(transcribedText);
+		}
+
+		// Clear the input text after forwarding
+		directInputText = '';
+	}
+
 	const buttonLabel = $derived(isRecording ? 'Stop Recording' : 'Start Recording');
 	const isTranscribing = $derived($sttStatus === 'transcribing');
 
@@ -183,7 +198,7 @@
 		</div>
 	{/if}
 
-	<div class="mt-4">
+	<div class="mt-4 space-y-4">
 		<label class="inline-flex items-center space-x-2">
 			<input
 				type="checkbox"
@@ -192,6 +207,39 @@
 			/>
 			<span class="text-gray-300">Forward Output</span>
 		</label>
+
+		<div class="border-t border-gray-700 pt-4">
+			<h3 class="mb-2 text-sm font-medium text-gray-300">Direct Text Input</h3>
+			<div class="flex flex-col space-y-3">
+				<div>
+					<label for="prefix" class="mb-1 block text-xs text-gray-400">Prefix (optional)</label>
+					<input
+						type="text"
+						id="prefix"
+						class="w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+						placeholder="e.g. User:"
+						bind:value={directInputPrefix}
+					/>
+				</div>
+				<div>
+					<label for="directText" class="mb-1 block text-xs text-gray-400">Text</label>
+					<textarea
+						id="directText"
+						rows="3"
+						class="w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+						placeholder="Enter text to forward directly"
+						bind:value={directInputText}
+					></textarea>
+				</div>
+				<button
+					onclick={handleDirectTextInput}
+					disabled={!directInputText}
+					class="self-start rounded-md bg-indigo-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-indigo-700 disabled:opacity-50"
+				>
+					Forward Text
+				</button>
+			</div>
+		</div>
 	</div>
 
 	<div class="mt-6">
