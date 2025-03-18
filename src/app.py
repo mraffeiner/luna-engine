@@ -19,6 +19,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+docker_logs_client = aiodocker.Docker()
 active_log_tasks = []
 
 
@@ -55,8 +56,6 @@ app = FastAPI(
 )
 load_dotenv()
 
-docker_client = aiodocker.Docker()
-
 
 # API endpoints
 @app.get("/health")
@@ -66,6 +65,8 @@ async def health_check():
 
 @app.get("/container_status/{container_name}", response_model=ContainerStatusResponse)
 async def get_container_status(container_name: str):
+    docker_client = aiodocker.Docker()
+
     try:
         container = await docker_client.containers.get(container_name)
         container_info = await container.show()
@@ -82,10 +83,14 @@ async def get_container_status(container_name: str):
             status_code=500,
             detail=f"Unexpected error getting container status for {container_name}",
         )
+    finally:
+        await docker_client.close()
 
 
 @app.post("/start_container/{container_name}", response_model=ContainerResponse)
 async def start_container(container_name: str):
+    docker_client = aiodocker.Docker()
+
     try:
         container = await docker_client.containers.get(container_name)
         container_info = await container.show()
@@ -105,10 +110,14 @@ async def start_container(container_name: str):
             status_code=500,
             detail=f"Unexpected error starting container {container_name}",
         )
+    finally:
+        await docker_client.close()
 
 
 @app.post("/stop_container/{container_name}", response_model=ContainerResponse)
 async def stop_container(container_name: str):
+    docker_client = aiodocker.Docker()
+
     try:
         container = await docker_client.containers.get(container_name)
         container_info = await container.show()
@@ -126,6 +135,8 @@ async def stop_container(container_name: str):
             status_code=500,
             detail=f"Unexpected error stopping container {container_name}",
         )
+    finally:
+        await docker_client.close()
 
 
 @app.get("/container_logs")
@@ -178,7 +189,7 @@ async def get_container_logs():
             active_log_tasks.append(heartbeat_task)
 
             # Create log task for each container on the network
-            containers = await docker_client.containers.list(
+            containers = await docker_logs_client.containers.list(
                 filters={"network": ["luna-engine_default"]}
             )
             for container in containers:
