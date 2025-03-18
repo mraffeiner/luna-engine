@@ -23,10 +23,16 @@
 	$effect(() => {
 		window.addEventListener('beforeunload', handleBeforeUnload);
 
+		return () => {
+			window.removeEventListener('beforeunload', handleBeforeUnload);
+		};
+	});
+
+	$effect(() => {
 		dockerService.startLogsStream();
 
 		return () => {
-			window.removeEventListener('beforeunload', handleBeforeUnload);
+			dockerService.stopLogsStream();
 		};
 	});
 </script>

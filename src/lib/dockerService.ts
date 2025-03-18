@@ -86,6 +86,26 @@ function updateStatus(serviceName: string, updates: Partial<ContainerStatus>): v
  */
 export const dockerService = {
 	/**
+	 * Checks the status of a container
+	 */
+	checkContainerStatus: async (serviceName: string): Promise<ContainerStatusResponse | null> => {
+		const data = await apiRequest<ContainerStatusResponse>(
+			`/container_status/${serviceName}`,
+			serviceName,
+			'check status'
+		);
+
+		if (data) {
+			updateStatus(serviceName, {
+				isRunning: data.running,
+				status: data.status
+			});
+		}
+
+		return data;
+	},
+
+	/**
 	 * Starts a container
 	 */
 	startContainer: async (serviceName: string): Promise<void> => {
@@ -174,25 +194,5 @@ export const dockerService = {
 	 */
 	clearLogs: (serviceName: string): void => {
 		serviceLogs.get(serviceName)?.set([]);
-	},
-
-	/**
-	 * Checks the status of a container
-	 */
-	checkContainerStatus: async (serviceName: string): Promise<ContainerStatusResponse | null> => {
-		const data = await apiRequest<ContainerStatusResponse>(
-			`/container_status/${serviceName}`,
-			serviceName,
-			'check status'
-		);
-
-		if (data) {
-			updateStatus(serviceName, {
-				isRunning: data.running,
-				status: data.status
-			});
-		}
-
-		return data;
 	}
 };
