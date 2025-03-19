@@ -50,6 +50,8 @@ const client = new Client({
 let connection: VoiceConnection | null = null;
 let audioWebSocket: WebSocket | null = null;
 const activeStreams = new Map();
+const speakingTimeouts = new Map<string, number>();
+const GRACE_PERIOD_MS = 300;
 
 client.on("ready", () => {
   logger.info(`Logged in as ${client.user?.tag}!`);
@@ -95,35 +97,69 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
     const username = user.displayName;
     logger.info(`${username} started speaking`);
 
-    if (!connection) {
-      logger.error("Connection is null when user started speaking.");
-      return;
+    // Clear any existing timeout for this user
+    if (speakingTimeouts.has(userId)) {
+      clearTimeout(speakingTimeouts.get(userId));
+      speakingTimeouts.delete(userId);
+      logger.info(`${username} continued speaking within grace period`);
+    } else {
+      // Only create a new stream if this is not a continuation within grace period
+      if (!connection) {
+        logger.error("Connection is null when user started speaking.");
+        return;
+      }
+
+      const stream: AudioReceiveStream = connection.receiver.subscribe(userId);
+      activeStreams.set(userId, stream);
+
+      const decoder = new opus.Decoder({
+        channels: 2,
+        frameSize: 960,
+        rate: 48000,
+      });
+
+      stream.pipe(decoder);
+      decoder.on("data", (chunk) => {
+        pcmData.push(chunk);
+      });
     }
-
-    const stream: AudioReceiveStream = connection.receiver.subscribe(userId);
-    activeStreams.set(userId, stream);
-
-    const decoder = new opus.Decoder({
-      channels: 2,
-      frameSize: 960,
-      rate: 48000,
-    });
-
-    stream.pipe(decoder);
-    decoder.on("data", (chunk) => {
-      pcmData.push(chunk);
-    });
   });
 
   connection.receiver.speaking.on("end", async (userId) => {
     const user = await client.users.fetch(userId);
     const username = user.displayName;
-    logger.info(`${username} stopped speaking`);
+    logger.info(
+      `${username} stopped speaking, waiting for grace period of ${GRACE_PERIOD_MS}ms`
+    );
 
-    activeStreams.get(userId)?.destroy();
-    activeStreams.delete(userId);
+    // Set a timeout for the grace period
+    const timeoutId = setTimeout(() => {
+      // Process audio only after grace period expires
+      processAudio(userId, username, pcmData);
 
-    const concatenatedPcmData = Buffer.concat(pcmData);
+      // Clean up
+      activeStreams.get(userId)?.destroy();
+      activeStreams.delete(userId);
+      speakingTimeouts.delete(userId);
+      pcmData = [];
+    }, GRACE_PERIOD_MS);
+
+    // Store the timeout ID
+    speakingTimeouts.set(userId, timeoutId);
+  });
+
+  // Function to process audio data and send it to the WebSocket
+  function processAudio(
+    _userId: string,
+    username: string,
+    audioData: Buffer[]
+  ) {
+    if (audioData.length === 0) {
+      logger.info(`No audio data to process for ${username}`);
+      return;
+    }
+
+    const concatenatedPcmData = Buffer.concat(audioData);
 
     // Deinterleave stereo pcm data
     const totalFrames = concatenatedPcmData.length / 4;
@@ -165,13 +201,18 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
     } else {
       logger.info("Audio websocket not open");
     }
-
-    pcmData = [];
-  });
+  }
 }
 
 function disconnectFromVoiceChannel() {
   if (connection) {
+    // Clear all pending timeouts
+    for (const [userId, timeoutId] of speakingTimeouts.entries()) {
+      clearTimeout(timeoutId);
+      logger.info(`Cleared pending timeout for user ${userId}`);
+    }
+    speakingTimeouts.clear();
+
     connection.destroy();
     connection = null;
     logger.info("Disconnected from voice channel");
