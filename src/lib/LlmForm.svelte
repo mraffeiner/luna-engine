@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { llmOutput, promptOutput } from './stores';
 
-	let model = $state('gpt-4o-mini');
+	let model = $state('deepseek-r1-distill-llama-70b');
 	let prompt = $state('Hi there');
 	let loading = $state(false);
 	let errorMessage = $state<string | null>(null);
 	let responseText = $state<string | null>(null);
 
-	let forwardOutput = $state(false);
+	let forwardOutput = $state(true);
 
 	let models = $state<{ value: string; label: string }[]>([]);
 	let localErrorMessage = $state<string | null>(null);
@@ -69,7 +69,7 @@
 		loading = false;
 
 		if (forwardOutput && responseText) {
-			llmOutput.set(responseText);
+			llmOutput.set(responseText.replace(/<think\b[^>]*>[\s\S]*?<\/think>/gi, '').trim());
 		}
 	}
 

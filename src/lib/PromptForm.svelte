@@ -18,7 +18,7 @@
 	import { llmOutput, promptOutput, sttOutput } from './stores';
 
 	let promptNames: string[] = $state(listPromptNames());
-	let selectedPrompt: string = $state('');
+	let selectedPrompt: string = $state('Luna Thinking');
 
 	// For adding new dynamic prompts
 	let newDynamicPromptName: string = $state('');
@@ -32,7 +32,7 @@
 	// For prompt deletion confirmation
 	let deletionConfirmationMode: boolean = $state(false);
 
-	let forwardOutput = $state(false);
+	let forwardOutput = $state(true);
 
 	function handleSavePrompt() {
 		savePromptTemplate($promptName, $promptTemplate);

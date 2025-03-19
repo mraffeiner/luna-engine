@@ -7,7 +7,7 @@
 	let channelId: string = $state('1349007184406642798');
 	let speakerAudio: SvelteMap<string, string> = $state(new SvelteMap());
 
-	let forwardOutput = $state(false);
+	let forwardOutput = $state(true);
 
 	async function connect() {
 		const success = await discordService.connect(guildId, channelId);

@@ -10,7 +10,7 @@
 	let recordingTimer: number | null = $state(null);
 	let audioStream: MediaStream | null = $state(null);
 
-	let forwardOutput = $state(false);
+	let forwardOutput = $state(true);
 	let directInputPrefix = $state('TastiHam: ');
 	let directInputText = $state('');
 
