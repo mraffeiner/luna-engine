@@ -31,25 +31,6 @@
 	}
 
 	/**
-	 *  Colorize the log based on keywords
-	 */
-	function colorizeLog(log: string) {
-		let colorClass = 'text-gray-300'; // Default color
-
-		if (log.toLowerCase().includes('error')) {
-			colorClass = 'text-red-300';
-		} else if (log.toLowerCase().includes('warning')) {
-			colorClass = 'text-yellow-300';
-		} else if (log.toLowerCase().includes('debug')) {
-			colorClass = 'text-blue-300';
-		} else if (log.toLowerCase().includes('info')) {
-			colorClass = 'text-green-300';
-		}
-
-		return `<span class="${colorClass}">${log}</span>`;
-	}
-
-	/**
 	 * Filter logs based on search text
 	 */
 	function getFilteredLogs() {
@@ -84,7 +65,7 @@
 		<h3 class="flex items-center">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
-				class="mr-2 h-5 w-5 text-indigo-400"
+				class="luna-text-primary-light mr-2 h-5 w-5"
 				fill="none"
 				viewBox="0 0 24 24"
 				stroke="currentColor"
@@ -104,11 +85,11 @@
 					type="text"
 					bind:value={filterText}
 					placeholder="Filter logs..."
-					class="w-48 rounded-md border border-gray-600 bg-gray-700 py-1.5 pl-8 pr-3 text-sm text-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
+					class="luna-border-subtle luna-bg-elevated luna-text-muted focus:border-primary focus:ring-primary w-48 rounded-md border py-1.5 pl-8 pr-3 text-sm"
 				/>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
-					class="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+					class="luna-text-disabled absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke="currentColor"
@@ -148,14 +129,14 @@
 		<div
 			bind:this={logsContainer}
 			onscroll={handleScroll}
-			class="custom-scrollbar h-[min(70vh,600px)] overflow-auto whitespace-pre-line rounded-md border border-gray-700 bg-gray-900 p-4 font-mono text-sm text-gray-300 shadow-inner"
+			class="custom-scrollbar luna-border-base luna-bg-base luna-text-subtle h-[min(70vh,600px)] overflow-auto whitespace-pre-line rounded-md border p-4 font-mono text-sm shadow-inner"
 		>
 			{#if logs.length === 0}
-				<div class="flex h-full items-center justify-center text-gray-500">
+				<div class="luna-text-disabled flex h-full items-center justify-center">
 					<div class="text-center">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
-							class="mx-auto mb-2 h-10 w-10 text-gray-600"
+							class="luna-text-disabled mx-auto mb-2 h-10 w-10"
 							fill="none"
 							viewBox="0 0 24 24"
 							stroke="currentColor"
@@ -168,15 +149,15 @@
 							/>
 						</svg>
 						<p>No logs available</p>
-						<p class="mt-1 text-xs text-gray-600">Start the service to see logs</p>
+						<p class="luna-text-disabled mt-1 text-xs">Start the service to see logs</p>
 					</div>
 				</div>
 			{:else if getFilteredLogs().length === 0}
-				<div class="flex h-full items-center justify-center text-gray-500">
+				<div class="luna-text-disabled flex h-full items-center justify-center">
 					<div class="text-center">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
-							class="mx-auto mb-2 h-10 w-10 text-gray-600"
+							class="luna-text-disabled mx-auto mb-2 h-10 w-10"
 							fill="none"
 							viewBox="0 0 24 24"
 							stroke="currentColor"
@@ -189,12 +170,24 @@
 							/>
 						</svg>
 						<p>No matching logs</p>
-						<p class="mt-1 text-xs text-gray-600">Try a different filter</p>
+						<p class="luna-text-disabled mt-1 text-xs">Try a different filter</p>
 					</div>
 				</div>
 			{:else}
 				{#each getFilteredLogs() as log}
-					<div class="py-0.5">{@html colorizeLog(log)}</div>
+					<div class="py-0.5">
+						{#if log.toLowerCase().includes('error')}
+							<span class="luna-text-danger-light">{log}</span>
+						{:else if log.toLowerCase().includes('warning')}
+							<span class="luna-text-warning-light">{log}</span>
+						{:else if log.toLowerCase().includes('debug')}
+							<span class="luna-text-info-light">{log}</span>
+						{:else if log.toLowerCase().includes('info')}
+							<span class="luna-text-success-light">{log}</span>
+						{:else}
+							<span class="luna-text-subtle">{log}</span>
+						{/if}
+					</div>
 				{/each}
 			{/if}
 		</div>
@@ -205,7 +198,7 @@
 					autoScroll = true;
 					scrollToBottom();
 				}}
-				class="absolute bottom-4 right-4 rounded-full bg-gray-700 p-2 text-white shadow-md transition-all duration-200 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-600"
+				class="luna-bg-elevated luna-text-base hover:luna-bg-elevated-opacity-70 focus:luna-border-focus absolute bottom-4 right-4 rounded-full p-2 shadow-md transition-all duration-200 focus:outline-none focus:ring-2"
 			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -226,7 +219,7 @@
 	</div>
 
 	<div class="mt-3 flex items-center justify-between px-1">
-		<div class="flex items-center text-sm text-gray-400">
+		<div class="luna-text-disabled flex items-center text-sm">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				class="mr-1 h-4 w-4"
@@ -246,7 +239,7 @@
 				? 'entry'
 				: 'entries'}
 		</div>
-		<div class="text-sm text-gray-400">
+		<div class="luna-text-disabled text-sm">
 			{autoScroll ? 'Auto-scroll enabled' : 'Auto-scroll disabled'}
 		</div>
 	</div>

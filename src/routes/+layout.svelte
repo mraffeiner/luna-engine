@@ -37,7 +37,7 @@
 	});
 </script>
 
-<div class="flex h-screen bg-gray-900 text-white">
+<div class="luna-bg-base luna-text-base flex h-screen">
 	<Sidebar />
 	<main class="flex-1 overflow-auto p-6">
 		{#if $serviceError}
@@ -65,7 +65,7 @@
 					</div>
 					<button
 						onclick={() => serviceError.set(null)}
-						class="btn-sm rounded-full p-1.5 text-red-400 hover:bg-red-800 hover:bg-opacity-30 focus:ring-red-700"
+						class="btn-sm luna-text-danger-light hover:luna-bg-danger focus:luna-border-focus rounded-full p-1.5 hover:bg-opacity-30"
 						title="Dismiss"
 						aria-label="Dismiss error message"
 					>

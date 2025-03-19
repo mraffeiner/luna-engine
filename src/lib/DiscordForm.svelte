@@ -70,7 +70,7 @@
 		<div class="form-group">
 			<label class="flex-start space-x-2">
 				<input type="checkbox" bind:checked={forwardOutput} />
-				<span class="text-gray-300">Forward Output</span>
+				<span class="luna-text-subtle">Forward Output</span>
 			</label>
 		</div>
 
@@ -81,8 +81,8 @@
 		</div>
 
 		{#each [...speakerAudio] as [username, audioUrl]}
-			<div class="mt-6 rounded-lg border border-gray-600 bg-gray-800 p-4">
-				<h4 class="flex-start mb-2 text-sm font-medium text-gray-300">
+			<div class="luna-border-subtle luna-bg-surface mt-6 rounded-lg border p-4">
+				<h4 class="flex-start luna-text-subtle mb-2 text-sm font-medium">
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						class="icon icon-sm icon-success mr-1"

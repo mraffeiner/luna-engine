@@ -209,18 +209,18 @@
 		</div>
 
 		<!-- Main Prompt Template Section -->
-		<div class="form-group rounded-md border border-gray-600 bg-gray-800 p-4">
-			<h3 class="mb-4 text-lg font-medium text-gray-300">Main Prompt Template</h3>
+		<div class="form-group luna-border-subtle luna-bg-surface rounded-md border p-4">
+			<h3 class="luna-text-muted mb-4 text-lg font-medium">Main Prompt Template</h3>
 			<textarea id="prompt-template" bind:value={$systemPrompt} rows="5" class="form-control"
 			></textarea>
 		</div>
 
 		<!-- Dynamic Prompts Section -->
-		<div class="form-group rounded-md border border-gray-600 bg-gray-800 p-4">
-			<h3 class="mb-4 text-lg font-medium text-gray-300">Dynamic Prompts</h3>
+		<div class="form-group luna-border-subtle luna-bg-surface rounded-md border p-4">
+			<h3 class="luna-text-muted mb-4 text-lg font-medium">Dynamic Prompts</h3>
 
 			<!-- Add New Dynamic Prompt -->
-			<div class="mb-6 rounded-md border border-gray-700 bg-gray-700 p-3">
+			<div class="luna-border-base luna-bg-elevated mb-6 rounded-md border p-3">
 				<div class="form-group">
 					<label for="new-dynamic-name">Name:</label>
 					<input
@@ -249,10 +249,10 @@
 			<!-- List of Dynamic Prompts -->
 			<div>
 				{#if $userPromptSections.length === 0}
-					<p class="text-gray-400">No dynamic prompts added yet.</p>
+					<p class="luna-text-disabled">No dynamic prompts added yet.</p>
 				{:else}
 					{#each $userPromptSections as section}
-						<div class="mb-3 rounded-md border border-gray-700 bg-gray-700 p-3">
+						<div class="luna-border-base luna-bg-elevated mb-3 rounded-md border p-3">
 							{#if editingPromptId === section.id}
 								<!-- Edit Mode -->
 								<div class="form-group">
@@ -284,7 +284,7 @@
 							{:else}
 								<!-- View Mode -->
 								<div class="flex-between mb-1">
-									<h5 class="text-md font-medium text-indigo-300">{section.name}</h5>
+									<h5 class="text-md luna-text-primary-light font-medium">{section.name}</h5>
 									<div class="space-x-sm">
 										<button onclick={() => startEditingPrompt(section)} class="btn-info btn-sm">
 											Edit
@@ -297,7 +297,7 @@
 										</button>
 									</div>
 								</div>
-								<div class="rounded-md bg-gray-800 p-2 text-gray-300">
+								<div class="luna-bg-surface luna-text-muted rounded-md p-2">
 									<pre class="whitespace-pre-wrap">{section.content}</pre>
 								</div>
 							{/if}
@@ -308,8 +308,8 @@
 		</div>
 
 		<!-- Combined Prompt Preview -->
-		<div class="form-group rounded-md border border-gray-600 bg-gray-800 p-4">
-			<h3 class="mb-2 text-lg font-medium text-gray-300">Combined Prompt Preview</h3>
+		<div class="form-group luna-border-subtle luna-bg-surface rounded-md border p-4">
+			<h3 class="luna-text-muted mb-2 text-lg font-medium">Combined Prompt Preview</h3>
 			<div class="form-control whitespace-pre-wrap p-3">
 				<pre>{$systemPrompt}{$userPrompt ? `${$userPrompt}` : ''}</pre>
 			</div>
@@ -318,7 +318,7 @@
 		<div class="form-group">
 			<label class="flex-start space-x-2">
 				<input type="checkbox" bind:checked={forwardOutput} />
-				<span class="text-gray-300">Forward Output</span>
+				<span class="luna-text-muted">Forward Output</span>
 			</label>
 		</div>
 
@@ -329,7 +329,7 @@
 				<button onclick={handleDeletePrompt} class="btn-danger"> Delete Prompt </button>
 			{:else}
 				<div class="flex-start space-x-sm">
-					<span class="text-yellow-400">Confirm deletion?</span>
+					<span class="luna-text-warning-light">Confirm deletion?</span>
 					<button onclick={handleDeletePrompt} class="btn-danger"> Yes, Delete </button>
 					<button onclick={cancelDeletion} class="btn-secondary"> Cancel </button>
 				</div>

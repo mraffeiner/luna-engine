@@ -202,15 +202,15 @@
 		<div class="form-group">
 			<label class="flex-start space-x-2">
 				<input type="checkbox" bind:checked={forwardOutput} />
-				<span class="text-gray-300">Forward Output</span>
+				<span class="luna-text-muted">Forward Output</span>
 			</label>
 		</div>
 
-		<div class="form-group border-t border-gray-700 pt-4">
-			<h3 class="mb-2 text-sm font-medium text-gray-300">Direct Text Input</h3>
+		<div class="form-group luna-border-base border-t pt-4">
+			<h3 class="luna-text-muted mb-2 text-sm font-medium">Direct Text Input</h3>
 			<div class="space-y-3">
 				<div class="form-group">
-					<label for="prefix" class="text-xs text-gray-400">Prefix (optional)</label>
+					<label for="prefix" class="luna-text-disabled text-xs">Prefix (optional)</label>
 					<input
 						type="text"
 						id="prefix"
@@ -220,7 +220,7 @@
 					/>
 				</div>
 				<div class="form-group">
-					<label for="directText" class="text-xs text-gray-400">Text</label>
+					<label for="directText" class="luna-text-disabled text-xs">Text</label>
 					<textarea
 						id="directText"
 						rows="3"
@@ -250,24 +250,24 @@
 
 			{#if isRecording}
 				<div class="flex-start mt-4">
-					<span class="status-indicator status-pulse mr-2 bg-red-500"></span>
-					<span class="text-sm text-gray-300">Recording: {formatTime(recordingTime)}</span>
+					<span class="status-indicator status-pulse luna-bg-danger mr-2"></span>
+					<span class="luna-text-muted text-sm">Recording: {formatTime(recordingTime)}</span>
 				</div>
 			{/if}
 
 			{#if isTranscribing}
 				<div class="flex-start mt-4">
 					<span
-						class="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"
+						class="luna-border-primary mr-2 h-3 w-3 animate-spin rounded-full border-2 border-t-transparent"
 					></span>
-					<span class="text-sm text-gray-300">Transcribing...</span>
+					<span class="luna-text-muted text-sm">Transcribing...</span>
 				</div>
 			{/if}
 		</div>
 
 		{#if transcribedText}
 			<div class="form-group">
-				<h3 class="mb-2 text-lg font-medium text-gray-300">Transcribed Text:</h3>
+				<h3 class="luna-text-muted mb-2 text-lg font-medium">Transcribed Text:</h3>
 				<div class="form-control whitespace-pre-wrap p-4">
 					{transcribedText}
 				</div>

@@ -37,7 +37,7 @@
 	<h2 class="mb-6 flex items-center">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
-			class="mr-2 h-6 w-6 text-indigo-400"
+			class="luna-text-primary-light mr-2 h-6 w-6"
 			fill="none"
 			viewBox="0 0 24 24"
 			stroke="currentColor"
@@ -53,19 +53,19 @@
 	</h2>
 
 	<div class="form-group">
-		<label for="engine" class="mb-2 block text-sm font-medium text-gray-300">TTS Engine</label>
+		<label for="engine" class="luna-text-subtle mb-2 block text-sm font-medium">TTS Engine</label>
 		<div class="relative">
 			<select
 				id="engine"
 				bind:value={selectedEngine}
-				class="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-3 text-gray-200 shadow-sm transition-all duration-200 focus:border-indigo-500 focus:ring-indigo-500"
+				class="luna-border-subtle luna-bg-elevated luna-text-muted focus:border-primary focus:ring-primary block w-full appearance-none rounded-md border p-3 shadow-sm transition-all duration-200"
 			>
 				{#each Object.entries($ttsOptions.engines) as [engineKey, engineOption]}
 					<option value={engineKey}>{engineOption.label}</option>
 				{/each}
 			</select>
 			<div
-				class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400"
+				class="luna-text-disabled pointer-events-none absolute inset-y-0 right-0 flex items-center px-3"
 			>
 				<svg
 					class="h-4 w-4"
@@ -82,8 +82,8 @@
 	</div>
 
 	{#if $ttsError}
-		<div class="animate-fadeIn mb-6 rounded-md border border-red-800 bg-red-900/30 p-4 shadow-md">
-			<p class="flex items-center text-red-400">
+		<div class="animate-fadeIn alert-error mb-6 rounded-md border p-4 shadow-md">
+			<p class="luna-text-danger-light flex items-center">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					class="mr-2 h-5 w-5"

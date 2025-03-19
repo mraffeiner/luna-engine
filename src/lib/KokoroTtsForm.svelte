@@ -84,7 +84,7 @@
 	<h3 class="mb-5 flex items-center">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
-			class="mr-2 h-5 w-5 text-indigo-400"
+			class="luna-text-primary-light mr-2 h-5 w-5"
 			fill="none"
 			viewBox="0 0 24 24"
 			stroke="currentColor"
@@ -101,22 +101,22 @@
 
 	<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 		<div class="form-group">
-			<label for="text" class="mb-2 block text-sm font-medium text-gray-200">Text</label>
+			<label for="text" class="luna-text-muted mb-2 block text-sm font-medium">Text</label>
 			<textarea
 				id="text"
 				bind:value={text}
 				placeholder="Enter text to convert to speech..."
-				class="min-h-[120px] w-full resize-y rounded-md border border-gray-600 bg-gray-700 p-3 text-white shadow-sm transition-all duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
+				class="luna-border-subtle luna-bg-elevated luna-text-base focus:border-primary focus:ring-primary min-h-[120px] w-full resize-y rounded-md border shadow-sm transition-all duration-200 focus:ring-2"
 			></textarea>
 		</div>
 
 		<div class="form-group">
-			<label for="language" class="mb-2 block text-sm font-medium text-gray-200">Language</label>
+			<label for="language" class="luna-text-muted mb-2 block text-sm font-medium">Language</label>
 			<div class="relative">
 				<select
 					id="language"
 					bind:value={language}
-					class="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-3 text-white shadow-sm transition-all duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
+					class="luna-border-subtle luna-bg-elevated luna-text-base focus:border-primary focus:ring-primary block w-full appearance-none rounded-md border shadow-sm transition-all duration-200 focus:ring-2"
 				>
 					{#if $ttsOptions.engines['kokoro']?.languages}
 						{#each $ttsOptions.engines['kokoro'].languages as lang}
@@ -125,7 +125,7 @@
 					{/if}
 				</select>
 				<div
-					class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400"
+					class="luna-text-disabled pointer-events-none absolute inset-y-0 right-0 flex items-center px-3"
 				>
 					<svg
 						class="h-4 w-4"
@@ -143,14 +143,16 @@
 
 		<!-- Voice Mixing Toggle -->
 		<div class="form-group col-span-1 lg:col-span-2">
-			<div class="glass-effect flex items-center rounded-md border border-gray-600 p-4 shadow-sm">
+			<div
+				class="glass-effect luna-border-subtle flex items-center rounded-md border p-4 shadow-sm"
+			>
 				<input
 					id="useVoiceMix"
 					type="checkbox"
 					bind:checked={useVoiceMix}
-					class="h-5 w-5 rounded border-gray-600 bg-gray-700 text-indigo-600 focus:ring-indigo-500"
+					class="luna-border-subtle luna-bg-elevated luna-text-primary focus:ring-primary h-5 w-5 rounded"
 				/>
-				<label for="useVoiceMix" class="ml-3 block text-sm font-medium text-gray-200">
+				<label for="useVoiceMix" class="luna-text-muted ml-3 block text-sm font-medium">
 					Enable Voice Mixing (blend multiple voices together)
 				</label>
 			</div>
@@ -159,12 +161,12 @@
 		{#if !useVoiceMix}
 			<!-- Single Voice Selection (when mixing is disabled) -->
 			<div class="form-group">
-				<label for="voice" class="mb-2 block text-sm font-medium text-gray-200">Voice</label>
+				<label for="voice" class="luna-text-muted mb-2 block text-sm font-medium">Voice</label>
 				<div class="relative">
 					<select
 						id="voice"
 						bind:value={voice}
-						class="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-3 text-white shadow-sm transition-all duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
+						class="luna-border-subtle luna-bg-elevated luna-text-base focus:border-primary focus:ring-primary block w-full appearance-none rounded-md border shadow-sm transition-all duration-200 focus:ring-2"
 					>
 						{#if $ttsOptions.engines['kokoro']?.voices}
 							{#each $ttsOptions.engines['kokoro'].voices as voiceOption}
@@ -173,7 +175,7 @@
 						{/if}
 					</select>
 					<div
-						class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400"
+						class="luna-text-disabled pointer-events-none absolute inset-y-0 right-0 flex items-center px-3"
 					>
 						<svg
 							class="h-4 w-4"
@@ -196,7 +198,7 @@
 			<!-- Voice Mixing UI (when mixing is enabled) -->
 			<div class="form-group col-span-1 lg:col-span-2">
 				<div class="mb-3 flex items-center justify-between">
-					<label for="addVoice" class="block text-sm font-medium text-gray-200">Voice Mix</label>
+					<label for="addVoice" class="luna-text-muted block text-sm font-medium">Voice Mix</label>
 					<button
 						id="addVoice"
 						type="button"
@@ -225,14 +227,14 @@
 				<div class="custom-scrollbar max-h-[min(40vh,400px)] space-y-3 overflow-y-auto pr-1">
 					{#each voiceMix as voice, i}
 						<div
-							class="glass-effect flex flex-wrap gap-3 rounded-md border border-gray-600 p-4 shadow-sm transition-all duration-200 hover:border-gray-500"
+							class="glass-effect luna-border-subtle hover:luna-border-hover flex flex-wrap gap-3 rounded-md border p-4 shadow-sm transition-all duration-200"
 						>
 							<div class="min-w-[200px] flex-grow">
 								<div class="relative">
 									<select
 										value={voice.voice}
 										onchange={(e) => updateVoiceSelection(i, e.currentTarget.value)}
-										class="w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-2.5 text-sm text-white shadow-sm transition-all duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
+										class="luna-border-subtle luna-bg-elevated luna-text-base focus:border-primary focus:ring-primary w-full appearance-none rounded-md border p-2.5 text-sm shadow-sm transition-all duration-200 focus:ring-2"
 									>
 										{#if $ttsOptions.engines['kokoro']?.voices}
 											{#each $ttsOptions.engines['kokoro'].voices as voiceOption}
@@ -241,7 +243,7 @@
 										{/if}
 									</select>
 									<div
-										class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400"
+										class="luna-text-disabled pointer-events-none absolute inset-y-0 right-0 flex items-center px-2"
 									>
 										<svg
 											class="h-4 w-4"
@@ -270,7 +272,8 @@
 									oninput={(e) => updateVoiceWeight(i, parseFloat(e.currentTarget.value))}
 									class="flex-grow"
 								/>
-								<span class="w-12 text-sm font-medium text-gray-300">{voice.weight.toFixed(1)}</span
+								<span class="luna-text-muted w-12 text-sm font-medium"
+									>{voice.weight.toFixed(1)}</span
 								>
 							</div>
 							<button
@@ -302,24 +305,28 @@
 		{/if}
 
 		<div class="form-group">
-			<label for="speed" class="mb-2 block text-sm font-medium text-gray-200">Speed</label>
+			<label for="speed" class="luna-text-muted mb-2 block text-sm font-medium">Speed</label>
 			<div class="relative mt-1 px-1">
 				<input id="speed" type="range" min="0.5" max="2.0" step="0.01" bind:value={speed} />
-				<div class="mt-2 flex justify-between px-1 text-xs text-gray-400">
+				<div class="luna-text-disabled mt-2 flex justify-between px-1 text-xs">
 					<span>Slower</span>
-					<span class="rounded-md bg-gray-700 px-2 py-1 font-medium text-indigo-300">{speed}x</span>
+					<span class="luna-bg-elevated luna-text-primary-light rounded-md px-2 py-1 font-medium"
+						>{speed}x</span
+					>
 					<span>Faster</span>
 				</div>
 			</div>
 		</div>
 
 		<div class="form-group">
-			<label for="pitch" class="mb-2 block text-sm font-medium text-gray-200">Pitch</label>
+			<label for="pitch" class="luna-text-muted mb-2 block text-sm font-medium">Pitch</label>
 			<div class="relative mt-1 px-1">
 				<input id="pitch" type="range" min="0.5" max="2.0" step="0.01" bind:value={pitch} />
-				<div class="mt-2 flex justify-between px-1 text-xs text-gray-400">
+				<div class="luna-text-disabled mt-2 flex justify-between px-1 text-xs">
 					<span>Lower</span>
-					<span class="rounded-md bg-gray-700 px-2 py-1 font-medium text-indigo-300">{pitch}x</span>
+					<span class="luna-bg-elevated luna-text-primary-light rounded-md px-2 py-1 font-medium"
+						>{pitch}x</span
+					>
 					<span>Higher</span>
 				</div>
 			</div>
@@ -327,8 +334,8 @@
 	</div>
 
 	{#if $ttsError}
-		<div class="animate-fadeIn my-5 rounded-md border border-red-800 bg-red-900/30 p-4 shadow-md">
-			<p class="flex items-center text-red-400">
+		<div class="animate-fadeIn alert-error my-5 rounded-md border p-4 shadow-md">
+			<p class="luna-text-danger-light flex items-center">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					class="mr-2 h-5 w-5"
@@ -352,7 +359,7 @@
 		<button onclick={handleGenerateSpeech} disabled={loading} class="btn-primary btn-icon">
 			{#if loading}
 				<svg
-					class="h-5 w-5 animate-spin text-white"
+					class="luna-text-base h-5 w-5 animate-spin"
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
 					viewBox="0 0 24 24"
@@ -394,12 +401,12 @@
 
 	{#if audioUrl}
 		<div
-			class="glass-effect animate-slideInUp mt-6 rounded-xl border border-indigo-500/30 p-4 shadow-lg"
+			class="glass-effect animate-slideInUp luna-border-primary mt-6 rounded-xl border p-4 shadow-lg"
 		>
-			<h4 class="mb-3 flex items-center text-sm font-medium text-indigo-300">
+			<h4 class="luna-text-primary-light mb-3 flex items-center text-sm font-medium">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
-					class="mr-2 h-5 w-5 text-green-500"
+					class="luna-text-success mr-2 h-5 w-5"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke="currentColor"

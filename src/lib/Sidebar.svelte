@@ -43,8 +43,10 @@
 	];
 </script>
 
-<aside class="flex h-full w-56 flex-col border-r border-gray-700 bg-gray-800 text-white shadow-xl">
-	<div class="border-b border-gray-700 bg-gray-900 p-4">
+<aside
+	class="luna-border-base luna-bg-surface luna-text-base flex h-full w-56 flex-col border-r shadow-xl"
+>
+	<div class="luna-border-base luna-bg-base border-b p-4">
 		<h2 class="flex-start">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -75,8 +77,8 @@
 							href={service.path}
 							class="flex-start transition-standard rounded-lg px-3 py-3 {page.url.pathname ===
 							service.path
-								? 'bg-indigo-900/70 text-indigo-200 shadow-md'
-								: 'hover:bg-gray-700/70'}"
+								? 'luna-bg-primary-opacity-70 luna-text-primary-200 shadow-md'
+								: 'hover:luna-bg-elevated-opacity-70'}"
 						>
 							<span
 								class="mr-3 {status.isRunning ? 'status-running' : 'status-stopped'}
@@ -87,8 +89,8 @@
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
 									class="icon icon-sm mr-2 {page.url.pathname === service.path
-										? 'text-indigo-300'
-										: 'text-gray-400'}"
+										? 'luna-text-primary-light'
+										: 'luna-text-disabled'}"
 									fill="none"
 									viewBox="0 0 24 24"
 									stroke="currentColor"
@@ -110,16 +112,16 @@
 							href={service.path}
 							class="flex-start transition-standard rounded-lg px-3 py-3 {page.url.pathname ===
 							service.path
-								? 'bg-indigo-900/70 text-indigo-200 shadow-md'
-								: 'hover:bg-gray-700/70'}"
+								? 'luna-bg-primary-opacity-70 luna-text-primary-200 shadow-md'
+								: 'hover:luna-bg-elevated-opacity-70'}"
 						>
 							<span class="status-unknown mr-3" title="Unknown status"></span>
 							<div class="flex items-center">
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
 									class="icon icon-sm mr-2 {page.url.pathname === service.path
-										? 'text-indigo-300'
-										: 'text-gray-400'}"
+										? 'luna-text-primary-light'
+										: 'luna-text-disabled'}"
 									fill="none"
 									viewBox="0 0 24 24"
 									stroke="currentColor"
@@ -140,8 +142,8 @@
 		</ul>
 	</nav>
 
-	<div class="glass-effect border-t border-gray-700 p-4">
-		<div class="flex-start text-sm text-gray-400">
+	<div class="glass-effect luna-border-base border-t p-4">
+		<div class="flex-start luna-text-disabled text-sm">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				class="icon icon-sm icon-secondary mr-2"

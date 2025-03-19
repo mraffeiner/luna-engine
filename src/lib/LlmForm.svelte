@@ -147,7 +147,7 @@
 		<div class="form-group">
 			<label class="flex-start space-x-2">
 				<input type="checkbox" bind:checked={forwardOutput} />
-				<span class="text-gray-300">Forward Output</span>
+				<span class="luna-text-subtle">Forward Output</span>
 			</label>
 		</div>
 
@@ -155,7 +155,7 @@
 			<button onclick={generateResponse} disabled={loading} class="btn-primary">
 				{#if loading}
 					<svg
-						class="-ml-1 mr-3 h-5 w-5 animate-spin text-white"
+						class="luna-text-base -ml-1 mr-3 h-5 w-5 animate-spin"
 						xmlns="http://www.w3.org/2000/svg"
 						fill="none"
 						viewBox="0 0 24 24"
@@ -175,7 +175,7 @@
 
 		{#if responseText}
 			<div class="form-group">
-				<h3 class="mb-2 text-lg font-medium text-gray-300">Response</h3>
+				<h3 class="luna-text-subtle mb-2 text-lg font-medium">Response</h3>
 				<div class="form-control whitespace-pre-wrap p-4">
 					{responseText}
 				</div>

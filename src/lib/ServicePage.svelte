@@ -59,7 +59,7 @@
 		>
 			{#if status.isStarting || status.isStopping}
 				<svg
-					class="h-5 w-5 animate-spin text-white"
+					class="luna-text-base h-5 w-5 animate-spin"
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
 					viewBox="0 0 24 24"
@@ -115,9 +115,9 @@
 		</button>
 
 		<div
-			class="glass-effect ml-auto flex items-center rounded-md border border-gray-600 px-4 py-2.5 shadow-md"
+			class="glass-effect luna-border-subtle ml-auto flex items-center rounded-md border px-4 py-2.5 shadow-md"
 		>
-			<span class="mr-2 text-sm font-medium text-gray-300">Status:</span>
+			<span class="luna-text-subtle mr-2 text-sm font-medium">Status:</span>
 			<div class="flex items-center">
 				<span
 					class="{status.isRunning ? 'status-running' : 'status-stopped'} {status.isStarting ||
@@ -127,7 +127,9 @@
 					title={status.isRunning ? 'Running' : 'Stopped'}
 				></span>
 				<span
-					class="ml-2 text-sm font-medium {status.isRunning ? 'text-green-400' : 'text-red-400'}"
+					class="ml-2 text-sm font-medium {status.isRunning
+						? 'luna-text-success-light'
+						: 'luna-text-danger-light'}"
 				>
 					{status.isRunning ? 'Running' : 'Stopped'}
 				</span>

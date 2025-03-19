@@ -35,7 +35,7 @@
 	<h3 class="mb-5 flex items-center">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
-			class="mr-2 h-5 w-5 text-indigo-400"
+			class="luna-text-primary-light mr-2 h-5 w-5"
 			fill="none"
 			viewBox="0 0 24 24"
 			stroke="currentColor"
@@ -52,23 +52,23 @@
 
 	<div class="grid grid-cols-1 gap-5 md:grid-cols-2">
 		<div class="mb-4">
-			<label for="text" class="mb-2 block text-sm font-medium text-gray-200">Text</label>
+			<label for="text" class="luna-text-muted mb-2 block text-sm font-medium">Text</label>
 			<textarea
 				id="text"
 				bind:value={text}
 				rows="4"
 				placeholder="Enter text to convert to speech..."
-				class="block w-full resize-none rounded-md border border-gray-600 bg-gray-700 p-3 text-white shadow-sm transition-colors duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 sm:text-sm"
+				class="luna-border-subtle luna-bg-elevated luna-text-base focus:border-primary focus:ring-primary block w-full resize-none rounded-md border p-3 shadow-sm transition-colors duration-200 focus:ring-2 sm:text-sm"
 			></textarea>
 		</div>
 
 		<div class="mb-4">
-			<label for="voice" class="mb-2 block text-sm font-medium text-gray-200">Voice</label>
+			<label for="voice" class="luna-text-muted mb-2 block text-sm font-medium">Voice</label>
 			<div class="relative">
 				<select
 					id="voice"
 					bind:value={voice}
-					class="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-3 text-white shadow-sm transition-colors duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 sm:text-sm"
+					class="luna-border-subtle luna-bg-elevated luna-text-base focus:border-primary focus:ring-primary block w-full appearance-none rounded-md border p-3 shadow-sm transition-colors duration-200 focus:ring-2 sm:text-sm"
 				>
 					{#if $ttsOptions.engines['sesame']?.voices}
 						{#each $ttsOptions.engines['sesame'].voices as voiceOption}
@@ -77,7 +77,7 @@
 					{/if}
 				</select>
 				<div
-					class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400"
+					class="luna-text-disabled pointer-events-none absolute inset-y-0 right-0 flex items-center px-3"
 				>
 					<svg
 						class="h-4 w-4"
@@ -95,8 +95,8 @@
 	</div>
 
 	{#if $ttsError}
-		<div class="my-4 rounded-md border border-red-800 bg-red-900 bg-opacity-30 p-3">
-			<p class="flex items-center text-red-400">
+		<div class="alert-error my-4 rounded-md p-3">
+			<p class="luna-text-danger-light flex items-center">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					class="mr-2 h-5 w-5"
@@ -120,11 +120,11 @@
 		<button
 			onclick={handleGenerateSpeech}
 			disabled={loading}
-			class="inline-flex items-center rounded-md bg-indigo-600 px-5 py-2.5 font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
+			class="luna-bg-primary luna-text-base hover:luna-bg-primary-hover focus:luna-border-focus inline-flex items-center rounded-md px-5 py-2.5 font-semibold shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			{#if loading}
 				<svg
-					class="-ml-1 mr-3 h-5 w-5 animate-spin text-white"
+					class="luna-text-base -ml-1 mr-3 h-5 w-5 animate-spin"
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
 					viewBox="0 0 24 24"
@@ -143,11 +143,11 @@
 	</div>
 
 	{#if audioUrl}
-		<div class="mt-6 rounded-lg border border-gray-600 bg-gray-800 p-4">
-			<h4 class="mb-2 flex items-center text-sm font-medium text-gray-300">
+		<div class="luna-border-subtle luna-bg-surface mt-6 rounded-lg border p-4">
+			<h4 class="luna-text-muted mb-2 flex items-center text-sm font-medium">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
-					class="mr-1 h-4 w-4 text-green-500"
+					class="luna-text-success mr-1 h-4 w-4"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke="currentColor"
