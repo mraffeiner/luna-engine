@@ -51,7 +51,7 @@ let connection: VoiceConnection | null = null;
 let audioWebSocket: WebSocket | null = null;
 const activeStreams = new Map();
 const speakingTimeouts = new Map<string, number>();
-const GRACE_PERIOD_MS = 300;
+const GRACE_PERIOD_MS = 500;
 
 client.on("ready", () => {
   logger.info(`Logged in as ${client.user?.tag}!`);
