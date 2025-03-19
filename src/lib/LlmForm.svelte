@@ -2,7 +2,8 @@
 	import { llmOutput, promptOutput } from './stores';
 
 	let model = $state('deepseek-r1-distill-llama-70b');
-	let prompt = $state('Hi there');
+	let prompt = $state('Hey');
+	let system_prompt = $state('You are Luna, a young AI woman an space elf Vtuber');
 	let loading = $state(false);
 	let errorMessage = $state<string | null>(null);
 	let responseText = $state<string | null>(null);
@@ -45,6 +46,7 @@
 			},
 			body: JSON.stringify({
 				model,
+				system_prompt,
 				prompt
 			})
 		});
@@ -79,8 +81,13 @@
 
 	$effect(() => {
 		const unsubscribe = promptOutput.subscribe((newPrompt) => {
-			if (newPrompt && prompt !== newPrompt) {
-				prompt = newPrompt;
+			if (newPrompt) {
+				if (newPrompt.systemPrompt !== system_prompt) {
+					system_prompt = newPrompt.systemPrompt;
+				}
+				if (newPrompt.userPrompt !== prompt) {
+					prompt = newPrompt.userPrompt;
+				}
 				generateResponse();
 			}
 		});
@@ -125,7 +132,19 @@
 
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-1">
 		<div class="mb-4">
-			<label for="prompt" class="block text-sm font-medium text-gray-300">Prompt</label>
+			<label for="system_prompt" class="block text-sm font-medium text-gray-300"
+				>System Prompt</label
+			>
+			<textarea
+				id="system_prompt"
+				bind:value={system_prompt}
+				rows="3"
+				class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 p-2 text-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
+			></textarea>
+		</div>
+
+		<div class="mb-4">
+			<label for="prompt" class="block text-sm font-medium text-gray-300">User Prompt</label>
 			<textarea
 				id="prompt"
 				bind:value={prompt}

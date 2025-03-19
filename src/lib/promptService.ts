@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
 
-// Interface for dynamic prompt
-export interface DynamicPrompt {
+// Interface for user prompt section
+export interface UserPromptSection {
 	id: string;
 	name: string;
 	content: string;
@@ -9,43 +9,36 @@ export interface DynamicPrompt {
 
 // Interface for prompt template
 export interface PromptTemplateData {
-	mainTemplate: string;
-	dynamicPrompts: DynamicPrompt[];
+	systemPrompt: string;
+	userPromptSections: UserPromptSection[];
 }
 
 // Store for prompt template
 export const promptName = writable('');
-export const promptTemplate = writable('');
+export const systemPrompt = writable('');
 export const promptError = writable<string | null>(null);
-export const dynamicPrompts = writable<DynamicPrompt[]>([]);
-export const combinedPrompt = writable<string>('');
+export const userPromptSections = writable<UserPromptSection[]>([]);
+export const userPrompt = writable<string>('');
 
-// Update combined prompt whenever the template or dynamic prompts change
-function updateCombinedPrompt() {
-	let dynamicPromptsArray: DynamicPrompt[] = [];
-	dynamicPrompts.subscribe((value) => {
-		dynamicPromptsArray = value;
+// Update user prompt whenever the sections change
+function updateUserPrompt() {
+	let sections: UserPromptSection[] = [];
+	userPromptSections.subscribe((value) => {
+		sections = value;
 	})();
 
-	let mainTemplate = '';
-	promptTemplate.subscribe((value) => {
-		mainTemplate = value;
-	})();
-
-	let combined = mainTemplate;
-
-	if (dynamicPromptsArray.length > 0) {
-		dynamicPromptsArray.forEach((dp) => {
-			combined += `\n\n# ${dp.name}\n${dp.content}`;
+	let text = '';
+	if (sections.length > 0) {
+		sections.forEach((section) => {
+			text += `\n\n# ${section.name}\n${section.content}`;
 		});
 	}
 
-	combinedPrompt.set(combined);
+	userPrompt.set(text);
 }
 
-// Subscribe to changes in promptTemplate and dynamicPrompts
-promptTemplate.subscribe(() => updateCombinedPrompt());
-dynamicPrompts.subscribe(() => updateCombinedPrompt());
+// Subscribe to changes in userPromptSections
+userPromptSections.subscribe(() => updateUserPrompt());
 
 // Functions for managing dynamic prompts
 export function addDynamicPrompt(name: string, content: string): void {
@@ -55,18 +48,18 @@ export function addDynamicPrompt(name: string, content: string): void {
 	}
 
 	const id = Date.now().toString();
-	dynamicPrompts.update((prompts) => [...prompts, { id, name, content }]);
+	userPromptSections.update((prompts) => [...prompts, { id, name, content }]);
 	promptError.set(null);
 }
 
 export function updateDynamicPrompt(id: string, name: string, content: string): void {
-	dynamicPrompts.update((prompts) =>
+	userPromptSections.update((prompts) =>
 		prompts.map((p) => (p.id === id ? { ...p, name, content } : p))
 	);
 }
 
 export function deleteDynamicPrompt(id: string): void {
-	dynamicPrompts.update((prompts) => prompts.filter((p) => p.id !== id));
+	userPromptSections.update((prompts) => prompts.filter((p) => p.id !== id));
 }
 
 // Functions for managing prompt templates
@@ -74,8 +67,8 @@ export function savePromptTemplate(name: string, template: string) {
 	if (name) {
 		// Save the template and its dynamic prompts
 		const saveData: PromptTemplateData = {
-			mainTemplate: template,
-			dynamicPrompts: getCurrentDynamicPrompts()
+			systemPrompt: template,
+			userPromptSections: getCurrentUserPromptSections()
 		};
 		localStorage.setItem(name, JSON.stringify(saveData));
 		promptError.set(null);
@@ -90,12 +83,12 @@ export function loadPromptTemplate(name: string) {
 		if (loadedData !== null) {
 			try {
 				const parsedData = JSON.parse(loadedData);
-				if (parsedData.mainTemplate) {
-					promptTemplate.set(parsedData.mainTemplate);
-					if (Array.isArray(parsedData.dynamicPrompts)) {
-						dynamicPrompts.set(parsedData.dynamicPrompts);
+				if (parsedData.systemPrompt) {
+					systemPrompt.set(parsedData.systemPrompt);
+					if (Array.isArray(parsedData.userPromptSections)) {
+						userPromptSections.set(parsedData.userPromptSections);
 					} else {
-						dynamicPrompts.set([]);
+						userPromptSections.set([]);
 					}
 				}
 				promptError.set(null);
@@ -113,9 +106,9 @@ export function deletePromptTemplate(name: string) {
 	if (name) {
 		localStorage.removeItem(name);
 		promptError.set(null);
-		promptTemplate.set('');
+		systemPrompt.set('');
 		promptName.set('');
-		dynamicPrompts.set([]);
+		userPromptSections.set([]);
 	} else {
 		promptError.set('No prompt selected to delete.');
 	}
@@ -131,8 +124,11 @@ export function listPromptNames(): string[] {
 				const value = localStorage.getItem(key);
 				if (value) {
 					const parsed = JSON.parse(value);
-					// If it has mainTemplate or is a string, it's a prompt template
-					if (typeof parsed === 'object' && 'mainTemplate' in parsed) {
+					// If it has systemPrompt or mainTemplate, it's a prompt template
+					if (
+						typeof parsed === 'object' &&
+						('systemPrompt' in parsed || 'mainTemplate' in parsed)
+					) {
 						keys.push(key);
 					}
 				}
@@ -147,10 +143,10 @@ export function listPromptNames(): string[] {
 	return keys;
 }
 
-// Helper function to get current dynamic prompts
-function getCurrentDynamicPrompts(): DynamicPrompt[] {
-	let result: DynamicPrompt[] = [];
-	dynamicPrompts.subscribe((value) => {
+// Helper function to get current user prompt sections
+function getCurrentUserPromptSections(): UserPromptSection[] {
+	let result: UserPromptSection[] = [];
+	userPromptSections.subscribe((value) => {
 		result = value;
 	})();
 	return result;

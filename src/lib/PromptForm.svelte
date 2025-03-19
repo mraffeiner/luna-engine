@@ -1,19 +1,19 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import {
-		promptTemplate,
+		systemPrompt,
 		promptError,
 		promptName,
 		savePromptTemplate,
 		loadPromptTemplate,
 		listPromptNames,
 		deletePromptTemplate,
-		dynamicPrompts,
-		combinedPrompt,
+		userPromptSections,
+		userPrompt,
 		addDynamicPrompt,
 		updateDynamicPrompt,
 		deleteDynamicPrompt,
-		type DynamicPrompt
+		type UserPromptSection
 	} from './promptService';
 	import { llmOutput, promptOutput, sttOutput } from './stores';
 
@@ -35,7 +35,7 @@
 	let forwardOutput = $state(true);
 
 	function handleSavePrompt() {
-		savePromptTemplate($promptName, $promptTemplate);
+		savePromptTemplate($promptName, $systemPrompt);
 		promptNames = listPromptNames();
 		selectedPrompt = $promptName;
 	}
@@ -77,10 +77,10 @@
 		newDynamicPromptContent = '';
 	}
 
-	function startEditingPrompt(prompt: DynamicPrompt) {
-		editingPromptId = prompt.id;
-		editPromptName = prompt.name;
-		editPromptContent = prompt.content;
+	function startEditingPrompt(section: UserPromptSection) {
+		editingPromptId = section.id;
+		editPromptName = section.name;
+		editPromptContent = section.content;
 	}
 
 	function saveEditingPrompt() {
@@ -103,12 +103,12 @@
 		}
 	}
 
-	function updateConversation(prompts: DynamicPrompt[], newText: string): DynamicPrompt[] {
-		const conversationPrompt = prompts?.find((prompt) => prompt.name === 'Conversation');
-		if (conversationPrompt) {
-			conversationPrompt.content += `\n${newText.trim()}`;
+	function updateConversation(sections: UserPromptSection[], newText: string): UserPromptSection[] {
+		const conversationSection = sections?.find((section) => section.name === 'Conversation');
+		if (conversationSection) {
+			conversationSection.content += `\n${newText.trim()}`;
 		}
-		return prompts;
+		return sections;
 	}
 
 	$effect(() => {
@@ -122,7 +122,7 @@
 	$effect(() => {
 		const unsubscribe = llmOutput.subscribe((newText) => {
 			if (newText) {
-				dynamicPrompts.update((prompts) => updateConversation(prompts, `Luna: ${newText}`));
+				userPromptSections.update((sections) => updateConversation(sections, `Luna: ${newText}`));
 			}
 		});
 
@@ -134,10 +134,13 @@
 	$effect(() => {
 		const unsubscribe = sttOutput.subscribe(async (newText) => {
 			if (newText) {
-				dynamicPrompts.update((prompts) => updateConversation(prompts, newText));
+				userPromptSections.update((sections) => updateConversation(sections, newText));
 				if (forwardOutput) {
 					await tick();
-					promptOutput.set($combinedPrompt);
+					promptOutput.set({
+						systemPrompt: $systemPrompt,
+						userPrompt: $userPrompt
+					});
 				}
 			}
 		});
@@ -224,7 +227,7 @@
 		<div class="mb-4">
 			<textarea
 				id="prompt-template"
-				bind:value={$promptTemplate}
+				bind:value={$systemPrompt}
 				rows="5"
 				class="block w-full rounded-md border border-gray-600 bg-gray-700 p-2 text-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
 			></textarea>
@@ -272,12 +275,12 @@
 
 		<!-- List of Dynamic Prompts -->
 		<div>
-			{#if $dynamicPrompts.length === 0}
+			{#if $userPromptSections.length === 0}
 				<p class="text-gray-400">No dynamic prompts added yet.</p>
 			{:else}
-				{#each $dynamicPrompts as prompt}
+				{#each $userPromptSections as section}
 					<div class="mb-3 rounded-md border border-gray-700 bg-gray-700 p-3">
-						{#if editingPromptId === prompt.id}
+						{#if editingPromptId === section.id}
 							<!-- Edit Mode -->
 							<div class="mb-2">
 								<label for="editPromptName" class="mb-1 block text-sm font-medium text-gray-300"
@@ -318,22 +321,22 @@
 						{:else}
 							<!-- View Mode -->
 							<div class="mb-1 flex items-center justify-between">
-								<h5 class="text-md font-medium text-indigo-300">{prompt.name}</h5>
+								<h5 class="text-md font-medium text-indigo-300">{section.name}</h5>
 								<div class="flex space-x-2">
 									<button
-										onclick={() => startEditingPrompt(prompt)}
+										onclick={() => startEditingPrompt(section)}
 										class="rounded-md bg-blue-600 px-2 py-1 text-xs text-white transition-colors duration-200 hover:bg-blue-700"
 										>Edit</button
 									>
 									<button
-										onclick={() => handleDeleteDynamicPrompt(prompt.id)}
+										onclick={() => handleDeleteDynamicPrompt(section.id)}
 										class="rounded-md bg-red-600 px-2 py-1 text-xs text-white transition-colors duration-200 hover:bg-red-700"
 										>Delete</button
 									>
 								</div>
 							</div>
 							<div class="rounded-md bg-gray-800 p-2 text-gray-300">
-								<pre class="whitespace-pre-wrap">{prompt.content}</pre>
+								<pre class="whitespace-pre-wrap">{section.content}</pre>
 							</div>
 						{/if}
 					</div>
@@ -346,7 +349,7 @@
 	<div class="mb-6 rounded-md border border-gray-600 bg-gray-800 p-4">
 		<h3 class="mb-2 text-lg font-medium text-gray-300">Combined Prompt Preview</h3>
 		<div class="rounded-md border border-gray-600 bg-gray-700 p-3 text-white">
-			<pre class="whitespace-pre-wrap">{$combinedPrompt}</pre>
+			<pre class="whitespace-pre-wrap">{$systemPrompt}{$userPrompt ? `${$userPrompt}` : ''}</pre>
 		</div>
 	</div>
 
