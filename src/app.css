@@ -1,13 +1,48 @@
 @import 'tailwindcss';
 
-/* Custom global styles */
+/*
+ * Luna Engine Design System
+ * A comprehensive set of styles for consistent UI across all components
+ */
+
+/* ===== Design Tokens ===== */
 :root {
 	color-scheme: dark;
+
+	/* Colors */
+	--color-primary: #6366f1; /* indigo-500 */
+	--color-primary-hover: #4f46e5; /* indigo-600 */
+	--color-primary-active: #4338ca; /* indigo-700 */
+	--color-secondary: #4b5563; /* gray-600 */
+	--color-success: #10b981; /* green-500 */
+	--color-success-hover: #059669; /* green-600 */
+	--color-danger: #ef4444; /* red-500 */
+	--color-danger-hover: #dc2626; /* red-600 */
+	--color-warning: #f59e0b; /* amber-500 */
+	--color-info: #3b82f6; /* blue-500 */
+
+	/* Spacing */
+	--space-1: 0.25rem;
+	--space-2: 0.5rem;
+	--space-3: 0.75rem;
+	--space-4: 1rem;
+	--space-6: 1.5rem;
+	--space-8: 2rem;
+
+	/* Scrollbar colors */
+	--scrollbar-track: #1f2937;
+	--scrollbar-thumb: #4b5563;
+	--scrollbar-thumb-hover: #6b7280;
+
+	/* Transitions */
+	--transition-standard: 0.3s ease;
 }
 
+/* ===== Base Styles ===== */
 html {
-	scrollbar-color: #4b5563 #1f2937;
+	scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 	scrollbar-width: thin;
+	height: 100%;
 }
 
 body {
@@ -15,72 +50,272 @@ body {
 	font-family:
 		-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans',
 		'Helvetica Neue', sans-serif;
+	height: 100%;
+	overflow: hidden; /* Prevent double scrollbars */
 }
 
-/* Custom scrollbar for webkit browsers */
-::-webkit-scrollbar {
-	width: 8px;
-	height: 8px;
-}
-
-::-webkit-scrollbar-track {
-	background: #1f2937;
-	border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-	background: #4b5563;
-	border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-	background: #6b7280;
-}
-
-/* Focus styles for better accessibility */
+/* ===== Focus Styles ===== */
 *:focus-visible {
 	@apply ring-2 ring-indigo-500 outline-none;
 }
 
-/* Improved form controls */
+/* ===== Scrollbar Styles ===== */
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+
+::-webkit-scrollbar-track {
+	background: var(--scrollbar-track);
+	border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--scrollbar-thumb);
+	border-radius: 6px;
+	border: 2px solid var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--scrollbar-thumb-hover);
+}
+
+.custom-scrollbar {
+	scrollbar-width: thin;
+	scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+	background: var(--scrollbar-track);
+	border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+	background: var(--scrollbar-thumb);
+	border-radius: 4px;
+	border: 2px solid var(--scrollbar-track);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+	background: var(--scrollbar-thumb-hover);
+}
+
+/* ===== Custom Selection Color ===== */
+::selection {
+	@apply bg-indigo-900 text-white;
+}
+
+/* ===== Form Controls ===== */
+@utility form-control {
+	@apply block w-full rounded-md border border-gray-600 bg-gray-700 p-3 text-gray-200 shadow-sm transition-all duration-200 focus:border-indigo-500 focus:ring-indigo-500;
+}
+
+label {
+	@apply mb-2 block text-sm font-medium text-gray-300;
+}
+
+/* Input types */
+input[type='text'],
+input[type='email'],
+input[type='password'],
+input[type='number'],
+input[type='url'],
+input[type='tel'],
+input[type='search'],
+input[type='date'],
+input[type='time'],
+input[type='datetime-local'],
+textarea,
+select {
+	@apply form-control;
+}
+
+textarea {
+	@apply min-h-[100px] resize-y;
+}
+
 input[type='range'] {
-	@apply accent-indigo-500;
+	@apply h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-600 accent-indigo-500;
 }
 
 input[type='checkbox'],
 input[type='radio'] {
-	@apply rounded border-gray-600 bg-gray-700 text-indigo-600 focus:ring-indigo-500;
+	@apply h-5 w-5 rounded border-gray-600 bg-gray-700 text-indigo-600 focus:ring-indigo-500;
 }
 
-/* Transitions for smoother interactions */
-button,
-select,
-input,
-textarea,
-a {
-	@apply transition-all duration-200;
+.form-group {
+	@apply mb-6;
 }
 
-/* Base card style */
+/* ===== Button Styles ===== */
+@utility btn {
+	@apply inline-flex items-center justify-center rounded-md px-4 py-2.5 font-medium shadow-sm transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+/* Button variants */
+.btn-primary {
+	@apply btn bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500;
+}
+
+.btn-secondary {
+	@apply btn bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
+}
+
+.btn-success {
+	@apply btn bg-green-600 text-white hover:bg-green-700 focus:ring-green-500;
+}
+
+.btn-danger {
+	@apply btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+}
+
+.btn-warning {
+	@apply btn bg-amber-600 text-white hover:bg-amber-700 focus:ring-amber-500;
+}
+
+.btn-info {
+	@apply btn bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+}
+
+/* Button sizes */
+.btn-sm {
+	@apply px-3 py-1.5 text-sm;
+}
+
+.btn-lg {
+	@apply px-6 py-3 text-lg;
+}
+
+.btn-icon {
+	@apply flex items-center gap-2;
+}
+
+/* ===== Card Styles ===== */
 .card {
-	@apply rounded-lg border border-gray-700 bg-gray-800 p-6 shadow-md;
+	@apply rounded-xl border border-gray-700 bg-gray-800 p-6 shadow-lg transition-all duration-300;
 }
 
-/* Heading styles */
+.card-hover {
+	@apply hover:border-indigo-500/30 hover:shadow-indigo-500/10;
+}
+
+.card-header {
+	@apply mb-5 flex items-center;
+}
+
+.card-body {
+	@apply space-y-5;
+}
+
+.card-footer {
+	@apply mt-6 flex items-center justify-between;
+}
+
+/* ===== Alert/Error Styles ===== */
+@utility alert {
+	@apply mb-6 rounded-lg border p-4 shadow-md;
+}
+
+.alert-error {
+	@apply alert border-red-800 bg-red-900/30 text-red-400;
+}
+
+.alert-warning {
+	@apply alert border-amber-800 bg-amber-900/30 text-amber-400;
+}
+
+.alert-success {
+	@apply alert border-green-800 bg-green-900/30 text-green-400;
+}
+
+.alert-info {
+	@apply alert border-blue-800 bg-blue-900/30 text-blue-400;
+}
+
+/* ===== Icon Styles ===== */
+.icon {
+	@apply h-5 w-5 flex-shrink-0;
+}
+
+.icon-sm {
+	@apply h-4 w-4;
+}
+
+.icon-lg {
+	@apply h-6 w-6;
+}
+
+.icon-primary {
+	@apply text-indigo-400;
+}
+
+.icon-secondary {
+	@apply text-gray-400;
+}
+
+.icon-success {
+	@apply text-green-500;
+}
+
+.icon-danger {
+	@apply text-red-500;
+}
+
+.icon-warning {
+	@apply text-amber-500;
+}
+
+.icon-info {
+	@apply text-blue-500;
+}
+
+/* ===== Status Indicators ===== */
+@utility status-indicator {
+	@apply inline-flex h-3 w-3 rounded-full;
+}
+
+.status-running {
+	@apply status-indicator bg-green-500 shadow-sm shadow-green-500/50;
+}
+
+.status-stopped {
+	@apply status-indicator bg-red-600 shadow-sm shadow-red-600/50;
+}
+
+.status-unknown {
+	@apply status-indicator bg-gray-500 shadow-sm shadow-gray-500/50;
+}
+
+.status-pulse {
+	@apply animate-pulse;
+}
+
+/* ===== Heading Styles ===== */
+h1,
+h2,
+h3 {
+	@apply font-bold text-white;
+}
+
 h1 {
-	@apply mb-6 text-3xl font-bold text-white;
+	@apply mb-6 text-3xl;
 }
 
 h2 {
-	@apply mb-4 text-2xl font-bold text-white;
+	@apply mb-5 text-2xl;
 }
 
 h3 {
-	@apply mb-3 text-xl font-semibold text-white;
+	@apply mb-4 text-xl font-semibold;
 }
 
 .card-title {
-	@apply mb-2 text-lg font-semibold text-gray-300;
+	@apply mb-3 text-lg font-semibold text-gray-200;
 }
 
 .sidebar-title {
@@ -91,7 +326,92 @@ h3 {
 	@apply mb-1 block text-lg font-bold text-red-400;
 }
 
-/* Custom selection color */
-::selection {
-	@apply bg-indigo-900 text-white;
+/* ===== Tab Styles ===== */
+.tabs {
+	@apply mb-6 flex border-b border-gray-700;
+}
+
+.tab-button {
+	@apply flex-1 px-4 py-3 text-sm font-medium transition-all duration-200;
+}
+
+.tab-button-active {
+	@apply border-b-2 border-indigo-500 text-indigo-200;
+}
+
+.tab-button-inactive {
+	@apply text-gray-300 hover:bg-gray-800/50 hover:text-gray-100;
+}
+
+/* ===== Flex Utility Classes ===== */
+.flex-center {
+	@apply flex items-center justify-center;
+}
+
+.flex-between {
+	@apply flex items-center justify-between;
+}
+
+.flex-start {
+	@apply flex items-center justify-start;
+}
+
+.flex-end {
+	@apply flex items-center justify-end;
+}
+
+/* ===== Spacing Utility Classes ===== */
+.space-x-sm > * + * {
+	margin-left: var(--space-2);
+}
+
+.space-x-md > * + * {
+	margin-left: var(--space-4);
+}
+
+.space-y-sm > * + * {
+	margin-top: var(--space-2);
+}
+
+.space-y-md > * + * {
+	margin-top: var(--space-4);
+}
+
+/* ===== Transitions ===== */
+.transition-standard {
+	transition: all var(--transition-standard);
+}
+
+/* ===== Animations ===== */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.animate-fadeIn {
+	animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes slideInUp {
+	from {
+		transform: translateY(10px);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+.animate-slideInUp {
+	animation: slideInUp 0.3s ease-out;
+}
+
+/* ===== Glass Effect ===== */
+.glass-effect {
+	@apply border border-gray-700/50 bg-gray-800/80 backdrop-blur-sm;
 }

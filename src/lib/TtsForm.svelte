@@ -33,7 +33,7 @@
 	});
 </script>
 
-<div class="card p-6">
+<div class="card card-hover p-6">
 	<h2 class="mb-6 flex items-center">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
@@ -52,13 +52,13 @@
 		Text-to-Speech
 	</h2>
 
-	<div class="mb-6">
+	<div class="form-group">
 		<label for="engine" class="mb-2 block text-sm font-medium text-gray-300">TTS Engine</label>
 		<div class="relative">
 			<select
 				id="engine"
 				bind:value={selectedEngine}
-				class="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-2 text-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
+				class="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 p-3 text-gray-200 shadow-sm transition-all duration-200 focus:border-indigo-500 focus:ring-indigo-500"
 			>
 				{#each Object.entries($ttsOptions.engines) as [engineKey, engineOption]}
 					<option value={engineKey}>{engineOption.label}</option>
@@ -82,7 +82,7 @@
 	</div>
 
 	{#if $ttsError}
-		<div class="mb-6 rounded-md border border-red-800 bg-red-900 bg-opacity-30 p-3">
+		<div class="animate-fadeIn mb-6 rounded-md border border-red-800 bg-red-900/30 p-4 shadow-md">
 			<p class="flex items-center text-red-400">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -103,7 +103,7 @@
 		</div>
 	{/if}
 
-	<div class="mt-2">
+	<div class="animate-fadeIn mt-4">
 		<div class:hidden={selectedEngine !== 'azure'}>
 			<AzureTtsForm bind:this={azureTtsForm} />
 		</div>

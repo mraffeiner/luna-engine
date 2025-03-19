@@ -39,16 +39,14 @@
 
 <div class="flex h-screen bg-gray-900 text-white">
 	<Sidebar />
-	<main class="flex-1 overflow-auto p-4">
+	<main class="flex-1 overflow-auto p-6">
 		{#if $serviceError}
-			<div
-				class="mb-6 rounded-lg border border-red-800 bg-red-900 bg-opacity-30 p-4 text-red-400 shadow-md"
-			>
-				<div class="flex items-start justify-between">
-					<div class="flex">
+			<div class="alert-error animate-fadeIn">
+				<div class="flex-between">
+					<div class="flex-start">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
-							class="mr-3 h-6 w-6 flex-shrink-0"
+							class="icon icon-lg icon-danger mr-3"
 							fill="none"
 							viewBox="0 0 24 24"
 							stroke="currentColor"
@@ -67,13 +65,13 @@
 					</div>
 					<button
 						onclick={() => serviceError.set(null)}
-						class="ml-4 rounded-full p-1 text-red-400 transition-colors duration-200 hover:bg-red-800 hover:bg-opacity-30 focus:outline-none focus:ring-2 focus:ring-red-700"
+						class="btn-sm rounded-full p-1.5 text-red-400 hover:bg-red-800 hover:bg-opacity-30 focus:ring-red-700"
 						title="Dismiss"
 						aria-label="Dismiss error message"
 					>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
-							class="h-5 w-5"
+							class="icon"
 							fill="none"
 							viewBox="0 0 24 24"
 							stroke="currentColor"
@@ -90,46 +88,48 @@
 			</div>
 		{/if}
 
-		<!-- Root page (Control Panel Backend) -->
-		{#if currentPath === '/'}
-			{@render children()}
-		{:else}
-			<!-- Service Pages - Always mounted, conditionally displayed -->
-			<div class:hidden={currentPath !== '/docker-service'}>
-				<ServicePage serviceName="docker-service" title="Docker Service">
-					<DockerForm />
-				</ServicePage>
-			</div>
+		<div class="animate-fadeIn">
+			<!-- Root page (Control Panel Backend) -->
+			{#if currentPath === '/'}
+				{@render children()}
+			{:else}
+				<!-- Service Pages - Always mounted, conditionally displayed -->
+				<div class:hidden={currentPath !== '/docker-service'}>
+					<ServicePage serviceName="docker-service" title="Docker Service">
+						<DockerForm />
+					</ServicePage>
+				</div>
 
-			<div class:hidden={currentPath !== '/discord-service'}>
-				<ServicePage serviceName="discord-service" title="Discord Service">
-					<DiscordForm />
-				</ServicePage>
-			</div>
+				<div class:hidden={currentPath !== '/discord-service'}>
+					<ServicePage serviceName="discord-service" title="Discord Service">
+						<DiscordForm />
+					</ServicePage>
+				</div>
 
-			<div class:hidden={currentPath !== '/stt-service'}>
-				<ServicePage serviceName="stt-service" title="Speech-to-Text Service">
-					<SttForm />
-				</ServicePage>
-			</div>
+				<div class:hidden={currentPath !== '/stt-service'}>
+					<ServicePage serviceName="stt-service" title="Speech-to-Text Service">
+						<SttForm />
+					</ServicePage>
+				</div>
 
-			<div class:hidden={currentPath !== '/llm-service'}>
-				<ServicePage serviceName="llm-service" title="LLM Service">
-					<LlmForm />
-				</ServicePage>
-			</div>
+				<div class:hidden={currentPath !== '/llm-service'}>
+					<ServicePage serviceName="llm-service" title="LLM Service">
+						<LlmForm />
+					</ServicePage>
+				</div>
 
-			<div class:hidden={currentPath !== '/tts-service'}>
-				<ServicePage serviceName="tts-service" title="Text-to-Speech Service">
-					<TtsForm />
-				</ServicePage>
-			</div>
+				<div class:hidden={currentPath !== '/tts-service'}>
+					<ServicePage serviceName="tts-service" title="Text-to-Speech Service">
+						<TtsForm />
+					</ServicePage>
+				</div>
 
-			<div class:hidden={currentPath !== '/prompt-service'}>
-				<ServicePage serviceName="prompt-service" title="Prompt Service">
-					<PromptForm />
-				</ServicePage>
-			</div>
-		{/if}
+				<div class:hidden={currentPath !== '/prompt-service'}>
+					<ServicePage serviceName="prompt-service" title="Prompt Service">
+						<PromptForm />
+					</ServicePage>
+				</div>
+			{/if}
+		</div>
 	</main>
 </div>

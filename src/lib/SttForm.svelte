@@ -157,11 +157,11 @@
 	});
 </script>
 
-<div class="card p-6">
-	<h2 class="mb-6 flex items-center">
+<div class="card">
+	<div class="card-header">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
-			class="mr-2 h-6 w-6 text-indigo-400"
+			class="icon icon-lg icon-primary mr-2"
 			fill="none"
 			viewBox="0 0 24 24"
 			stroke="currentColor"
@@ -173,60 +173,58 @@
 				d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
 			/>
 		</svg>
-		Speech-to-Text
-	</h2>
+		<h2>Speech-to-Text</h2>
+	</div>
 
-	{#if $sttError}
-		<div class="mb-6 rounded-md border border-red-800 bg-red-900 bg-opacity-30 p-3">
-			<p class="flex items-center text-red-400">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="mr-2 h-5 w-5"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-					/>
-				</svg>
-				{$sttError}
-			</p>
+	<div class="card-body">
+		{#if $sttError}
+			<div class="alert-error">
+				<p class="flex-start">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="icon icon-danger mr-2"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+						/>
+					</svg>
+					{$sttError}
+				</p>
+			</div>
+		{/if}
+
+		<div class="form-group">
+			<label class="flex-start space-x-2">
+				<input type="checkbox" bind:checked={forwardOutput} />
+				<span class="text-gray-300">Forward Output</span>
+			</label>
 		</div>
-	{/if}
 
-	<div class="mt-4 space-y-4">
-		<label class="inline-flex items-center space-x-2">
-			<input
-				type="checkbox"
-				class="rounded border-gray-600 text-indigo-600 focus:ring-indigo-500"
-				bind:checked={forwardOutput}
-			/>
-			<span class="text-gray-300">Forward Output</span>
-		</label>
-
-		<div class="border-t border-gray-700 pt-4">
+		<div class="form-group border-t border-gray-700 pt-4">
 			<h3 class="mb-2 text-sm font-medium text-gray-300">Direct Text Input</h3>
-			<div class="flex flex-col space-y-3">
-				<div>
-					<label for="prefix" class="mb-1 block text-xs text-gray-400">Prefix (optional)</label>
+			<div class="space-y-3">
+				<div class="form-group">
+					<label for="prefix" class="text-xs text-gray-400">Prefix (optional)</label>
 					<input
 						type="text"
 						id="prefix"
-						class="w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+						class="form-control"
 						placeholder="e.g. User:"
 						bind:value={directInputPrefix}
 					/>
 				</div>
-				<div>
-					<label for="directText" class="mb-1 block text-xs text-gray-400">Text</label>
+				<div class="form-group">
+					<label for="directText" class="text-xs text-gray-400">Text</label>
 					<textarea
 						id="directText"
 						rows="3"
-						class="w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+						class="form-control"
 						placeholder="Enter text to forward directly"
 						bind:value={directInputText}
 					></textarea>
@@ -234,46 +232,46 @@
 				<button
 					onclick={handleDirectTextInput}
 					disabled={!directInputText}
-					class="self-start rounded-md bg-indigo-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-indigo-700 disabled:opacity-50"
+					class="btn-primary self-start"
 				>
 					Forward Text
 				</button>
 			</div>
 		</div>
-	</div>
 
-	<div class="mt-6">
-		<button
-			onclick={() => (isRecording ? stopRecording() : recordAudio())}
-			disabled={isTranscribing}
-			class="rounded-md bg-indigo-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-indigo-700 disabled:opacity-50"
-		>
-			{buttonLabel}
-		</button>
+		<div class="form-group">
+			<button
+				onclick={() => (isRecording ? stopRecording() : recordAudio())}
+				disabled={isTranscribing}
+				class="btn-primary"
+			>
+				{buttonLabel}
+			</button>
 
-		{#if isRecording}
-			<div class="mt-8">
-				<span class="mr-2 h-3 w-3 animate-pulse rounded-full bg-red-500"></span>
-				<span class="text-sm text-gray-300">Recording: {formatTime(recordingTime)}</span>
-			</div>
-		{/if}
+			{#if isRecording}
+				<div class="flex-start mt-4">
+					<span class="status-indicator status-pulse mr-2 bg-red-500"></span>
+					<span class="text-sm text-gray-300">Recording: {formatTime(recordingTime)}</span>
+				</div>
+			{/if}
 
-		{#if isTranscribing}
-			<div class="mt-8">
-				<span
-					class="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"
-				></span>
-				<span class="text-sm text-gray-300">Transcribing...</span>
-			</div>
-		{/if}
-	</div>
-
-	{#if transcribedText}
-		<div class="mt-6">
-			<h3 class="mb-2 text-lg font-medium text-gray-300">Transcribed Text:</h3>
-			<div class="whitespace-pre-wrap rounded-md border border-gray-600 bg-gray-700 p-4 text-white">
-				{transcribedText}
-			</div>
+			{#if isTranscribing}
+				<div class="flex-start mt-4">
+					<span
+						class="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"
+					></span>
+					<span class="text-sm text-gray-300">Transcribing...</span>
+				</div>
+			{/if}
 		</div>
-	{/if}
+
+		{#if transcribedText}
+			<div class="form-group">
+				<h3 class="mb-2 text-lg font-medium text-gray-300">Transcribed Text:</h3>
+				<div class="form-control whitespace-pre-wrap p-4">
+					{transcribedText}
+				</div>
+			</div>
+		{/if}
+	</div>
 </div>

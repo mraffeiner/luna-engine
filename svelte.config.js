@@ -5,7 +5,7 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 const config = {
 	// Consult https://svelte.dev/docs/kit/integrations
 	// for more information about preprocessors
-	preprocess: vitePreprocess({ postcss: true }),
+	preprocess: vitePreprocess(),
 
 	kit: {
 		// Use adapter-static with fallback for SPA behavior
