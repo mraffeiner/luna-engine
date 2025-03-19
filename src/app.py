@@ -3,6 +3,7 @@ from fastapi import FastAPI, Body
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 import openai
+from groq import Groq
 import os
 import httpx
 from dotenv import load_dotenv
@@ -36,7 +37,7 @@ async def lifespan(app: FastAPI):
 # Initialize FastAPI app
 app = FastAPI(
     title="LLM Service API",
-    description="LLM service using OpenAI's models to generate responses",
+    description="LLM service using OpenAI, Groq, and local models to generate responses",
     lifespan=lifespan,
 )
 
@@ -44,6 +45,9 @@ load_dotenv()
 
 # OpenAI configuration
 openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# Groq configuration
+groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # Local LLM configuration
 LOCAL_API_BASE_URL = os.getenv(
@@ -56,6 +60,9 @@ LOCAL_MODELS = {"llama-3.2-3b-instruct-uncensored": "Llama 3.2 3B Instruct Uncen
 
 # OpenAI models
 OPENAI_MODELS = {"gpt-4o-mini": "GPT-4o Mini"}
+
+# Groq models
+GROQ_MODELS = {"deepseek-r1-distill-llama-70b": "DeepSeek R1 Llama 70B"}
 
 
 async def is_local_llm_available():
@@ -110,6 +117,15 @@ async def get_models():
     else:
         logger.warning("OpenAI API key is not available, skipping OpenAI models")
 
+    # Add Groq models if API key is available
+    if groq_client.api_key:
+        logger.info("Groq API key is available, adding Groq models")
+        for model_id, model_name in GROQ_MODELS.items():
+            available_models.append({"value": model_id, "label": model_name})
+            logger.info(f"Added Groq model: {model_id} ({model_name})")
+    else:
+        logger.warning("Groq API key is not available, skipping Groq models")
+
     # Add local models if endpoint is available
     local_available = await is_local_llm_available()
     if local_available:
@@ -151,6 +167,28 @@ async def stream_from_openai(model: str, prompt: str):
         raise HTTPException(
             status_code=500,
             detail=f"Unexpected error during OpenAI response generation: {str(e)}",
+        )
+
+
+async def stream_from_groq(model: str, prompt: str):
+    """Stream response from Groq API."""
+    try:
+        logger.info(f"Using Groq API with model {model}")
+        stream = groq_client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            stream=True,
+        )
+        for chunk in stream:
+            content = chunk.choices[0].delta.content
+            if content:
+                logger.info(f"Groq chunk: {content}")
+                yield content
+        logger.info("Groq stream finished")
+    except Exception as e:
+        logger.exception(f"Groq API error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get response from Groq API: {str(e)}"
         )
 
 
@@ -223,6 +261,9 @@ async def generate_endpoint(request: LLMRequest = Body()):
         # Determine source based on model
         if request.model in OPENAI_MODELS:
             async for content in stream_from_openai(request.model, request.prompt):
+                yield content
+        elif request.model in GROQ_MODELS:
+            async for content in stream_from_groq(request.model, request.prompt):
                 yield content
         elif request.model in LOCAL_MODELS:
             async for content in stream_from_local_llm(request.model, request.prompt):
