@@ -96,6 +96,7 @@ async def is_local_llm_available():
 
 class LLMRequest(BaseModel):
     model: str
+    system_prompt: str
     prompt: str
 
 
@@ -140,13 +141,18 @@ async def get_models():
     return JSONResponse(content={"models": available_models})
 
 
-async def stream_from_openai(model: str, prompt: str):
+async def stream_from_openai(model: str, system_prompt: str = "", prompt: str = ""):
     """Stream response from OpenAI API."""
     try:
         logger.info(f"Using OpenAI API with model {model}")
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
         stream = openai.chat.completions.create(
             model=model,
-            messages=[{"role": "user", "content": prompt}],
+            messages=messages,
             stream=True,
         )
         for chunk in stream:
@@ -170,13 +176,18 @@ async def stream_from_openai(model: str, prompt: str):
         )
 
 
-async def stream_from_groq(model: str, prompt: str):
+async def stream_from_groq(model: str, system_prompt: str = "", prompt: str = ""):
     """Stream response from Groq API."""
     try:
         logger.info(f"Using Groq API with model {model}")
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
         stream = groq_client.chat.completions.create(
             model=model,
-            messages=[{"role": "user", "content": prompt}],
+            messages=messages,
             stream=True,
         )
         for chunk in stream:
@@ -192,16 +203,21 @@ async def stream_from_groq(model: str, prompt: str):
         )
 
 
-async def stream_from_local_llm(model: str, prompt: str):
+async def stream_from_local_llm(model: str, system_prompt: str = "", prompt: str = ""):
     """Stream response from local LLM API."""
     try:
         logger.info(f"Using Local LLM API with model {model}")
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{LOCAL_API_BASE_URL}/chat/completions",
                 json={
                     "model": model,
-                    "messages": [{"role": "user", "content": prompt}],
+                    "messages": messages,
                     "stream": True,
                 },
                 headers={"Content-Type": "application/json"},
@@ -260,13 +276,19 @@ async def generate_endpoint(request: LLMRequest = Body()):
     async def stream_response():
         # Determine source based on model
         if request.model in OPENAI_MODELS:
-            async for content in stream_from_openai(request.model, request.prompt):
+            async for content in stream_from_openai(
+                request.model, request.system_prompt, request.prompt
+            ):
                 yield content
         elif request.model in GROQ_MODELS:
-            async for content in stream_from_groq(request.model, request.prompt):
+            async for content in stream_from_groq(
+                request.model, request.system_prompt, request.prompt
+            ):
                 yield content
         elif request.model in LOCAL_MODELS:
-            async for content in stream_from_local_llm(request.model, request.prompt):
+            async for content in stream_from_local_llm(
+                request.model, request.system_prompt, request.prompt
+            ):
                 yield content
         else:
             logger.error(f"Unknown model: {request.model}")
