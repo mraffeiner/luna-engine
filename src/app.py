@@ -19,8 +19,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-docker_logs_client = aiodocker.Docker()
 active_log_tasks = []
+docker_log_client = None
 
 
 # Models
@@ -141,26 +141,24 @@ async def stop_container(container_name: str):
 
 @app.get("/container_logs")
 async def get_container_logs():
-    global active_log_tasks
+    global active_log_tasks, docker_log_client
 
-    if active_log_tasks:
-        logger.warning(
-            f"Only one log stream is allowed at a time. Cancelling previous log stream."
-        )
-        for task in active_log_tasks:
-            task.cancel()
-        active_log_tasks.clear()
+    if docker_log_client:
+        logger.warning("Only one docker log client is allowed at a time. Closing..")
+        await docker_log_client.close()
+        logger.info("Docker client closed")
 
+    docker_log_client = aiodocker.Docker()
     queue = asyncio.Queue()
 
     async def stream_container_logs(container):
         container_info = await container.show()
         name = container_info.get("Name", "Unknown").lstrip("/")
         logger.info(f"Log task for {name} started")
-        while True:
+        while container:
             try:
                 async for log in container.log(
-                    stdout=True, stderr=True, follow=True, tail=20
+                    stdout=True, stderr=True, follow=True, tail=100
                 ):
                     data = {"service": name, "log": log.strip()}
                     await queue.put(f"data: {json.dumps(data)}\n\n")
@@ -173,6 +171,7 @@ async def get_container_logs():
             except Exception:
                 logger.error(f"Error streaming logs for {name}")
                 raise
+        logger.warning(f"Lost container {name} during log stream")
 
     async def heartbeat():
         logger.info("Heartbeat task for log stream started")
@@ -181,7 +180,7 @@ async def get_container_logs():
             logger.info("Log stream heartbeat")
 
     async def stream_logs():
-        global active_log_tasks
+        global active_log_tasks, docker_log_client
 
         try:
             # Create log task for heartbeat
@@ -189,7 +188,7 @@ async def get_container_logs():
             active_log_tasks.append(heartbeat_task)
 
             # Create log task for each container on the network
-            containers = await docker_logs_client.containers.list(
+            containers = await docker_log_client.containers.list(
                 filters={"network": ["luna-engine_default"]}
             )
             for container in containers:
@@ -209,9 +208,10 @@ async def get_container_logs():
             )
         finally:
             # Cancel all log tasks
+            logger.info("Finally cancelling log tasks")
             for task in active_log_tasks:
                 task.cancel()
             active_log_tasks.clear()
-            logger.info("Log stream closed")
+            logger.info("Log tasks fnally cancelled")
 
     return StreamingResponse(stream_logs(), media_type="text/event-stream")
