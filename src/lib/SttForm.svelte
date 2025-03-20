@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { sttOutput, discordOutput } from './stores';
-	import { transcribeAudio, sttError, sttStatus } from './sttService';
+	import { transcribeAudio, sttError, sttStatus, fetchSttModels, sttModels } from './sttService';
 	import Icon from './Icon.svelte';
 	import Spinner from './Spinner.svelte';
 
@@ -11,14 +11,18 @@
 	let recordingTime = $state(0);
 	let recordingTimer: number | null = $state(null);
 	let audioStream: MediaStream | null = $state(null);
+	let selectedModel = $state('whisper-large-v3');
+	let localErrorMessage = $state<string | null>(null);
 
 	let forwardOutput = $state(true);
 	let directInputPrefix = $state('TastiHam: ');
 	let directInputText = $state('');
 
+	const displayError = $derived($sttError || localErrorMessage);
+
 	async function handleTranscribeAudio(audioBlob: Blob, prefix?: string) {
-		// Transcribe the audio
-		const transcription = await transcribeAudio(audioBlob);
+		// Transcribe the audio with the selected model
+		const transcription = await transcribeAudio(audioBlob, selectedModel);
 
 		if (transcription) {
 			transcribedText = prefix ? prefix + transcription : transcription;
@@ -142,8 +146,26 @@
 		directInputText = '';
 	}
 
+	// Fetch available models on component initialization
+	async function loadModels() {
+		try {
+			await fetchSttModels();
+			// If no model is selected yet and we have models, select the first one
+			if (!selectedModel && $sttModels.length > 0) {
+				selectedModel = $sttModels[0].value;
+			}
+		} catch (error) {
+			localErrorMessage = `Failed to load STT models: ${error instanceof Error ? error.message : String(error)}`;
+		}
+	}
+
 	const buttonLabel = $derived(isRecording ? 'Stop Recording' : 'Start Recording');
 	const isTranscribing = $derived($sttStatus === 'transcribing');
+
+	// Load models when component is mounted
+	$effect(() => {
+		loadModels();
+	});
 
 	// Clean up resources when component is destroyed
 	$effect(() => {
@@ -171,17 +193,26 @@
 	</div>
 
 	<div class="card-body">
-		{#if $sttError}
+		{#if displayError}
 			<div class="alert-error">
 				<p class="flex-start">
 					<Icon
 						path="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
 						class="luna-text-danger icon-lg mr-2"
 					/>
-					{$sttError}
+					{displayError}
 				</p>
 			</div>
 		{/if}
+
+		<div class="form-group">
+			<label for="model">Model</label>
+			<select id="model" bind:value={selectedModel} class="form-control">
+				{#each $sttModels as modelOption}
+					<option value={modelOption.value}>{modelOption.label}</option>
+				{/each}
+			</select>
+		</div>
 
 		<div class="form-group">
 			<label class="flex-start space-x-2">
