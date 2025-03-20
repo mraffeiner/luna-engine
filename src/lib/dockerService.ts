@@ -136,7 +136,7 @@ export const dockerService = {
 	/**
 	 * Starts the global log stream
 	 */
-	startLogsStream: async (): Promise<void> => {
+	startLogsStream: () => {
 		if (logStream) {
 			return;
 		}

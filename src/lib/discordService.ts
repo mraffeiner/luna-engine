@@ -27,9 +27,7 @@ export const discordService = {
 		}
 	},
 
-	async connectWebSocket(
-		onAudioReceived: (username: string, audioBlob: Blob) => void
-	): Promise<void> {
+	connectWebSocket(onAudioReceived: (username: string, audioBlob: Blob) => void) {
 		if (audioWebSocket) {
 			return;
 		}
@@ -37,7 +35,7 @@ export const discordService = {
 		audioWebSocket = new WebSocket(`${API_BASE_URL}/`);
 		audioWebSocket.binaryType = 'arraybuffer';
 
-		audioWebSocket.onmessage = async (event: MessageEvent) => {
+		audioWebSocket.onmessage = (event: MessageEvent) => {
 			// Extract username and audio blob
 			const dataView = new DataView(event.data);
 			const usernameLength = dataView.getUint32(0, false);
