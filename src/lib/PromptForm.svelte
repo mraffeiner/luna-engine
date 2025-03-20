@@ -280,8 +280,8 @@
 										</button>
 									</div>
 								</div>
-								<div class="luna-bg-surface luna-text-muted rounded-md p-2">
-									<pre class="whitespace-pre-wrap">{section.content}</pre>
+								<div class="luna-bg-surface luna-text-muted whitespace-pre-wrap rounded-md p-2">
+									{section.content}
 								</div>
 							{/if}
 						</div>
@@ -294,7 +294,7 @@
 		<div class="form-group luna-border-subtle luna-bg-surface rounded-md border p-4">
 			<h3 class="luna-text-muted mb-2 text-lg font-medium">Combined Prompt Preview</h3>
 			<div class="form-control whitespace-pre-wrap p-3">
-				<pre>{$systemPrompt}{$userPrompt ? `${$userPrompt}` : ''}</pre>
+				{$systemPrompt}{$userPrompt ? `${$userPrompt}` : ''}
 			</div>
 		</div>
 
