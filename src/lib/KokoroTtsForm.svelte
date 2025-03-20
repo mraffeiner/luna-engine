@@ -11,18 +11,17 @@
 
 	let text = $state('Hi there hello');
 	let language = $state('en-US');
-	let voice = $state('af_bella'); // Fallback for single voice mode
-	let speed = $state(1.15);
-	let pitch = $state(1.1);
-
+	let voice = $state('af_nicole');
 	// Voice mixing
 	let useVoiceMix = $state(true);
 	let voiceMix = $state<VoiceWeight[]>([
-		{ voice: 'af_nicole', weight: 5.0 },
-		{ voice: 'am_echo', weight: 2.0 },
-		{ voice: 'jf_alpha', weight: 2.0 },
+		{ voice: 'af_nicole', weight: 8.0 },
+		{ voice: 'am_echo', weight: 4.0 },
+		{ voice: 'jf_alpha', weight: 4.0 },
 		{ voice: 'zf_xiaoxiao', weight: 2.0 }
 	]);
+	let speed = $state(1.1);
+	let pitch = $state(1.15);
 
 	let audioUrl = $state<string | null>(null);
 	let loading = $state(false);
