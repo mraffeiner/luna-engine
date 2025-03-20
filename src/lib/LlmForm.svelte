@@ -3,7 +3,7 @@
 	import Icon from './Icon.svelte';
 	import Spinner from './Spinner.svelte';
 
-	let model = $state('deepseek-r1-distill-llama-70b');
+	let model = $state('qwen-qwq-32b');
 	let prompt = $state('Hey');
 	let system_prompt = $state('You are Luna, a young AI woman an space elf Vtuber');
 	let loading = $state(false);
