@@ -3,3 +3,4 @@ python-multipart
 uvicorn[standard]
 python-dotenv
 openai
+groq
