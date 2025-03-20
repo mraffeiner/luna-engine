@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { containerStatus } from './dockerService';
+	import Icon from './Icon.svelte';
 
 	// Define the services
 	const services = [
@@ -48,20 +49,7 @@
 >
 	<div class="luna-border-base luna-bg-base border-b p-4">
 		<h2 class="flex-start">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="icon icon-lg icon-primary mr-2"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M13 10V3L4 14h7v7l9-11h-7z"
-				/>
-			</svg>
+			<Icon path="M13 10V3L4 14h7v7l9-11h-7z" class="luna-text-primary-light icon-lg mr-2" />
 			<span class="text-xl font-bold">Luna Engine</span>
 		</h2>
 	</div>
@@ -70,94 +58,40 @@
 		<h3 class="sidebar-title">Services</h3>
 		<ul class="space-y-2">
 			{#each services as service}
-				{#if $containerStatus[service.id]}
-					{@const status = $containerStatus[service.id]}
-					<li>
-						<a
-							href={service.path}
-							class="flex-start transition-standard rounded-lg px-3 py-3 {page.url.pathname ===
-							service.path
-								? 'luna-bg-primary-opacity-70 luna-text-primary-200 shadow-md'
-								: 'hover:luna-bg-elevated-opacity-70'}"
-						>
+				<li>
+					<a
+						href={service.path}
+						class="flex-start transition-standard rounded-lg px-3 py-3 {page.url.pathname ===
+						service.path
+							? 'luna-bg-primary-30 luna-text-primary-200 shadow-md'
+							: 'hover:luna-bg-elevated'}"
+					>
+						{#if $containerStatus[service.id]}
+							{@const status = $containerStatus[service.id]}
 							<span
 								class="mr-3 {status.isRunning ? 'status-running' : 'status-stopped'}
 									{status.isStarting || status.isStopping ? 'status-pulse' : ''}"
 								title={status.isRunning ? 'Running' : 'Stopped'}
 							></span>
-							<div class="flex items-center">
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									class="icon icon-sm mr-2 {page.url.pathname === service.path
-										? 'luna-text-primary-light'
-										: 'luna-text-disabled'}"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d={service.icon}
-									/>
-								</svg>
-								<span class="font-medium">{service.name}</span>
-							</div>
-						</a>
-					</li>
-				{:else}
-					<li>
-						<a
-							href={service.path}
-							class="flex-start transition-standard rounded-lg px-3 py-3 {page.url.pathname ===
-							service.path
-								? 'luna-bg-primary-opacity-70 luna-text-primary-200 shadow-md'
-								: 'hover:luna-bg-elevated-opacity-70'}"
-						>
+						{:else}
 							<span class="status-unknown mr-3" title="Unknown status"></span>
-							<div class="flex items-center">
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									class="icon icon-sm mr-2 {page.url.pathname === service.path
-										? 'luna-text-primary-light'
-										: 'luna-text-disabled'}"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d={service.icon}
-									/>
-								</svg>
-								<span class="font-medium">{service.name}</span>
-							</div>
-						</a>
-					</li>
-				{/if}
+						{/if}
+						<div class="flex items-center">
+							<Icon
+								path={service.icon}
+								class="{page.url.pathname === service.path ? 'luna-text-primary' : ''} icon-sm mr-2"
+							/>
+							<span class="font-medium">{service.name}</span>
+						</div>
+					</a>
+				</li>
 			{/each}
 		</ul>
 	</nav>
 
 	<div class="glass-effect luna-border-base border-t p-4">
 		<div class="flex-start luna-text-disabled text-sm">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="icon icon-sm icon-secondary mr-2"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-				/>
-			</svg>
+			<Icon path="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" class="icon-sm mr-2" />
 			<p>Luna Engine Control Panel</p>
 		</div>
 	</div>

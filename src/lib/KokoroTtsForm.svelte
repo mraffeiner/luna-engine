@@ -6,6 +6,8 @@
 		type VoiceWeight,
 		ttsOptions
 	} from './ttsService';
+	import Icon from './Icon.svelte';
+	import Spinner from './Spinner.svelte';
 
 	let text = $state('Hi there hello');
 	let language = $state('en-US');
@@ -80,22 +82,12 @@
 	}
 </script>
 
-<div class="card card-hover p-6">
+<div class="card p-6">
 	<h3 class="mb-5 flex items-center">
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			class="luna-text-primary-light mr-2 h-5 w-5"
-			fill="none"
-			viewBox="0 0 24 24"
-			stroke="currentColor"
-		>
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-			/>
-		</svg>
+		<Icon
+			path="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+			class="luna-text-primary-light icon-sm mr-2"
+		/>
 		Kokoro Text-to-Speech
 	</h3>
 
@@ -106,38 +98,20 @@
 				id="text"
 				bind:value={text}
 				placeholder="Enter text to convert to speech..."
-				class="luna-border-subtle luna-bg-elevated luna-text-base focus:border-primary focus:ring-primary min-h-[120px] w-full resize-y rounded-md border shadow-sm transition-all duration-200 focus:ring-2"
+				class="form-control"
 			></textarea>
 		</div>
 
 		<div class="form-group">
 			<label for="language" class="luna-text-muted mb-2 block text-sm font-medium">Language</label>
 			<div class="relative">
-				<select
-					id="language"
-					bind:value={language}
-					class="luna-border-subtle luna-bg-elevated luna-text-base focus:border-primary focus:ring-primary block w-full appearance-none rounded-md border shadow-sm transition-all duration-200 focus:ring-2"
-				>
+				<select id="language" bind:value={language} class="form-control">
 					{#if $ttsOptions.engines['kokoro']?.languages}
 						{#each $ttsOptions.engines['kokoro'].languages as lang}
 							<option value={lang.value}>{lang.label}</option>
 						{/each}
 					{/if}
 				</select>
-				<div
-					class="luna-text-disabled pointer-events-none absolute inset-y-0 right-0 flex items-center px-3"
-				>
-					<svg
-						class="h-4 w-4"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"
-						></path>
-					</svg>
-				</div>
 			</div>
 		</div>
 
@@ -163,35 +137,13 @@
 			<div class="form-group">
 				<label for="voice" class="luna-text-muted mb-2 block text-sm font-medium">Voice</label>
 				<div class="relative">
-					<select
-						id="voice"
-						bind:value={voice}
-						class="luna-border-subtle luna-bg-elevated luna-text-base focus:border-primary focus:ring-primary block w-full appearance-none rounded-md border shadow-sm transition-all duration-200 focus:ring-2"
-					>
+					<select id="voice" bind:value={voice} class="form-control">
 						{#if $ttsOptions.engines['kokoro']?.voices}
 							{#each $ttsOptions.engines['kokoro'].voices as voiceOption}
 								<option value={voiceOption.value}>{voiceOption.label}</option>
 							{/each}
 						{/if}
 					</select>
-					<div
-						class="luna-text-disabled pointer-events-none absolute inset-y-0 right-0 flex items-center px-3"
-					>
-						<svg
-							class="h-4 w-4"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M19 9l-7 7-7-7"
-							></path>
-						</svg>
-					</div>
 				</div>
 			</div>
 		{:else}
@@ -206,20 +158,7 @@
 						disabled={voiceMix.length >= ($ttsOptions.engines['kokoro']?.voices.length || 0)}
 						class="btn-primary btn-sm btn-icon"
 					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							class="h-4 w-4"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-							/>
-						</svg>
+						<Icon path="M12 6v6m0 0v6m0-6h6m-6 0H6" class="icon-sm" />
 						Add Voice
 					</button>
 				</div>
@@ -234,7 +173,7 @@
 									<select
 										value={voice.voice}
 										onchange={(e) => updateVoiceSelection(i, e.currentTarget.value)}
-										class="luna-border-subtle luna-bg-elevated luna-text-base focus:border-primary focus:ring-primary w-full appearance-none rounded-md border p-2.5 text-sm shadow-sm transition-all duration-200 focus:ring-2"
+										class="form-control"
 									>
 										{#if $ttsOptions.engines['kokoro']?.voices}
 											{#each $ttsOptions.engines['kokoro'].voices as voiceOption}
@@ -242,24 +181,6 @@
 											{/each}
 										{/if}
 									</select>
-									<div
-										class="luna-text-disabled pointer-events-none absolute inset-y-0 right-0 flex items-center px-2"
-									>
-										<svg
-											class="h-4 w-4"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-											xmlns="http://www.w3.org/2000/svg"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M19 9l-7 7-7-7"
-											></path>
-										</svg>
-									</div>
 								</div>
 							</div>
 							<div class="flex min-w-[200px] flex-grow items-center gap-3">
@@ -282,20 +203,10 @@
 								disabled={voiceMix.length <= 1}
 								class="btn-danger btn-sm btn-icon"
 							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									class="h-4 w-4"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-									/>
-								</svg>
+								<Icon
+									path="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+									class="icon-sm"
+								/>
 								Remove
 							</button>
 						</div>
@@ -336,20 +247,10 @@
 	{#if $ttsError}
 		<div class="animate-fadeIn alert-error my-5 rounded-md border p-4 shadow-md">
 			<p class="luna-text-danger-light flex items-center">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="mr-2 h-5 w-5"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-					/>
-				</svg>
+				<Icon
+					path="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+					class="icon-sm mr-2"
+				/>
 				{$ttsError}
 			</p>
 		</div>
@@ -358,42 +259,13 @@
 	<div class="mt-6">
 		<button onclick={handleGenerateSpeech} disabled={loading} class="btn-primary btn-icon">
 			{#if loading}
-				<svg
-					class="luna-text-base h-5 w-5 animate-spin"
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-				>
-					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-					></circle>
-					<path
-						class="opacity-75"
-						fill="currentColor"
-						d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-					></path>
-				</svg>
+				<Spinner class="luna-text-base icon-lg mr-2" />
 				<span>Generating...</span>
 			{:else}
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="h-5 w-5"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-					/>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-					/>
-				</svg>
+				<Icon
+					path="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+					class="icon-sm"
+				/>
 				<span>Generate Speech</span>
 			{/if}
 		</button>
@@ -404,20 +276,10 @@
 			class="glass-effect animate-slideInUp luna-border-primary mt-6 rounded-xl border p-4 shadow-lg"
 		>
 			<h4 class="luna-text-primary-light mb-3 flex items-center text-sm font-medium">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="luna-text-success mr-2 h-5 w-5"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-					/>
-				</svg>
+				<Icon
+					path="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+					class="luna-text-success icon-sm mr-2"
+				/>
 				Generated Audio
 			</h4>
 			<audio controls autoplay={true} src={audioUrl} class="w-full rounded-md"></audio>

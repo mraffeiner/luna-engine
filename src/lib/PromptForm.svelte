@@ -3,28 +3,29 @@
 	import {
 		systemPrompt,
 		promptError,
-		promptName,
-		savePromptTemplate,
-		loadPromptTemplate,
-		listPromptNames,
-		deletePromptTemplate,
+		templateName,
+		saveTemplate,
+		loadTemplate,
+		listTemplateNames,
+		deleteTemplate,
 		userPromptSections,
 		userPrompt,
-		addDynamicPrompt,
-		updateDynamicPrompt,
-		deleteDynamicPrompt,
+		addUserPromptSection,
+		updateUserPromptSection,
+		deleteUserPromptSection,
 		type UserPromptSection
 	} from './promptService';
 	import { llmOutput, promptOutput, sttOutput } from './stores';
+	import Icon from './Icon.svelte';
 
-	let promptNames: string[] = $state(listPromptNames());
-	let selectedPrompt: string = $state('Luna Thinking');
+	let templateNames: string[] = $state(listTemplateNames());
+	let selectedTemplate: string = $state('Luna Thinking');
 
-	// For adding new dynamic prompts
-	let newDynamicPromptName: string = $state('');
-	let newDynamicPromptContent: string = $state('');
+	// For adding new user prompts
+	let newUserPromptName: string = $state('');
+	let newUserPromptContent: string = $state('');
 
-	// For editing dynamic prompts
+	// For editing user prompts
 	let editingPromptId: string | null = $state(null);
 	let editPromptName: string = $state('');
 	let editPromptContent: string = $state('');
@@ -34,14 +35,14 @@
 
 	let forwardOutput = $state(true);
 
-	function handleSavePrompt() {
-		savePromptTemplate($promptName, $systemPrompt);
-		promptNames = listPromptNames();
-		selectedPrompt = $promptName;
+	function handleSaveTemplate() {
+		saveTemplate($templateName, $systemPrompt);
+		templateNames = listTemplateNames();
+		selectedTemplate = $templateName;
 	}
 
-	function handleDeletePrompt() {
-		if (!selectedPrompt) {
+	function handleDeleteTemplate() {
+		if (!selectedTemplate) {
 			promptError.set('No prompt selected to delete.');
 			return;
 		}
@@ -53,10 +54,10 @@
 		}
 
 		// If we're already in confirmation mode, proceed with deletion
-		deletePromptTemplate(selectedPrompt);
-		const i = promptNames.indexOf(selectedPrompt);
-		promptNames.splice(i, 1);
-		selectedPrompt = promptNames.length > 0 ? promptNames[i] : '';
+		deleteTemplate(selectedTemplate);
+		const i = templateNames.indexOf(selectedTemplate);
+		templateNames.splice(i, 1);
+		selectedTemplate = templateNames.length > 0 ? templateNames[i] : '';
 
 		// Exit confirmation mode
 		deletionConfirmationMode = false;
@@ -66,15 +67,15 @@
 		deletionConfirmationMode = false;
 	}
 
-	function handleAddDynamicPrompt() {
-		if (newDynamicPromptName.trim() === '') {
+	function handleAddUserPrompt() {
+		if (newUserPromptName.trim() === '') {
 			promptError.set('Please enter a name for the dynamic prompt.');
 			return;
 		}
 
-		addDynamicPrompt(newDynamicPromptName, newDynamicPromptContent);
-		newDynamicPromptName = '';
-		newDynamicPromptContent = '';
+		addUserPromptSection(newUserPromptName, newUserPromptContent);
+		newUserPromptName = '';
+		newUserPromptContent = '';
 	}
 
 	function startEditingPrompt(section: UserPromptSection) {
@@ -85,7 +86,7 @@
 
 	function saveEditingPrompt() {
 		if (editingPromptId) {
-			updateDynamicPrompt(editingPromptId, editPromptName, editPromptContent);
+			updateUserPromptSection(editingPromptId, editPromptName, editPromptContent);
 			cancelEditingPrompt();
 		}
 	}
@@ -97,7 +98,7 @@
 	}
 
 	function handleDeleteDynamicPrompt(id: string) {
-		deleteDynamicPrompt(id);
+		deleteUserPromptSection(id);
 		if (editingPromptId === id) {
 			cancelEditingPrompt();
 		}
@@ -112,10 +113,10 @@
 	}
 
 	$effect(() => {
-		if (selectedPrompt) {
-			loadPromptTemplate(selectedPrompt);
-		} else if (promptNames.length > 0) {
-			selectedPrompt = promptNames[0];
+		if (selectedTemplate) {
+			loadTemplate(selectedTemplate);
+		} else if (templateNames.length > 0) {
+			selectedTemplate = templateNames[0];
 		}
 	});
 
@@ -153,59 +154,41 @@
 
 <div class="card">
 	<div class="card-header">
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			class="icon icon-lg icon-primary mr-2"
-			fill="none"
-			viewBox="0 0 24 24"
-			stroke="currentColor"
-		>
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M16 4v12l-4-2-4 2V4M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+		<h2>
+			<Icon
+				path="M16 4v12l-4-2-4 2V4M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+				class="luna-text-primary-light icon-lg mr-2"
 			/>
-		</svg>
-		<h2>Prompt Templates</h2>
+			Prompt Templates
+		</h2>
 	</div>
 
 	<div class="card-body">
 		{#if $promptError}
 			<div class="alert-error">
 				<p class="flex-start">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="icon icon-danger mr-2"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-						/>
-					</svg>
+					<Icon
+						path="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+						class="luna-text-danger mr-2"
+					/>
 					{$promptError}
 				</p>
 			</div>
 		{/if}
 
 		<div class="form-group">
-			<label for="saved-prompts">Saved Prompts:</label>
-			<select id="saved-prompts" bind:value={selectedPrompt} class="form-control">
+			<label for="savedTemplates">Saved Templates:</label>
+			<select id="savedTemplates" bind:value={selectedTemplate} class="form-control">
 				<option value="">Select a saved prompt</option>
-				{#each promptNames as name}
+				{#each templateNames as name}
 					<option value={name}>{name}</option>
 				{/each}
 			</select>
 		</div>
 
 		<div class="form-group">
-			<label for="prompt-name">Prompt Name:</label>
-			<input type="text" id="prompt-name" bind:value={$promptName} class="form-control" />
+			<label for="templateName">Template Name:</label>
+			<input type="text" id="templateName" bind:value={$templateName} class="form-control" />
 		</div>
 
 		<!-- Main Prompt Template Section -->
@@ -222,28 +205,28 @@
 			<!-- Add New Dynamic Prompt -->
 			<div class="luna-border-base luna-bg-elevated mb-6 rounded-md border p-3">
 				<div class="form-group">
-					<label for="new-dynamic-name">Name:</label>
+					<label for="newDynamicName">Name:</label>
 					<input
 						type="text"
-						id="new-dynamic-name"
-						bind:value={newDynamicPromptName}
+						id="newDynamicName"
+						bind:value={newUserPromptName}
 						class="form-control"
 						placeholder="Enter prompt name"
 					/>
 				</div>
 
 				<div class="form-group">
-					<label for="new-dynamic-content">Content:</label>
+					<label for="newDynamicContent">Content:</label>
 					<textarea
-						id="new-dynamic-content"
-						bind:value={newDynamicPromptContent}
+						id="newDynamicContent"
+						bind:value={newUserPromptContent}
 						rows="3"
 						class="form-control"
 						placeholder="Enter prompt content"
 					></textarea>
 				</div>
 
-				<button onclick={handleAddDynamicPrompt} class="btn-success"> Add Dynamic Prompt </button>
+				<button onclick={handleAddUserPrompt} class="btn-success"> Add Dynamic Prompt </button>
 			</div>
 
 			<!-- List of Dynamic Prompts -->
@@ -323,14 +306,14 @@
 		</div>
 
 		<div class="space-x-md">
-			<button onclick={handleSavePrompt} class="btn-primary"> Save Prompt </button>
+			<button onclick={handleSaveTemplate} class="btn-primary"> Save Prompt </button>
 
 			{#if !deletionConfirmationMode}
-				<button onclick={handleDeletePrompt} class="btn-danger"> Delete Prompt </button>
+				<button onclick={handleDeleteTemplate} class="btn-danger"> Delete Prompt </button>
 			{:else}
 				<div class="flex-start space-x-sm">
 					<span class="luna-text-warning-light">Confirm deletion?</span>
-					<button onclick={handleDeletePrompt} class="btn-danger"> Yes, Delete </button>
+					<button onclick={handleDeleteTemplate} class="btn-danger"> Yes, Delete </button>
 					<button onclick={cancelDeletion} class="btn-secondary"> Cancel </button>
 				</div>
 			{/if}

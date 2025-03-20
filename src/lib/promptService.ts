@@ -8,13 +8,13 @@ export interface UserPromptSection {
 }
 
 // Interface for prompt template
-export interface PromptTemplateData {
+export interface TemplateData {
 	systemPrompt: string;
 	userPromptSections: UserPromptSection[];
 }
 
 // Store for prompt template
-export const promptName = writable('');
+export const templateName = writable('');
 export const systemPrompt = writable('');
 export const promptError = writable<string | null>(null);
 export const userPromptSections = writable<UserPromptSection[]>([]);
@@ -40,8 +40,8 @@ function updateUserPrompt() {
 // Subscribe to changes in userPromptSections
 userPromptSections.subscribe(() => updateUserPrompt());
 
-// Functions for managing dynamic prompts
-export function addDynamicPrompt(name: string, content: string): void {
+// Functions for managing user prompt sections
+export function addUserPromptSection(name: string, content: string): void {
 	if (!name) {
 		promptError.set('Please enter a name for the dynamic prompt.');
 		return;
@@ -52,21 +52,21 @@ export function addDynamicPrompt(name: string, content: string): void {
 	promptError.set(null);
 }
 
-export function updateDynamicPrompt(id: string, name: string, content: string): void {
+export function updateUserPromptSection(id: string, name: string, content: string): void {
 	userPromptSections.update((prompts) =>
 		prompts.map((p) => (p.id === id ? { ...p, name, content } : p))
 	);
 }
 
-export function deleteDynamicPrompt(id: string): void {
+export function deleteUserPromptSection(id: string): void {
 	userPromptSections.update((prompts) => prompts.filter((p) => p.id !== id));
 }
 
 // Functions for managing prompt templates
-export function savePromptTemplate(name: string, template: string) {
+export function saveTemplate(name: string, template: string) {
 	if (name) {
 		// Save the template and its dynamic prompts
-		const saveData: PromptTemplateData = {
+		const saveData: TemplateData = {
 			systemPrompt: template,
 			userPromptSections: getCurrentUserPromptSections()
 		};
@@ -77,7 +77,7 @@ export function savePromptTemplate(name: string, template: string) {
 	}
 }
 
-export function loadPromptTemplate(name: string) {
+export function loadTemplate(name: string) {
 	if (name) {
 		const loadedData = localStorage.getItem(name);
 		if (loadedData !== null) {
@@ -92,7 +92,7 @@ export function loadPromptTemplate(name: string) {
 					}
 				}
 				promptError.set(null);
-				promptName.set(name);
+				templateName.set(name);
 			} catch (error) {
 				console.error('Error parsing prompt template:', error);
 			}
@@ -102,19 +102,19 @@ export function loadPromptTemplate(name: string) {
 	}
 }
 
-export function deletePromptTemplate(name: string) {
+export function deleteTemplate(name: string) {
 	if (name) {
 		localStorage.removeItem(name);
 		promptError.set(null);
 		systemPrompt.set('');
-		promptName.set('');
+		templateName.set('');
 		userPromptSections.set([]);
 	} else {
 		promptError.set('No prompt selected to delete.');
 	}
 }
 
-export function listPromptNames(): string[] {
+export function listTemplateNames(): string[] {
 	const keys: string[] = [];
 	for (let i = 0; i < localStorage.length; i++) {
 		const key = localStorage.key(i);
@@ -124,19 +124,13 @@ export function listPromptNames(): string[] {
 				const value = localStorage.getItem(key);
 				if (value) {
 					const parsed = JSON.parse(value);
-					// If it has systemPrompt or mainTemplate, it's a prompt template
-					if (
-						typeof parsed === 'object' &&
-						('systemPrompt' in parsed || 'mainTemplate' in parsed)
-					) {
+					// If it has systemPrompt, it's a prompt template
+					if (typeof parsed === 'object' && 'systemPrompt' in parsed) {
 						keys.push(key);
 					}
 				}
 			} catch (error) {
 				console.error('Error parsing prompt template:', error);
-				// If it can't be parsed as JSON, it might be an old format prompt
-				// or some other data, so we'll include it
-				keys.push(key);
 			}
 		}
 	}

@@ -194,22 +194,6 @@ label {
 	color: var(--color-text-subtle);
 }
 
-/* Input types */
-input[type='text'],
-input[type='email'],
-input[type='password'],
-input[type='number'],
-input[type='url'],
-input[type='tel'],
-input[type='search'],
-input[type='date'],
-input[type='time'],
-input[type='datetime-local'],
-textarea,
-select {
-	@apply form-control;
-}
-
 textarea {
 	min-height: 100px;
 	resize: vertical;
@@ -358,20 +342,9 @@ input[type='radio']:focus {
 	transition: all var(--transition-standard);
 }
 
-.card-hover {
-	transition: all var(--transition-standard);
-}
-
-.card-hover:hover {
-	border-color: rgba(217, 119, 6, 0.3); /* var(--color-primary) at 30% opacity */
-	box-shadow:
-		0 10px 15px -3px rgba(217, 119, 6, 0.1),
-		0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
 .card-header {
-	display: flex;
-	align-items: center;
+	display: inline;
+	vertical-align: middle;
 	margin-bottom: 1.25rem;
 }
 
@@ -431,7 +404,8 @@ input[type='radio']:focus {
 .icon {
 	height: 1.25rem;
 	width: 1.25rem;
-	flex-shrink: 0;
+	display: inline;
+	vertical-align: middle;
 }
 
 .icon-sm {
@@ -442,30 +416,6 @@ input[type='radio']:focus {
 .icon-lg {
 	height: 1.5rem;
 	width: 1.5rem;
-}
-
-.icon-primary {
-	color: var(--color-primary-light);
-}
-
-.icon-secondary {
-	color: var(--color-text-subtle);
-}
-
-.icon-success {
-	color: var(--color-success-light);
-}
-
-.icon-danger {
-	color: var(--color-danger-light);
-}
-
-.icon-warning {
-	color: var(--color-warning-light);
-}
-
-.icon-info {
-	color: var(--color-info-light);
 }
 
 /* ===== Status Indicators ===== */
@@ -777,17 +727,17 @@ h3 {
 }
 
 /* Background with opacity */
-.luna-bg-primary-opacity-70 {
+.luna-bg-primary-30 {
 	background-color: var(--color-primary);
-	opacity: 0.7;
+	background-opacity: 0.3;
 }
-.luna-bg-surface-opacity-70 {
+.luna-bg-surface-30 {
 	background-color: var(--color-bg-surface);
-	opacity: 0.7;
+	background-opacity: 0.3;
 }
-.luna-bg-elevated-opacity-70 {
+.luna-bg-elevated-30 {
 	background-color: var(--color-bg-elevated);
-	opacity: 0.7;
+	background-opacity: 0.3;
 }
 .luna-text-primary-200 {
 	color: var(--color-primary-200);

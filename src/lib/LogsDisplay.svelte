@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { dockerService } from './dockerService';
+	import Icon from './Icon.svelte';
 
 	// Define props
 	const { serviceName } = $props();
@@ -60,66 +61,36 @@
 	});
 </script>
 
-<div class="card card-hover p-6">
+<div class="card p-6">
 	<div class="mb-4 flex items-center justify-between">
 		<h3 class="flex items-center">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="luna-text-primary-light mr-2 h-5 w-5"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-				/>
-			</svg>
+			<Icon
+				path="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+				class="luna-text-primary-light icon-lg mr-2"
+			/>
 			Service Logs
 		</h3>
-		<div class="flex items-center gap-3">
+		<div class="flex items-center gap-4">
 			<div class="relative">
 				<input
 					type="text"
 					bind:value={filterText}
 					placeholder="Filter logs..."
-					class="luna-border-subtle luna-bg-elevated luna-text-muted focus:border-primary focus:ring-primary w-48 rounded-md border py-1.5 pl-8 pr-3 text-sm"
+					class="form-control pl-[35px] text-sm"
 				/>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="luna-text-disabled absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-					/>
-				</svg>
+				<Icon
+					path="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+					class="luna-text-disabled icon-sm absolute bottom-3.5 left-3"
+				/>
 			</div>
 			<button
 				onclick={() => dockerService.clearLogs(serviceName)}
 				class="btn-secondary btn-sm btn-icon"
 			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="h-4 w-4"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-					/>
-				</svg>
+				<Icon
+					path="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+					class="icon-sm"
+				/>
 				Clear
 			</button>
 		</div>
@@ -134,20 +105,10 @@
 			{#if logs.length === 0}
 				<div class="luna-text-disabled flex h-full items-center justify-center">
 					<div class="text-center">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							class="luna-text-disabled mx-auto mb-2 h-10 w-10"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-							/>
-						</svg>
+						<Icon
+							path="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+							class="luna-text-disabled icon-lg"
+						/>
 						<p>No logs available</p>
 						<p class="luna-text-disabled mt-1 text-xs">Start the service to see logs</p>
 					</div>
@@ -155,20 +116,10 @@
 			{:else if getFilteredLogs().length === 0}
 				<div class="luna-text-disabled flex h-full items-center justify-center">
 					<div class="text-center">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							class="luna-text-disabled mx-auto mb-2 h-10 w-10"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-							/>
-						</svg>
+						<Icon
+							path="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+							class="luna-text-disabled icon-lg"
+						/>
 						<p>No matching logs</p>
 						<p class="luna-text-disabled mt-1 text-xs">Try a different filter</p>
 					</div>
@@ -198,42 +149,19 @@
 					autoScroll = true;
 					scrollToBottom();
 				}}
-				class="luna-bg-elevated luna-text-base hover:luna-bg-elevated-opacity-70 focus:luna-border-focus absolute bottom-4 right-4 rounded-full p-2 shadow-md transition-all duration-200 focus:outline-none focus:ring-2"
+				class="btn-icon luna-bg-elevated luna-text-base hover:luna-bg-elevated-30 focus:luna-border-focus absolute bottom-4 right-4 rounded-full p-2 shadow-md transition-all duration-200 focus:outline-none focus:ring-2"
 			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="h-5 w-5"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M19 14l-7 7m0 0l-7-7m7 7V3"
-					/>
-				</svg>
+				<Icon path="M19 14l-7 7m0 0l-7-7m7 7V3" class="icon-sm" />
 			</button>
 		{/if}
 	</div>
 
 	<div class="mt-3 flex items-center justify-between px-1">
 		<div class="luna-text-disabled flex items-center text-sm">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="mr-1 h-4 w-4"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
-				/>
-			</svg>
+			<Icon
+				path="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+				class="icon-sm mr-1"
+			/>
 			{filterText ? `${getFilteredLogs().length} of ${logs.length}` : logs.length} log {logs.length ===
 			1
 				? 'entry'
