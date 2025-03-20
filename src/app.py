@@ -62,7 +62,10 @@ LOCAL_MODELS = {"llama-3.2-3b-instruct-uncensored": "Llama 3.2 3B Instruct Uncen
 OPENAI_MODELS = {"gpt-4o-mini": "GPT-4o Mini"}
 
 # Groq models
-GROQ_MODELS = {"deepseek-r1-distill-llama-70b": "DeepSeek R1 Llama 70B"}
+GROQ_MODELS = {
+    "deepseek-r1-distill-llama-70b": "DeepSeek R1 Llama 70B",
+    "qwen-qwq-32b": "Qwen QwQ 32B",
+}
 
 
 async def is_local_llm_available():
@@ -158,7 +161,6 @@ async def stream_from_openai(model: str, system_prompt: str = "", prompt: str = 
         for chunk in stream:
             content = chunk.choices[0].delta.content
             if content:
-                logger.info(f"Chunk: {content}")
                 yield content
         logger.info("Stream finished")
     except openai.APIError:
@@ -193,7 +195,6 @@ async def stream_from_groq(model: str, system_prompt: str = "", prompt: str = ""
         for chunk in stream:
             content = chunk.choices[0].delta.content
             if content:
-                logger.info(f"Groq chunk: {content}")
                 yield content
         logger.info("Groq stream finished")
     except Exception as e:
@@ -249,7 +250,6 @@ async def stream_from_local_llm(model: str, system_prompt: str = "", prompt: str
                                 .get("content", "")
                             )
                             if content:
-                                logger.info(f"Local LLM chunk: {content}")
                                 yield content
                     except Exception as e:
                         logger.exception(f"Error parsing chunk: {line}")
