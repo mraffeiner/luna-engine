@@ -17,15 +17,15 @@
 	// Get the current route path
 	const currentPath = $derived(page.url.pathname);
 
-	const handleBeforeUnload = () => {
+	const cleanup = () => {
 		dockerService.stopLogsStream();
 	};
 
 	$effect(() => {
-		window.addEventListener('beforeunload', handleBeforeUnload);
+		window.addEventListener('beforeunload', cleanup);
 
 		return () => {
-			window.removeEventListener('beforeunload', handleBeforeUnload);
+			window.removeEventListener('beforeunload', cleanup);
 		};
 	});
 
@@ -33,7 +33,7 @@
 		dockerService.startLogsStream();
 
 		return () => {
-			dockerService.stopLogsStream();
+			cleanup();
 		};
 	});
 </script>
