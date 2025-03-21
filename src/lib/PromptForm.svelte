@@ -17,6 +17,7 @@
 	} from './promptService';
 	import { llmOutput, promptOutput, sttOutput } from './stores';
 	import Icon from './Icon.svelte';
+	import { removeThinkSection } from './utils';
 
 	let templateNames: string[] = $state(listTemplateNames());
 	let selectedTemplate: string = $state('Luna Thinking');
@@ -123,7 +124,11 @@
 	$effect(() => {
 		const unsubscribe = llmOutput.subscribe((newText) => {
 			if (newText) {
-				userPromptSections.update((sections) => updateConversation(sections, `Luna: ${newText}`));
+				const processedText = removeThinkSection(newText);
+
+				userPromptSections.update((sections) =>
+					updateConversation(sections, `Luna: ${processedText}`)
+				);
 			}
 		});
 

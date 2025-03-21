@@ -5,6 +5,7 @@
 	import { llmOutput } from './stores';
 	import { ttsOptions, ttsError, fetchTtsOptions } from './ttsService';
 	import Icon from './Icon.svelte';
+	import { removeThinkSection } from './utils';
 
 	let selectedEngine = $state('kokoro');
 	let azureTtsForm: AzureTtsForm | null = null;
@@ -18,12 +19,14 @@
 	$effect(() => {
 		const unsubscribe = llmOutput.subscribe((newText) => {
 			if (newText) {
+				const processedText = removeThinkSection(newText);
+
 				if (selectedEngine === 'azure') {
-					azureTtsForm!.handleGenerateSpeech(undefined, newText);
+					azureTtsForm!.handleGenerateSpeech(undefined, processedText);
 				} else if (selectedEngine === 'kokoro') {
-					kokoroTtsForm!.handleGenerateSpeech(undefined, newText);
+					kokoroTtsForm!.handleGenerateSpeech(undefined, processedText);
 				} else if (selectedEngine === 'sesame') {
-					sesameTtsForm!.handleGenerateSpeech(undefined, newText);
+					sesameTtsForm!.handleGenerateSpeech(undefined, processedText);
 				}
 			}
 		});

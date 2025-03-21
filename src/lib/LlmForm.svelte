@@ -73,7 +73,7 @@
 		loading = false;
 
 		if (forwardOutput && responseText) {
-			llmOutput.set(responseText.replace(/<think\b[^>]*>[\s\S]*?<\/think>/gi, '').trim());
+			llmOutput.set(responseText);
 		}
 	}
 
