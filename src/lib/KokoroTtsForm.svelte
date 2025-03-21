@@ -15,10 +15,10 @@
 	// Voice mixing
 	let useVoiceMix = $state(true);
 	let voiceMix = $state<VoiceWeight[]>([
-		{ voice: 'af_nicole', weight: 5.0 },
-		{ voice: 'am_echo', weight: 2.0 },
-		{ voice: 'jf_alpha', weight: 2.0 },
-		{ voice: 'zf_xiaoxiao', weight: 1.0 }
+		{ voice: 'af_nicole', weight: 2.5 },
+		{ voice: 'am_echo', weight: 1.0 },
+		{ voice: 'jf_alpha', weight: 1.0 },
+		{ voice: 'zf_xiaoxiao', weight: 0.5 }
 	]);
 	let speed = $state(0.9);
 	let pitch = $state(1.17);
