@@ -49,8 +49,15 @@ if not groq_client.api_key:
     logger.warning("GROQ_API_KEY environment variable not set.")
 
 # Define available models
-OPENAI_MODELS = {"whisper-1": "OpenAI Whisper"}
-GROQ_MODELS = {"whisper-large-v3": "Groq Whisper Large v3"}
+OPENAI_MODELS = {
+    "whisper-1": "OpenAI Whisper",
+    "gpt-4o-transcribe": "GPT-4o Transcribe",
+}
+GROQ_MODELS = {
+    "whisper-large-v3": "Groq Whisper Large v3",
+    "whisper-large-v3-turbo": "Groq Whisper Large Turbo v3",
+    "distil-whisper-large-v3-en": "Groq Distil Whisper English",
+}
 
 
 # API Models
@@ -109,10 +116,10 @@ async def transcribe_with_openai(audio_path: str, model: str = "whisper-1") -> s
     try:
         with open(audio_path, "rb") as audio_file:
             result = openai.audio.transcriptions.create(
-                file=audio_file, model=model, response_format="text"
+                model=model, file=audio_file, language="en", response_format="json"
             )
         logger.info(f"OpenAI transcription successful with model {model}")
-        return result
+        return result.text
     except Exception as e:
         logger.exception(f"OpenAI transcription error: {str(e)}")
         raise HTTPException(
@@ -125,10 +132,10 @@ async def transcribe_with_groq(audio_path: str, model: str = "whisper-large-v3")
     try:
         with open(audio_path, "rb") as audio_file:
             result = groq_client.audio.transcriptions.create(
-                file=audio_file, model=model, response_format="text"
+                model=model, file=audio_file, language="en", response_format="json"
             )
         logger.info(f"Groq transcription successful with model {model}")
-        return result
+        return result.text
     except Exception as e:
         logger.exception(f"Groq transcription error: {str(e)}")
         raise HTTPException(
@@ -160,7 +167,7 @@ async def stt_endpoint(
 
     try:
         # Create a temporary file to store the uploaded audio
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_file:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
             temp_filename = temp_file.name
             # Write the uploaded file content to the temporary file
             content = await audio.read()
