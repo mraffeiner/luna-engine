@@ -21,11 +21,10 @@
 	const displayError = $derived($sttError || localErrorMessage);
 
 	async function handleTranscribeAudio(audioBlob: Blob, prefix?: string) {
-		// Transcribe the audio with the selected model
-		const transcription = await transcribeAudio(audioBlob, selectedModel);
+		let transcription = await transcribeAudio(audioBlob, selectedModel);
 
 		if (transcription) {
-			transcribedText = prefix ? prefix + transcription : transcription;
+			transcribedText = (prefix ? prefix + transcription : transcription).trim();
 		}
 
 		isRecording = false;
@@ -171,7 +170,7 @@
 	$effect(() => {
 		const unsubscribe = discordOutput.subscribe(async (newAudio) => {
 			if (newAudio) {
-				await handleTranscribeAudio(newAudio.audioBlob, newAudio.username + ':');
+				await handleTranscribeAudio(newAudio.audioBlob, newAudio.username + ': ');
 			}
 		});
 		return () => {
