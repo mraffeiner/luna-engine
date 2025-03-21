@@ -24,7 +24,7 @@
 		let transcription = await transcribeAudio(audioBlob, selectedModel);
 
 		if (transcription) {
-			transcribedText = (prefix ? prefix + transcription : transcription).trim();
+			transcribedText = prefix ? prefix + transcription.trim() : transcription.trim();
 		}
 
 		isRecording = false;
