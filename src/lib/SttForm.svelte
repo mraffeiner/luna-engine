@@ -171,7 +171,7 @@
 	$effect(() => {
 		const unsubscribe = discordOutput.subscribe(async (newAudio) => {
 			if (newAudio) {
-				await handleTranscribeAudio(newAudio.audioBlob, newAudio.username + ': ');
+				await handleTranscribeAudio(newAudio.audioBlob, newAudio.username + ':');
 			}
 		});
 		return () => {
