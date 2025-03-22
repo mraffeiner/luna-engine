@@ -39,13 +39,18 @@
 </script>
 
 <aside
-	class="luna-border-base luna-bg-surface luna-text-base flex h-full w-56 flex-col border-r shadow-xl"
+	class="glass-effect luna-border-base luna-bg-surface luna-text-base flex h-full w-56 flex-col border-r shadow-xl"
 >
-	<div class="luna-border-base luna-bg-base border-b p-4">
-		<h2 class="flex items-center">
+	<div class="luna-border-base luna-bg-base flex items-center justify-center border-b p-5">
+		<button
+			onclick={() => {
+				currentPage.id = 'home';
+			}}
+			class="flex cursor-pointer items-center"
+		>
 			<Icon path="M13 10V3L4 14h7v7l9-11h-7z" class="luna-text-primary-light icon-lg mr-2" />
 			<span class="text-xl font-bold">Luna Engine</span>
-		</h2>
+		</button>
 	</div>
 
 	<nav class="custom-scrollbar flex-1 overflow-y-auto p-4">
@@ -81,7 +86,7 @@
 		</ul>
 	</nav>
 
-	<div class="glass-effect luna-border-base border-t p-4">
+	<div class="luna-border-base border-t p-4">
 		<div class="luna-text-disabled flex items-center text-sm">
 			<Icon path="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" class="icon-sm mr-2" />
 			<p>Luna Engine Control Panel</p>
