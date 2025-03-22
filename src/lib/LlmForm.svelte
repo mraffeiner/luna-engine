@@ -5,9 +5,10 @@
 	import { cleanText } from './utils';
 	import { serviceError } from './dockerService';
 
-	let model = $state('groq|qwen-qwq-32b');
-	let selectedProvider = $derived(model.split('|')[0]);
-	let selectedModel = $derived(model.split('|')[1]);
+	let currentModelOption = $state('groq|qwen-qwq-32b|true');
+	let [selectedProvider, selectedModel, selectedIsReasoning] = $derived(
+		currentModelOption.split('|')
+	);
 
 	let prompt = $state('Hey there, hello!');
 	let system_prompt = $state('You are Luna, a young AI woman an space elf Vtuber');
@@ -16,16 +17,15 @@
 
 	let forwardOutput = $state(true);
 
-	let models = $state<{ provider: string; value: string; label: string }[]>([]);
+	let models = $state<{ provider: string; id: string; name: string; isReasoning: boolean }[]>([]);
 
 	async function fetchModels() {
 		try {
 			const response = await fetch('/api/llm/models');
 			if (response.ok) {
-				const data = await response.json();
-				models = data.models;
-				if (!model && models.length > 0) {
-					model = `${models[0].provider}|${models[0].value}`;
+				models = await response.json();
+				if (!currentModelOption && models.length > 0) {
+					currentModelOption = `${models[0].provider}|${models[0].id}|${models[0].isReasoning}`;
 				}
 			} else {
 				console.error('Failed to fetch LLM options:', response.status, response.statusText);
@@ -75,7 +75,7 @@
 		loading = false;
 
 		if (forwardOutput && responseText) {
-			llmOutput.set(cleanText(true, responseText));
+			llmOutput.set(cleanText(selectedIsReasoning.toLowerCase() === 'true', responseText));
 		}
 	}
 
@@ -113,9 +113,10 @@
 	<div class="card-body">
 		<div class="form-group">
 			<label for="model">Model</label>
-			<select id="model" bind:value={model} class="form-control">
+			<select id="model" bind:value={currentModelOption} class="form-control">
 				{#each models as modelOption}
-					<option value={`${modelOption.provider}|${modelOption.value}`}>{modelOption.label}</option
+					<option value={`${modelOption.provider}|${modelOption.id}|${modelOption.isReasoning}`}
+						>{modelOption.name}</option
 					>
 				{/each}
 			</select>
