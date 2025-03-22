@@ -67,10 +67,10 @@ export function cleanText(reasoning: boolean, text: string): string {
 	cleanedText = cleanedText.replace(/"(.*?)"/g, '$1');
 
 	// Clean up any double spaces that might have been created
-	cleanedText = cleanedText.replace(/\s{2,}/g, ' ').trim();
+	cleanedText = cleanedText.replace(/\s{2,}/g, ' ');
 
 	const hasDoubleLineBreaks = /\n\n/g.test(cleanedText);
-	if (!hasDoubleLineBreaks) return cleanedText;
+	if (!hasDoubleLineBreaks) return cleanedText.trim();
 
 	return errorMessages[Math.floor(Math.random() * errorMessages.length)];
 }
