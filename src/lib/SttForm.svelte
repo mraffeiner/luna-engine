@@ -11,7 +11,7 @@
 	let recordingTime = $state(0);
 	let recordingTimer: number | null = $state(null);
 	let audioStream: MediaStream | null = $state(null);
-	let selectedModel = $state('distil-whisper-large-v3-en');
+	let selectedModel = $state('whisper-large-v3-turbo');
 	let localErrorMessage = $state<string | null>(null);
 
 	let forwardOutput = $state(true);

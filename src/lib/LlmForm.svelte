@@ -2,9 +2,13 @@
 	import { llmOutput, promptOutput } from './stores';
 	import Icon from './Icon.svelte';
 	import Spinner from './Spinner.svelte';
+	import { cleanText } from './utils';
 
-	let model = $state('qwen-qwq-32b');
-	let prompt = $state('Hey');
+	let model = $state('groq|qwen-qwq-32b');
+	let selectedProvider = $derived(model.split('|')[0]);
+	let selectedModel = $derived(model.split('|')[1]);
+
+	let prompt = $state('Hey there, hello!');
 	let system_prompt = $state('You are Luna, a young AI woman an space elf Vtuber');
 	let loading = $state(false);
 	let errorMessage = $state<string | null>(null);
@@ -12,7 +16,7 @@
 
 	let forwardOutput = $state(true);
 
-	let models = $state<{ value: string; label: string }[]>([]);
+	let models = $state<{ provider: string; value: string; label: string }[]>([]);
 	let localErrorMessage = $state<string | null>(null);
 
 	const displayError = $derived(errorMessage || localErrorMessage);
@@ -23,8 +27,8 @@
 			if (response.ok) {
 				const data = await response.json();
 				models = data.models;
-				if (models.length > 0 && !model) {
-					model = models[0].value;
+				if (!model && models.length > 0) {
+					model = `${models[0].provider}|${models[0].value}`;
 				}
 			} else {
 				console.error('Failed to fetch LLM options:', response.status, response.statusText);
@@ -47,7 +51,8 @@
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
-				model,
+				provider: selectedProvider,
+				model: selectedModel,
 				system_prompt,
 				prompt
 			})
@@ -73,7 +78,7 @@
 		loading = false;
 
 		if (forwardOutput && responseText) {
-			llmOutput.set(responseText);
+			llmOutput.set(cleanText(true, responseText));
 		}
 	}
 
@@ -119,7 +124,8 @@
 			<label for="model">Model</label>
 			<select id="model" bind:value={model} class="form-control">
 				{#each models as modelOption}
-					<option value={modelOption.value}>{modelOption.label}</option>
+					<option value={`${modelOption.provider}|${modelOption.value}`}>{modelOption.label}</option
+					>
 				{/each}
 			</select>
 		</div>
