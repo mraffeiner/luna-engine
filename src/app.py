@@ -49,17 +49,17 @@ openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # Groq configuration
 groq_client = OpenAI(
     api_key=os.getenv("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1",
+    base_url=os.getenv("GROQ_BASE_URL"),
 )
 
 # Google configuration
 google_client = OpenAI(
     api_key=os.getenv("GEMINI_API_KEY"),
-    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+    base_url=os.getenv("GOOGLE_BASE_URL"),
 )
 
 # Local LLM configuration
-local_client = OpenAI(base_url="http://host.docker.internal:1234/v1")
+local_client = OpenAI(base_url=os.getenv("LOCAL_BASE_URL"))
 
 # Local models
 LOCAL_MODELS = [
