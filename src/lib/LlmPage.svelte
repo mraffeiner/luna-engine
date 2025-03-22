@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { llmOutput, promptOutput } from './stores';
-	import Icon from './Icon.svelte';
 	import Spinner from './Spinner.svelte';
 	import { cleanText } from './utils';
 	import { serviceError } from './dockerService';
+	import Card from './Card.svelte';
 
 	let currentModelOption = $state('groq|qwen-qwq-32b|true');
 	let [selectedProvider, selectedModel, selectedIsReasoning] = $derived(
@@ -102,60 +102,50 @@
 	});
 </script>
 
-<div class="card">
-	<div class="card-header">
-		<h2>
-			<Icon path="M13 10V3L4 14h7v7l9-11h-7z" class="luna-text-primary-light icon-lg mr-2" />
-			LLM Service
-		</h2>
+<Card title="LLM Settings">
+	<div class="flex-start">
+		<label class="space-x-2">
+			<input type="checkbox" bind:checked={forwardOutput} />
+			<span class="luna-text-muted">Forward Output</span>
+		</label>
 	</div>
 
-	<div class="card-body">
-		<div class="form-group">
-			<label for="model">Model</label>
-			<select id="model" bind:value={currentModelOption} class="form-control">
-				{#each models as modelOption}
-					<option value={`${modelOption.provider}|${modelOption.id}|${modelOption.isReasoning}`}
-						>{modelOption.name}</option
-					>
-				{/each}
-			</select>
-		</div>
+	<div class="form-group">
+		<label for="model">Model</label>
+		<select id="model" bind:value={currentModelOption} class="form-control">
+			{#each models as modelOption}
+				<option value={`${modelOption.provider}|${modelOption.id}|${modelOption.isReasoning}`}
+					>{modelOption.name}</option
+				>
+			{/each}
+		</select>
+	</div>
 
-		<div class="form-group">
-			<label for="systemPrompt">System Prompt</label>
-			<textarea id="systemPrompt" bind:value={system_prompt} rows="3" class="form-control"
-			></textarea>
-		</div>
+	<div class="form-group">
+		<label for="systemPrompt">System Prompt</label>
+		<textarea id="systemPrompt" bind:value={system_prompt} rows="3" class="form-control"></textarea>
+	</div>
 
-		<div class="form-group">
-			<label for="prompt">User Prompt</label>
-			<textarea id="prompt" bind:value={prompt} rows="4" class="form-control"></textarea>
-		</div>
+	<div class="form-group">
+		<label for="prompt">User Prompt</label>
+		<textarea id="prompt" bind:value={prompt} rows="4" class="form-control"></textarea>
+	</div>
 
-		<div class="form-group">
-			<label class="flex-start space-x-2">
-				<input type="checkbox" bind:checked={forwardOutput} />
-				<span class="luna-text-subtle">Forward Output</span>
-			</label>
-		</div>
+	<div class="form-group">
+		<button onclick={generateResponse} disabled={loading} class="btn-primary">
+			{#if loading}
+				<Spinner class="luna-text-base icon-lg mr-2" />
+			{/if}
+			{loading ? 'Generating...' : 'Generate'}
+		</button>
+	</div>
 
+	{#if responseText}
 		<div class="form-group">
-			<button onclick={generateResponse} disabled={loading} class="btn-primary">
-				{#if loading}
-					<Spinner class="luna-text-base icon-lg mr-2" />
-				{/if}
-				{loading ? 'Generating...' : 'Generate'}
-			</button>
-		</div>
-
-		{#if responseText}
-			<div class="form-group">
-				<h3 class="luna-text-subtle mb-2 text-lg font-medium">Response</h3>
-				<div class="form-control whitespace-pre-wrap p-4">
-					{responseText}
-				</div>
+			<h3 class="luna-text-subtle mb-2 text-lg font-medium">Response</h3>
+			<div class="form-control whitespace-pre-wrap p-4">
+				{responseText}
 			</div>
-		{/if}
-	</div>
-</div>
+		</div>
+	{/if}
+</Card>

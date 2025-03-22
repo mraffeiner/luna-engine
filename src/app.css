@@ -230,9 +230,7 @@ input[type='radio']:focus {
 
 /* ===== Button Styles ===== */
 @utility btn {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
+	@apply flex items-center justify-items-center;
 	padding: 0.625rem 1rem;
 	border-radius: 0.375rem;
 	font-weight: 500;
@@ -313,23 +311,6 @@ input[type='radio']:focus {
 	background-color: var(--color-info-hover);
 }
 
-/* Button sizes */
-.btn-sm {
-	padding: 0.375rem 0.75rem;
-	font-size: 0.875rem;
-}
-
-.btn-lg {
-	padding: 0.75rem 1.5rem;
-	font-size: 1.125rem;
-}
-
-.btn-icon {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-}
-
 /* ===== Card Styles ===== */
 .card {
 	border-radius: 0.75rem;
@@ -340,25 +321,6 @@ input[type='radio']:focus {
 		0 10px 15px -3px rgba(0, 0, 0, 0.1),
 		0 4px 6px -2px rgba(0, 0, 0, 0.05);
 	transition: all var(--transition-standard);
-}
-
-.card-header {
-	display: inline;
-	vertical-align: middle;
-	margin-bottom: 1.25rem;
-}
-
-.card-body {
-	display: flex;
-	flex-direction: column;
-	gap: 1.25rem;
-}
-
-.card-footer {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	margin-top: 1.5rem;
 }
 
 /* ===== Alert/Error Styles ===== */
@@ -400,22 +362,12 @@ input[type='radio']:focus {
 	color: var(--color-info-light);
 }
 
-/* ===== Icon Styles ===== */
-.icon {
-	height: 1.25rem;
-	width: 1.25rem;
-	display: inline;
-	vertical-align: middle;
-}
-
 .icon-sm {
-	height: 1rem;
-	width: 1rem;
+	@apply h-4 w-4;
 }
 
 .icon-lg {
-	height: 1.5rem;
-	width: 1.5rem;
+	@apply h-6 w-6;
 }
 
 /* ===== Status Indicators ===== */
@@ -485,14 +437,6 @@ h3 {
 	font-weight: 600;
 }
 
-.card-title {
-	margin-bottom: 0.75rem;
-	font-size: 1.125rem;
-	line-height: 1.75rem;
-	font-weight: 600;
-	color: var(--color-text-muted);
-}
-
 .sidebar-title {
 	margin-bottom: 0.75rem;
 	padding-left: 0.5rem;
@@ -523,10 +467,9 @@ h3 {
 }
 
 .tab-button {
+	@apply flex items-center justify-center justify-items-center;
 	flex: 1 1 0%;
 	padding: 0.75rem 1rem;
-	font-size: 0.875rem;
-	font-weight: 500;
 	transition: all var(--transition-standard);
 }
 
@@ -568,28 +511,6 @@ h3 {
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
-}
-
-/* ===== Spacing Utility Classes ===== */
-.space-x-sm > * + * {
-	margin-left: var(--space-2);
-}
-
-.space-x-md > * + * {
-	margin-left: var(--space-4);
-}
-
-.space-y-sm > * + * {
-	margin-top: var(--space-2);
-}
-
-.space-y-md > * + * {
-	margin-top: var(--space-4);
-}
-
-/* ===== Transitions ===== */
-.transition-standard {
-	transition: all var(--transition-standard);
 }
 
 /* ===== Animations ===== */
