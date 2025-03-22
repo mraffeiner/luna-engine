@@ -77,34 +77,29 @@
 						<DockerForm />
 					</ServicePage>
 				</div>
-
-				<div class:hidden={currentPath !== '/discord-service'}>
-					<ServicePage serviceName="discord-service" title="Discord Service">
-						<DiscordForm />
+				<div class:hidden={currentPath !== '/prompt-service'}>
+					<ServicePage serviceName="prompt-service" title="Prompt Service">
+						<PromptForm />
 					</ServicePage>
 				</div>
-
-				<div class:hidden={currentPath !== '/stt-service'}>
-					<ServicePage serviceName="stt-service" title="Speech-to-Text Service">
-						<SttForm />
-					</ServicePage>
-				</div>
-
 				<div class:hidden={currentPath !== '/llm-service'}>
 					<ServicePage serviceName="llm-service" title="LLM Service">
 						<LlmForm />
 					</ServicePage>
 				</div>
-
 				<div class:hidden={currentPath !== '/tts-service'}>
 					<ServicePage serviceName="tts-service" title="Text-to-Speech Service">
 						<TtsForm />
 					</ServicePage>
 				</div>
-
-				<div class:hidden={currentPath !== '/prompt-service'}>
-					<ServicePage serviceName="prompt-service" title="Prompt Service">
-						<PromptForm />
+				<div class:hidden={currentPath !== '/discord-service'}>
+					<ServicePage serviceName="discord-service" title="Discord Service">
+						<DiscordForm />
+					</ServicePage>
+				</div>
+				<div class:hidden={currentPath !== '/stt-service'}>
+					<ServicePage serviceName="stt-service" title="Speech-to-Text Service">
+						<SttForm />
 					</ServicePage>
 				</div>
 			{/if}

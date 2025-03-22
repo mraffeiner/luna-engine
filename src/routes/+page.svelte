@@ -3,11 +3,11 @@
 
 	const services = [
 		'docker-service',
-		'discord-service',
-		'stt-service',
+		'prompt-service',
 		'llm-service',
 		'tts-service',
-		'prompt-service'
+		'discord-service',
+		'stt-service'
 	];
 
 	$effect(() => {
