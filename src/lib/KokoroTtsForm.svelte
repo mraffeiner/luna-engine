@@ -1,6 +1,5 @@
 <script lang="ts">
 	import {
-		ttsError,
 		generateSpeech,
 		type KokoroTtsRequestParams,
 		type VoiceWeight,
@@ -8,6 +7,7 @@
 	} from './ttsService';
 	import Icon from './Icon.svelte';
 	import Spinner from './Spinner.svelte';
+	import { serviceError } from './dockerService';
 
 	let text = $state('Hi there hello');
 	let language = $state('en-US');
@@ -49,7 +49,7 @@
 	}
 
 	export async function handleGenerateSpeech(_event?: MouseEvent, newText?: string): Promise<void> {
-		ttsError.set(null);
+		serviceError.set(null);
 		audioUrl = null;
 		loading = true;
 
@@ -242,18 +242,6 @@
 			</div>
 		</div>
 	</div>
-
-	{#if $ttsError}
-		<div class="animate-fadeIn alert-error my-5 rounded-md border p-4 shadow-md">
-			<p class="luna-text-danger-light flex items-center">
-				<Icon
-					path="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-					class="icon-sm mr-2"
-				/>
-				{$ttsError}
-			</p>
-		</div>
-	{/if}
 
 	<div class="mt-6">
 		<button onclick={handleGenerateSpeech} disabled={loading} class="btn-primary btn-icon">

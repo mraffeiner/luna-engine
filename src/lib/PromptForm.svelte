@@ -2,7 +2,6 @@
 	import { tick } from 'svelte';
 	import {
 		systemPrompt,
-		promptError,
 		templateName,
 		saveTemplate,
 		loadTemplate,
@@ -17,6 +16,7 @@
 	} from './promptService';
 	import { llmOutput, promptOutput, sttOutput } from './stores';
 	import Icon from './Icon.svelte';
+	import { serviceError } from './dockerService';
 
 	let templateNames: string[] = $state(listTemplateNames());
 	let selectedTemplate: string = $state('Luna Thinking');
@@ -43,7 +43,7 @@
 
 	function handleDeleteTemplate() {
 		if (!selectedTemplate) {
-			promptError.set('No prompt selected to delete.');
+			serviceError.set('No prompt selected to delete.');
 			return;
 		}
 
@@ -69,7 +69,7 @@
 
 	function handleAddUserPrompt() {
 		if (newUserPromptName.trim() === '') {
-			promptError.set('Please enter a name for the dynamic prompt.');
+			serviceError.set('Please enter a name for the dynamic prompt.');
 			return;
 		}
 
@@ -164,18 +164,6 @@
 	</div>
 
 	<div class="card-body">
-		{#if $promptError}
-			<div class="alert-error">
-				<p class="flex-start">
-					<Icon
-						path="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-						class="luna-text-danger mr-2"
-					/>
-					{$promptError}
-				</p>
-			</div>
-		{/if}
-
 		<div class="form-group">
 			<label for="savedTemplates">Saved Templates:</label>
 			<select id="savedTemplates" bind:value={selectedTemplate} class="form-control">

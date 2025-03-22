@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { serviceError } from './dockerService';
 
 // Interface for user prompt section
 export interface UserPromptSection {
@@ -16,7 +17,6 @@ export interface TemplateData {
 // Store for prompt template
 export const templateName = writable('');
 export const systemPrompt = writable('');
-export const promptError = writable<string | null>(null);
 export const userPromptSections = writable<UserPromptSection[]>([]);
 export const userPrompt = writable<string>('');
 
@@ -43,13 +43,13 @@ userPromptSections.subscribe(() => updateUserPrompt());
 // Functions for managing user prompt sections
 export function addUserPromptSection(name: string, content: string): void {
 	if (!name) {
-		promptError.set('Please enter a name for the dynamic prompt.');
+		serviceError.set('Please enter a name for the dynamic prompt.');
 		return;
 	}
 
 	const id = Date.now().toString();
 	userPromptSections.update((prompts) => [...prompts, { id, name, content }]);
-	promptError.set(null);
+	serviceError.set(null);
 }
 
 export function updateUserPromptSection(id: string, name: string, content: string): void {
@@ -71,9 +71,9 @@ export function saveTemplate(name: string, template: string) {
 			userPromptSections: getCurrentUserPromptSections()
 		};
 		localStorage.setItem(name, JSON.stringify(saveData));
-		promptError.set(null);
+		serviceError.set(null);
 	} else {
-		promptError.set('Please enter a name for the prompt.');
+		serviceError.set('Please enter a name for the prompt.');
 	}
 }
 
@@ -91,13 +91,13 @@ export function loadTemplate(name: string) {
 						userPromptSections.set([]);
 					}
 				}
-				promptError.set(null);
+				serviceError.set(null);
 				templateName.set(name);
 			} catch (error) {
 				console.error('Error parsing prompt template:', error);
 			}
 		} else {
-			promptError.set(`Prompt "${name}" not found.`);
+			serviceError.set(`Prompt "${name}" not found.`);
 		}
 	}
 }
@@ -105,12 +105,12 @@ export function loadTemplate(name: string) {
 export function deleteTemplate(name: string) {
 	if (name) {
 		localStorage.removeItem(name);
-		promptError.set(null);
+		serviceError.set(null);
 		systemPrompt.set('');
 		templateName.set('');
 		userPromptSections.set([]);
 	} else {
-		promptError.set('No prompt selected to delete.');
+		serviceError.set('No prompt selected to delete.');
 	}
 }
 

@@ -3,7 +3,7 @@
 	import KokoroTtsForm from './KokoroTtsForm.svelte';
 	import SesameTtsForm from './SesameTtsForm.svelte';
 	import { llmOutput } from './stores';
-	import { ttsOptions, ttsError, fetchTtsOptions } from './ttsService';
+	import { ttsOptions, fetchTtsOptions } from './ttsService';
 	import Icon from './Icon.svelte';
 
 	let selectedEngine = $state('kokoro');
@@ -57,18 +57,6 @@
 			</div>
 		</div>
 	</div>
-
-	{#if $ttsError}
-		<div class="animate-fadeIn alert-error mb-6 rounded-md border p-4 shadow-md">
-			<p class="luna-text-danger-light flex items-center">
-				<Icon
-					path="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-					class="icon-sm mr-2"
-				/>
-				{$ttsError}
-			</p>
-		</div>
-	{/if}
 
 	<div class="animate-fadeIn mt-4">
 		<div class:hidden={selectedEngine !== 'azure'}>

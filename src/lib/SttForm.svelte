@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { sttOutput, discordOutput } from './stores';
-	import { transcribeAudio, sttError, sttStatus, fetchSttModels, sttModels } from './sttService';
+	import { transcribeAudio, sttStatus, fetchSttModels, sttModels } from './sttService';
 	import Icon from './Icon.svelte';
 	import Spinner from './Spinner.svelte';
+	import { serviceError } from './dockerService';
 
 	let mediaRecorder: MediaRecorder | null = $state(null);
 	let audioChunks: Blob[] = $state([]);
@@ -12,13 +13,10 @@
 	let recordingTimer: number | null = $state(null);
 	let audioStream: MediaStream | null = $state(null);
 	let selectedModel = $state('whisper-large-v3-turbo');
-	let localErrorMessage = $state<string | null>(null);
 
 	let forwardOutput = $state(true);
 	let directInputPrefix = $state('TastiHam: ');
 	let directInputText = $state('');
-
-	const displayError = $derived($sttError || localErrorMessage);
 
 	async function handleTranscribeAudio(audioBlob: Blob, prefix?: string) {
 		let transcription = await transcribeAudio(audioBlob, selectedModel);
@@ -65,7 +63,7 @@
 			transcribedText = null;
 			audioChunks = [];
 			recordingTime = 0;
-			sttError.set(null);
+			serviceError.set(null);
 
 			// Get audio stream
 			audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -92,7 +90,7 @@
 				}
 
 				if (audioChunks.length === 0) {
-					sttError.set('No audio data recorded');
+					serviceError.set('No audio data recorded');
 					isRecording = false;
 					return;
 				}
@@ -113,7 +111,7 @@
 				recordingTime += 1;
 			}, 1000);
 		} catch (error) {
-			sttError.set(
+			serviceError.set(
 				`Error accessing microphone: ${error instanceof Error ? error.message : String(error)}`
 			);
 			isRecording = false;
@@ -154,7 +152,9 @@
 				selectedModel = $sttModels[0].value;
 			}
 		} catch (error) {
-			localErrorMessage = `Failed to load STT models: ${error instanceof Error ? error.message : String(error)}`;
+			serviceError.set(
+				`Failed to load STT models: ${error instanceof Error ? error.message : String(error)}`
+			);
 		}
 	}
 
@@ -192,18 +192,6 @@
 	</div>
 
 	<div class="card-body">
-		{#if displayError}
-			<div class="alert-error">
-				<p class="flex-start">
-					<Icon
-						path="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-						class="luna-text-danger icon-lg mr-2"
-					/>
-					{displayError}
-				</p>
-			</div>
-		{/if}
-
 		<div class="form-group">
 			<label for="model">Model</label>
 			<select id="model" bind:value={selectedModel} class="form-control">

@@ -3,6 +3,7 @@
 	import Icon from './Icon.svelte';
 	import Spinner from './Spinner.svelte';
 	import { cleanText } from './utils';
+	import { serviceError } from './dockerService';
 
 	let model = $state('groq|qwen-qwq-32b');
 	let selectedProvider = $derived(model.split('|')[0]);
@@ -11,15 +12,11 @@
 	let prompt = $state('Hey there, hello!');
 	let system_prompt = $state('You are Luna, a young AI woman an space elf Vtuber');
 	let loading = $state(false);
-	let errorMessage = $state<string | null>(null);
 	let responseText = $state<string | null>(null);
 
 	let forwardOutput = $state(true);
 
 	let models = $state<{ provider: string; value: string; label: string }[]>([]);
-	let localErrorMessage = $state<string | null>(null);
-
-	const displayError = $derived(errorMessage || localErrorMessage);
 
 	async function fetchModels() {
 		try {
@@ -32,18 +29,18 @@
 				}
 			} else {
 				console.error('Failed to fetch LLM options:', response.status, response.statusText);
-				localErrorMessage = `Failed to fetch LLM options: ${response.status} ${response.statusText}`;
+				serviceError.set(`Failed to fetch LLM options: ${response.status} ${response.statusText}`);
 			}
 		} catch (error) {
 			console.error('Error fetching LLM options:', error);
-			localErrorMessage = `Error fetching LLM options: ${error}`;
+			serviceError.set(`Error fetching LLM options: ${error}`);
 		}
 	}
 
 	async function generateResponse() {
 		loading = true;
 		responseText = '';
-		errorMessage = null;
+		serviceError.set(null);
 
 		const response = await fetch('/api/llm/generate', {
 			method: 'POST',
@@ -72,7 +69,7 @@
 				}
 			}
 		} else {
-			errorMessage = `Error generating response: ${response.status} ${response.statusText}`;
+			serviceError.set(`Error generating response: ${response.status} ${response.statusText}`);
 		}
 
 		loading = false;
@@ -114,12 +111,6 @@
 	</div>
 
 	<div class="card-body">
-		{#if displayError}
-			<div class="alert-error">
-				<p>{displayError}</p>
-			</div>
-		{/if}
-
 		<div class="form-group">
 			<label for="model">Model</label>
 			<select id="model" bind:value={model} class="form-control">

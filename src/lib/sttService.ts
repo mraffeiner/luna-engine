@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { serviceError } from './dockerService';
 
 export interface SttResponse {
 	text: string;
@@ -10,7 +11,6 @@ export interface SttModel {
 }
 
 // Shared stores
-export const sttError = writable<string | null>(null);
 export const sttStatus = writable<'idle' | 'recording' | 'transcribing'>('idle');
 export const sttModels = writable<SttModel[]>([]);
 
@@ -38,12 +38,12 @@ export async function fetchSttModels(): Promise<SttModel[]> {
 			}
 
 			const errorMsg = `Error fetching STT models: ${response.status} ${errorDetail}`;
-			sttError.set(errorMsg);
+			serviceError.set(errorMsg);
 			return [];
 		}
 	} catch (error) {
 		const errorMsg = `Error fetching STT models: ${error instanceof Error ? error.message : String(error)}`;
-		sttError.set(errorMsg);
+		serviceError.set(errorMsg);
 		return [];
 	}
 }
@@ -60,7 +60,7 @@ export async function transcribeAudio(
 ): Promise<string | null> {
 	try {
 		sttStatus.set('transcribing');
-		sttError.set(null);
+		serviceError.set(null);
 
 		// Create a FormData object and append the audio blob and model
 		const formData = new FormData();
@@ -89,13 +89,13 @@ export async function transcribeAudio(
 			}
 
 			const errorMsg = `Error transcribing audio: ${response.status} ${errorDetail}`;
-			sttError.set(errorMsg);
+			serviceError.set(errorMsg);
 			sttStatus.set('idle');
 			return null;
 		}
 	} catch (error) {
 		const errorMsg = `Error transcribing audio: ${error instanceof Error ? error.message : String(error)}`;
-		sttError.set(errorMsg);
+		serviceError.set(errorMsg);
 		sttStatus.set('idle');
 		return null;
 	}

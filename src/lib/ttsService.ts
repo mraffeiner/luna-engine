@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { serviceError } from './dockerService';
 
 export interface EngineOptions {
 	label: string;
@@ -53,9 +54,6 @@ export const ttsOptions = writable<TtsOptions>({
 	engines: {}
 });
 
-// Shared store for error messages
-export const ttsError = writable<string | null>(null);
-
 /**
  * Fetches TTS options from the API
  */
@@ -68,12 +66,12 @@ export async function fetchTtsOptions(): Promise<void> {
 		} else {
 			const errorMsg = `Failed to fetch TTS options: ${response.status} ${response.statusText}`;
 			console.error(errorMsg);
-			ttsError.set(errorMsg);
+			serviceError.set(errorMsg);
 		}
 	} catch (error) {
 		const errorMsg = `Error fetching TTS options: ${error}`;
 		console.error(errorMsg);
-		ttsError.set(errorMsg);
+		serviceError.set(errorMsg);
 	}
 }
 
@@ -105,12 +103,12 @@ export async function generateSpeech(params: TtsRequestParams): Promise<Blob | n
 			return await response.blob();
 		} else {
 			const errorMsg = `Error generating speech: ${response.status} ${response.statusText}`;
-			ttsError.set(errorMsg);
+			serviceError.set(errorMsg);
 			return null;
 		}
 	} catch (error) {
 		const errorMsg = `Error generating speech: ${error}`;
-		ttsError.set(errorMsg);
+		serviceError.set(errorMsg);
 		return null;
 	}
 }
