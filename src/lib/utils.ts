@@ -13,6 +13,12 @@ export function cleanText(reasoning: boolean, text: string): string {
 
 	let cleanedText = text;
 
+	const errorMessages = [
+		'Sorry, uh.. I think I spaced out for a moment.',
+		'Uh.. wait.. what was I about to say?',
+		"Hm.. I have no idea what just happened, but I'm Pretty sure Nova ate my last thought."
+	];
+
 	if (reasoning) {
 		const hasThinkTags = /<think\b[^>]*>|<\/think>/gi.test(cleanedText);
 
@@ -21,6 +27,8 @@ export function cleanText(reasoning: boolean, text: string): string {
 
 		if (hasThinkTags && openingTagsCount === 1 && closingTagsCount === 1) {
 			cleanedText = text.replace(/<think\b[^>]*>[\s\S]*?<\/think>/gi, '').trim();
+		} else {
+			return errorMessages[Math.floor(Math.random() * errorMessages.length)];
 		}
 	}
 
@@ -64,10 +72,5 @@ export function cleanText(reasoning: boolean, text: string): string {
 	const hasDoubleLineBreaks = /\n\n/g.test(cleanedText);
 	if (!hasDoubleLineBreaks) return cleanedText;
 
-	const errorMessages = [
-		'Sorry, uh.. I think I spaced out for a moment.',
-		'Uh.. wait.. what was I about to say?',
-		"Hm.. I have no idea what just happened, but I'm Pretty sure Nova ate my last thought."
-	];
 	return errorMessages[Math.floor(Math.random() * errorMessages.length)];
 }
