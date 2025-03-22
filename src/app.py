@@ -62,21 +62,57 @@ google_client = OpenAI(
 local_client = OpenAI(base_url="http://host.docker.internal:1234/v1")
 
 # Local models
-LOCAL_MODELS = {"llama-3.2-3b-instruct-uncensored": "Llama 3.2 3B Instruct Uncensored"}
+LOCAL_MODELS = [
+    {
+        "provider": "local",
+        "id": "llama-3.2-3b-instruct-uncensored",
+        "name": "Llama 3.2 3B Instruct Uncensored",
+        "isReasoning": False,
+    },
+    {
+        "provider": "local",
+        "id": "llama-exaone-deep-7.8b",
+        "name": "EXAONE Deep 7.8B",
+        "isReasoning": True,
+    },
+]
+
 
 # OpenAI models
-OPENAI_MODELS = {"gpt-4o-mini": "GPT-4o Mini"}
+OPENAI_MODELS = [
+    {
+        "provider": "openai",
+        "id": "gpt-4o-mini",
+        "name": "GPT-4o Mini",
+        "isReasoning": False,
+    }
+]
 
 # Groq models
-GROQ_MODELS = {
-    "deepseek-r1-distill-llama-70b": "DeepSeek R1 Llama 70B",
-    "qwen-qwq-32b": "Qwen QwQ 32B",
-}
+GROQ_MODELS = [
+    {
+        "provider": "groq",
+        "id": "deepseek-r1-distill-llama-70b",
+        "name": "DeepSeek R1 Llama 70B",
+        "isReasoning": True,
+    },
+    {
+        "provider": "groq",
+        "id": "qwen-qwq-32b",
+        "name": "Qwen QwQ 32B",
+        "isReasoning": True,
+    },
+]
 
 # Google models
-GOOGLE_MODELS = {
-    "gemini-2.0-flash": "Gemini 2.0 Flash",
-}
+GOOGLE_MODELS = [
+    {
+        "provider": "google",
+        "id": "gemini-2.0-flash",
+        "name": "Gemini 2.0 Flash",
+        "isReasoning": False,
+    }
+]
 
 
 async def is_local_llm_available():
@@ -125,33 +161,27 @@ async def get_models():
     # Add OpenAI models if API key is available
     if openai_client.api_key:
         logger.info("OpenAI API key is available, adding OpenAI models")
-        for model_id, model_name in OPENAI_MODELS.items():
-            available_models.append(
-                {"provider": "openai", "value": model_id, "label": model_name}
-            )
-            logger.info(f"Added OpenAI model: {model_id} ({model_name})")
+        for model in OPENAI_MODELS:
+            available_models.append(model)
+            logger.info(f"Added {model['id']} by {model['provider']}")
     else:
         logger.warning("OpenAI API key is not available, skipping OpenAI models")
 
     # Add Groq models if API key is available
     if groq_client.api_key:
         logger.info("Groq API key is available, adding Groq models")
-        for model_id, model_name in GROQ_MODELS.items():
-            available_models.append(
-                {"provider": "groq", "value": model_id, "label": model_name}
-            )
-            logger.info(f"Added Groq model: {model_id} ({model_name})")
+        for model in GROQ_MODELS:
+            available_models.append(model)
+            logger.info(f"Added {model['id']} by {model['provider']}")
     else:
         logger.warning("Groq API key is not available, skipping Groq models")
 
     # Add Google models if API key is available
     if google_client.api_key:
         logger.info("Google API key is available, adding Google models")
-        for model_id, model_name in GOOGLE_MODELS.items():
-            available_models.append(
-                {"provider": "google", "value": model_id, "label": model_name}
-            )
-            logger.info(f"Added Google model: {model_id} ({model_name})")
+        for model in GOOGLE_MODELS:
+            available_models.append(model)
+            logger.info(f"Added {model['id']} by {model['provider']}")
     else:
         logger.warning("Google API key is not available, skipping Google models")
 
@@ -159,16 +189,14 @@ async def get_models():
     local_available = await is_local_llm_available()
     if local_available:
         logger.info("Local LLM is available, adding local models")
-        for model_id, model_name in LOCAL_MODELS.items():
-            available_models.append(
-                {"provider": "local", "value": model_id, "label": model_name}
-            )
-            logger.info(f"Added local model: {model_id} ({model_name})")
+        for model in LOCAL_MODELS:
+            available_models.append(model)
+            logger.info(f"Added {model['id']} by {model['provider']}")
     else:
         logger.warning("Local LLM is not available, skipping local models")
 
     logger.info(f"Returning {len(available_models)} available models")
-    return JSONResponse(content={"models": available_models})
+    return JSONResponse(content=available_models)
 
 
 async def stream_from_openai_compatible(
