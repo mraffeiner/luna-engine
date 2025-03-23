@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { onNavigate } from '$app/navigation';
-	import LogsDisplay from './LogsDisplay.svelte';
-	import { dockerService, containerStatus, serviceError } from './dockerService';
-	import Icon from './Icon.svelte';
-	import Spinner from './Spinner.svelte';
+	import { containerStatus, dockerService } from '$lib/dockerService';
+	import Icon from '$lib/Icon.svelte';
+	import LogsDisplay from '$lib/LogsDisplay.svelte';
+	import Spinner from '$lib/Spinner.svelte';
 
 	// Define props using $props rune
-	const { children, serviceName, title } = $props();
+	const { children, serviceName } = $props();
 
 	// Get the status for this service using $derived
 	const status = $derived(
@@ -18,21 +17,7 @@
 	);
 
 	let activeTab = $state('configuration');
-
-	onNavigate(() => {
-		serviceError.set(null);
-	});
 </script>
-
-<div class="mb-6">
-	<h1 class="flex items-center">
-		<Icon
-			path="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
-			class="luna-text-primary-light icon-lg mr-3"
-		/>
-		{title}
-	</h1>
-</div>
 
 <div class="card mb-6 flex flex-wrap items-center gap-4">
 	<button
@@ -44,36 +29,36 @@
 		disabled={status.isStarting || status.isStopping}
 	>
 		{#if status.isStarting || status.isStopping}
-			<Spinner class="icon-sm mr-2" />
+			<Spinner class="text-text-base icon-sm mr-2" />
 			<span>Processing...</span>
 		{:else if status.isRunning}
-			<Icon path="M6 18L18 6M6 6l12 12" class="icon-sm mr-2" />
+			<Icon path="M6 18L18 6M6 6l12 12" class="icon-lg mr-2" />
 			<span>Stop Service</span>
 		{:else}
 			<Icon
 				path="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-				class="icon-sm mr-2"
+				class="icon-lg mr-2"
 			/>
 			<span>Start Service</span>
 		{/if}
 	</button>
 
 	<div
-		class="glass-effect luna-border-subtle ml-auto flex items-center rounded-md border px-4 py-2.5 shadow-md"
+		class="glass-effect border-border-subtle ml-auto flex items-center rounded-md border px-4 py-2.5 shadow-md"
 	>
-		<span class="luna-text-subtle mr-2 text-sm font-medium">Status:</span>
+		<span class="text-text-subtle text-md mr-4 font-semibold">Status</span>
 		<div class="flex items-center">
 			<span
 				class="{status.isRunning ? 'status-running' : 'status-stopped'} {status.isStarting ||
 				status.isStopping
-					? 'status-pulse'
+					? 'animate-pulse'
 					: ''}"
 				title={status.isRunning ? 'Running' : 'Stopped'}
 			></span>
 			<span
-				class="ml-2 text-sm font-medium {status.isRunning
-					? 'luna-text-success-light'
-					: 'luna-text-danger-light'}"
+				class="text-md ml-2 font-semibold {status.isRunning
+					? 'text-success-light'
+					: 'text-danger-light'}"
 			>
 				{status.isRunning ? 'Running' : 'Stopped'}
 			</span>
@@ -104,9 +89,9 @@
 	</button>
 </div>
 
-<div class="animate-fadeIn" class:hidden={activeTab !== 'configuration'}>
+<div class="animate-in" class:hidden={activeTab !== 'configuration'}>
 	{@render children()}
 </div>
-<div class="animate-fadeIn" class:hidden={activeTab !== 'logs'}>
+<div class="animate-in" class:hidden={activeTab !== 'logs'}>
 	<LogsDisplay {serviceName} />
 </div>

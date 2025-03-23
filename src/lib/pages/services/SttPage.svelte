@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { sttOutput, discordOutput } from './stores';
-	import { transcribeAudio, sttStatus, fetchSttModels, sttModels } from './sttService';
-	import Icon from './Icon.svelte';
-	import Spinner from './Spinner.svelte';
-	import { serviceError } from './dockerService';
-	import Card from './Card.svelte';
+	import Card from '$lib/Card.svelte';
+	import { serviceError } from '$lib/dockerService';
+	import Spinner from '$lib/Spinner.svelte';
+	import { sttOutput, discordOutput } from '$lib/stores';
+	import { transcribeAudio, fetchSttModels, sttModels, sttStatus } from '$lib/sttService';
+	import ContentPage from '../ContentPage.svelte';
+	import ServicePage from './ServicePage.svelte';
 
 	let mediaRecorder: MediaRecorder | null = $state(null);
 	let audioChunks: Blob[] = $state([]);
@@ -159,7 +160,6 @@
 		}
 	}
 
-	const buttonLabel = $derived(isRecording ? 'Stop Recording' : 'Start Recording');
 	const isTranscribing = $derived($sttStatus === 'transcribing');
 
 	// Load models when component is mounted
@@ -181,86 +181,92 @@
 	});
 </script>
 
-<Card title="Speech to Text Settings">
-	<div class="flex-start">
-		<label class="space-x-2">
-			<input type="checkbox" bind:checked={forwardOutput} />
-			<span class="luna-text-muted">Forward Output</span>
-		</label>
-	</div>
+<ContentPage name="stt-page">
+	<ServicePage serviceName="stt-service">
+		<Card title="Speech to Text Settings">
+			<div class="flex-start">
+				<label class="space-x-2">
+					<input type="checkbox" bind:checked={forwardOutput} />
+					<span class="text-text-muted">Forward Output</span>
+				</label>
+			</div>
 
-	<div class="form-group">
-		<label for="model">Model</label>
-		<select id="model" bind:value={selectedModel} class="form-control">
-			{#each $sttModels as modelOption}
-				<option value={modelOption.value}>{modelOption.label}</option>
-			{/each}
-		</select>
-	</div>
-
-	<div class="form-group luna-border-base pt-4">
-		<h3 class="luna-text-muted mb-2 text-sm font-medium">Direct Text Input</h3>
-		<div class="space-y-3">
 			<div class="form-group">
-				<label for="prefix" class="luna-text-disabled text-xs">Prefix (optional)</label>
-				<input
-					type="text"
-					id="prefix"
-					class="form-control"
-					placeholder="e.g. User:"
-					bind:value={directInputPrefix}
-				/>
+				<label for="model">Model</label>
+				<select id="model" bind:value={selectedModel} class="form-control">
+					{#each $sttModels as modelOption}
+						<option value={modelOption.value}>{modelOption.label}</option>
+					{/each}
+				</select>
 			</div>
-			<div class="form-group">
-				<label for="directText" class="luna-text-disabled text-xs">Text</label>
-				<textarea
-					id="directText"
-					rows="3"
-					class="form-control"
-					placeholder="Enter text to forward directly"
-					bind:value={directInputText}
-				></textarea>
-			</div>
-			<button
-				onclick={handleDirectTextInput}
-				disabled={!directInputText}
-				class="btn-primary self-start"
-			>
-				Forward Text
-			</button>
-		</div>
-	</div>
 
-	<div class="form-group">
-		<button
-			onclick={() => (isRecording ? stopRecording() : recordAudio())}
-			disabled={isTranscribing}
-			class="btn-primary"
-		>
-			{buttonLabel}
-		</button>
-
-		{#if isRecording}
-			<div class="flex-start mt-4">
-				<span class="status-indicator status-pulse luna-bg-danger mr-2"></span>
-				<span class="luna-text-muted text-sm">Recording: {formatTime(recordingTime)}</span>
+			<div class="form-control form-group border-border-base p-5">
+				<h3 class="text-text-muted mb-2 text-sm font-medium">Direct Text Input</h3>
+				<div class="form-group flex flex-row space-x-2">
+					<div>
+						<label for="prefix">Prefix (optional)</label>
+						<input
+							type="text"
+							id="prefix"
+							class="form-control"
+							placeholder="e.g. UserName:"
+							bind:value={directInputPrefix}
+						/>
+					</div>
+					<div class="w-full">
+						<label for="directText">Text</label>
+						<input
+							type="text"
+							id="directText"
+							class="form-control"
+							placeholder="Hey there, hello!"
+							bind:value={directInputText}
+						/>
+					</div>
+				</div>
+				<div>
+					<button
+						onclick={handleDirectTextInput}
+						disabled={!directInputText}
+						class="btn-primary self-end"
+					>
+						Send
+					</button>
+				</div>
 			</div>
-		{/if}
 
-		{#if isTranscribing}
-			<div class="flex-start mt-4">
-				<Spinner class="icon-lg mr-2" />
-				<span class="luna-text-muted text-sm">Transcribing...</span>
-			</div>
-		{/if}
-	</div>
+			<div class="mt-6">
+				<button
+					onclick={() => (isRecording ? stopRecording() : recordAudio())}
+					disabled={isTranscribing}
+					class="btn-primary"
+				>
+					{isRecording ? 'Stop Recording' : 'Start Recording'}
+				</button>
 
-	{#if transcribedText}
-		<div class="form-group">
-			<h3 class="luna-text-muted mb-2 text-lg font-medium">Transcribed Text:</h3>
-			<div class="form-control whitespace-pre-wrap p-4">
-				{transcribedText}
+				{#if isRecording}
+					<div class="flex-start mt-4 p-1">
+						<span class="status-indicator bg-danger mr-2 animate-pulse rounded-full"></span>
+						<span class="text-text-muted text-sm">Recording: {formatTime(recordingTime)}</span>
+					</div>
+				{/if}
+
+				{#if isTranscribing}
+					<div class="flex-start mt-6">
+						<Spinner class="text-text-base icon-lg mr-2" />
+						<span class="text-text-muted text-sm">Transcribing...</span>
+					</div>
+				{/if}
 			</div>
-		</div>
-	{/if}
-</Card>
+
+			{#if transcribedText}
+				<div class="mt-6">
+					<h3 class="text-text-muted mb-2 text-lg font-medium">Transcribed Text:</h3>
+					<div class="form-control whitespace-pre-wrap p-4">
+						{transcribedText}
+					</div>
+				</div>
+			{/if}
+		</Card>
+	</ServicePage>
+</ContentPage>

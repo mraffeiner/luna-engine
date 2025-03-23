@@ -7,14 +7,14 @@
 	let { children } = $props();
 </script>
 
-<div class="luna-bg-base luna-text-base flex h-screen">
+<div class="bg-bg-base flex h-screen">
 	<Sidebar />
 	<main class="flex-1 overflow-auto p-6">
 		{#if $serviceError}
 			<ErrorBanner errorMessage={serviceError} />
 		{/if}
 
-		<div class="mx-auto max-w-7xl">
+		<div class="max-w-3/4 mx-auto">
 			{@render children()}
 		</div>
 	</main>

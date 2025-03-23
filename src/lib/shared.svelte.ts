@@ -1,3 +1,4 @@
 export const currentPage = $state({
-	id: 'home'
+	id: 'home',
+	name: 'Control Panel'
 });

@@ -83,7 +83,7 @@
 
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 	<div class="form-group">
-		<label for="text" class="luna-text-muted mb-2 block text-sm font-medium">Text</label>
+		<label for="text">Text</label>
 		<textarea
 			id="text"
 			bind:value={text}
@@ -93,7 +93,7 @@
 	</div>
 
 	<div class="form-group">
-		<label for="language" class="luna-text-muted mb-2 block text-sm font-medium">Language</label>
+		<label for="language">Language</label>
 		<div class="relative">
 			<select id="language" bind:value={language} class="form-control">
 				{#if $ttsOptions.engines['kokoro']?.languages}
@@ -107,23 +107,21 @@
 
 	<!-- Voice Mixing Toggle -->
 	<div class="form-group col-span-1 lg:col-span-2">
-		<div class="glass-effect luna-border-subtle flex items-center rounded-md border p-4 shadow-sm">
+		<div class="flex-start rounded-md">
 			<input
 				id="useVoiceMix"
 				type="checkbox"
 				bind:checked={useVoiceMix}
-				class="luna-border-subtle luna-bg-elevated luna-text-primary focus:ring-primary h-5 w-5 rounded"
+				class="border-border-subtle bg-bg-elevated primary focus:ring-primary mr-3 h-5 w-5 rounded border"
 			/>
-			<label for="useVoiceMix" class="luna-text-muted ml-3 block text-sm font-medium">
-				Enable Voice Mixing (blend multiple voices together)
-			</label>
+			<label for="useVoiceMix" class="mb-0!">Mix Voices</label>
 		</div>
 	</div>
 
 	{#if !useVoiceMix}
 		<!-- Single Voice Selection (when mixing is disabled) -->
 		<div class="form-group">
-			<label for="voice" class="luna-text-muted mb-2 block text-sm font-medium">Voice</label>
+			<label for="voice">Voice</label>
 			<div class="relative">
 				<select id="voice" bind:value={voice} class="form-control">
 					{#if $ttsOptions.engines['kokoro']?.voices}
@@ -136,11 +134,9 @@
 		</div>
 	{:else}
 		<!-- Voice Mixing UI (when mixing is enabled) -->
-		<div
-			class="glass-effect hover:luna-border-hover form-group luna-border-subtle col-span-1 rounded-md border p-4 shadow-sm lg:col-span-2"
-		>
-			<div class="mb-4">
-				<label for="addVoice" class="luna-text-muted block text-sm font-medium">Voice Mix</label>
+		<div class="form-group col-span-1 lg:col-span-2">
+			<div class="mb-6">
+				<label for="addVoice">Voice Mix</label>
 			</div>
 			{#each voiceMix as voice, i}
 				<div class="mb-4 flex flex-wrap gap-3 rounded-md">
@@ -169,7 +165,7 @@
 							oninput={(e) => updateVoiceWeight(i, parseFloat(e.currentTarget.value))}
 							class="flex-grow"
 						/>
-						<span class="luna-text-muted w-12 text-sm font-medium">{voice.weight.toFixed(1)}</span>
+						<span class="text-text-muted w-12 text-sm font-medium">{voice.weight.toFixed(1)}</span>
 					</div>
 					<button
 						type="button"
@@ -185,7 +181,7 @@
 					</button>
 				</div>
 			{/each}
-			<div class="mt-6 flex items-center justify-center">
+			<div class="flex-center mt-6">
 				<button
 					id="addVoice"
 					type="button"
@@ -199,14 +195,13 @@
 			</div>
 		</div>
 	{/if}
-
 	<div class="form-group">
-		<label for="speed" class="luna-text-muted mb-2 block text-sm font-medium">Speed</label>
+		<label for="speed">Speed</label>
 		<div class="relative mt-1 px-1">
 			<input id="speed" type="range" min="0.5" max="2.0" step="0.01" bind:value={speed} />
-			<div class="luna-text-disabled mt-2 flex justify-between px-1 text-xs">
+			<div class="text-text-disabled flex-between mt-2 px-1 text-xs">
 				<span>Slower</span>
-				<span class="luna-bg-elevated luna-text-primary-light rounded-md px-2 py-1 font-medium"
+				<span class="bg-bg-elevated text-primary-light rounded-md px-2 py-1 font-medium"
 					>{speed}x</span
 				>
 				<span>Faster</span>
@@ -215,12 +210,12 @@
 	</div>
 
 	<div class="form-group">
-		<label for="pitch" class="luna-text-muted mb-2 block text-sm font-medium">Pitch</label>
+		<label for="pitch">Pitch</label>
 		<div class="relative mt-1 px-1">
 			<input id="pitch" type="range" min="0.5" max="2.0" step="0.01" bind:value={pitch} />
-			<div class="luna-text-disabled mt-2 flex justify-between px-1 text-xs">
+			<div class="text-text-disabled flex-between mt-2 px-1 text-xs">
 				<span>Lower</span>
-				<span class="luna-bg-elevated luna-text-primary-light rounded-md px-2 py-1 font-medium"
+				<span class="bg-bg-elevated text-primary-light rounded-md px-2 py-1 font-medium"
 					>{pitch}x</span
 				>
 				<span>Higher</span>
@@ -232,7 +227,7 @@
 <div class="mt-6">
 	<button onclick={handleGenerateSpeech} disabled={loading} class="btn-primary">
 		{#if loading}
-			<Spinner class="luna-text-base icon-lg mr-2" />
+			<Spinner class="text-text-base icon-lg mr-2" />
 			<span>Generating...</span>
 		{:else}
 			<Icon
@@ -245,13 +240,11 @@
 </div>
 
 {#if audioUrl}
-	<div
-		class="glass-effect animate-slideInUp luna-border-primary mt-6 rounded-xl border p-4 shadow-lg"
-	>
-		<h4 class="luna-text-primary-light mb-3 flex items-center text-sm font-medium">
+	<div class="glass-effect primary mt-6 rounded-xl border p-4 shadow-lg">
+		<h4 class="text-primary-light mb-3 flex items-center text-sm font-medium">
 			<Icon
 				path="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-				class="luna-text-success icon-sm mr-2"
+				class="text-success icon-sm mr-2"
 			/>
 			Generated Audio
 		</h4>

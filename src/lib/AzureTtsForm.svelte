@@ -43,7 +43,7 @@
 
 <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
 	<div class="mb-4">
-		<label for="text" class="luna-text-muted mb-2 block text-sm font-medium">Text</label>
+		<label for="text">Text</label>
 		<textarea
 			id="text"
 			bind:value={text}
@@ -54,7 +54,7 @@
 	</div>
 
 	<div class="mb-4">
-		<label for="language" class="luna-text-muted mb-2 block text-sm font-medium">Language</label>
+		<label for="language">Language</label>
 		<div class="relative">
 			<select id="language" bind:value={language} class="form-control">
 				{#if $ttsOptions.engines['azure']?.languages}
@@ -66,7 +66,7 @@
 		</div>
 	</div>
 	<div class="mb-4">
-		<label for="voice" class="luna-text-muted mb-2 block text-sm font-medium">Voice</label>
+		<label for="voice">Voice</label>
 		<div class="relative">
 			<select id="voice" bind:value={voice} class="form-control">
 				{#if $ttsOptions.engines['azure']?.voices}
@@ -79,7 +79,7 @@
 	</div>
 
 	<div class="mb-4">
-		<label for="style" class="luna-text-muted mb-2 block text-sm font-medium">Style</label>
+		<label for="style">Style</label>
 		<div class="relative">
 			<select id="style" bind:value={style} class="form-control">
 				{#if $ttsOptions.engines['azure']?.styles}
@@ -92,7 +92,7 @@
 	</div>
 
 	<div class="mb-4">
-		<label for="rate" class="luna-text-muted mb-2 block text-sm font-medium">Rate</label>
+		<label for="rate">Rate</label>
 		<div class="relative mt-1 px-1">
 			<input
 				id="rate"
@@ -100,9 +100,9 @@
 				min="-100"
 				max="100"
 				bind:value={rate}
-				class="luna-bg-elevated accent-primary h-2 w-full cursor-pointer appearance-none rounded-lg"
+				class="bg-bg-elevated accent-primary h-2 w-full cursor-pointer appearance-none rounded-lg"
 			/>
-			<div class="luna-text-disabled mt-1 flex justify-between px-1 text-xs">
+			<div class="text-text-disabled flex-between mt-1 px-1 text-xs">
 				<span>Slower</span>
 				<span class="font-medium">{rate}%</span>
 				<span>Faster</span>
@@ -110,7 +110,7 @@
 		</div>
 	</div>
 	<div class="mb-4">
-		<label for="pitch" class="luna-text-muted mb-2 block text-sm font-medium">Pitch</label>
+		<label for="pitch">Pitch</label>
 		<div class="relative mt-1 px-1">
 			<input
 				id="pitch"
@@ -118,9 +118,9 @@
 				min="-100"
 				max="100"
 				bind:value={pitch}
-				class="luna-bg-elevated accent-primary h-2 w-full cursor-pointer appearance-none rounded-lg"
+				class="bg-bg-elevated accent-primary h-2 w-full cursor-pointer appearance-none rounded-lg"
 			/>
-			<div class="luna-text-disabled mt-1 flex justify-between px-1 text-xs">
+			<div class="text-text-disabled flex-between mt-1 px-1 text-xs">
 				<span>Lower</span>
 				<span class="font-medium">{pitch}%</span>
 				<span>Higher</span>
@@ -133,21 +133,21 @@
 	<button
 		onclick={handleGenerateSpeech}
 		disabled={loading}
-		class="luna-bg-primary luna-text-base hover:luna-bg-primary-hover focus:luna-border-focus items-center rounded-md px-5 py-2.5 font-semibold shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+		class="text-primary hover:text-primary-hover focus:border-border-focus items-center rounded-md px-5 py-2.5 font-semibold shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
 	>
 		{#if loading}
-			<Spinner class="luna-text-base icon-lg mr-2" />
+			<Spinner class="text-text-base icon-lg mr-2" />
 		{/if}
 		{loading ? 'Generating...' : 'Generate Speech'}
 	</button>
 </div>
 
 {#if audioUrl}
-	<div class="luna-border-subtle luna-bg-surface mt-6 rounded-lg border p-4">
-		<h4 class="luna-text-muted mb-2 flex items-center text-sm font-medium">
+	<div class="border-border-subtle bg-bg-surface mt-6 rounded-lg border p-4">
+		<h4 class="text-text-muted mb-2 flex items-center text-sm font-medium">
 			<Icon
 				path="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-				class="luna-text-success icon-sm"
+				class="text-success icon-sm"
 			/>
 			Generated Audio
 		</h4>

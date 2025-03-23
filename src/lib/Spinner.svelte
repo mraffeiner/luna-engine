@@ -3,7 +3,7 @@
 	 * Spinner component for loading states
 	 *
 	 * Usage:
-	 * <Spinner size="md" class="luna-text-base icon-sm mr-2" />
+	 * <Spinner size="md" class="text-text-base icon-sm mr-2" />
 	 */
 
 	// Props
