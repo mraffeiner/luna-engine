@@ -13,12 +13,10 @@
 	);
 
 	function onscroll() {
-		console.log('entering onscroll');
 		if (logsContainer) {
 			const nearBottom =
 				logsContainer.scrollHeight - logsContainer.scrollTop - logsContainer.clientHeight < 50;
 			autoScroll = nearBottom;
-			console.log(`autoscroll ${autoScroll}`);
 		}
 	}
 
