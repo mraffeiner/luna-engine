@@ -47,13 +47,13 @@
 
 <div class="card p-6">
 	<div class="flex-between mb-4">
-		<h3 class="flex items-center">
+		<h2 class="flex items-center">
 			<Icon
 				path="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
 				class="text-primary-light icon-lg mr-2"
 			/>
 			Service Logs
-		</h3>
+		</h2>
 		<div class="flex items-center gap-4">
 			<div class="relative">
 				<input
