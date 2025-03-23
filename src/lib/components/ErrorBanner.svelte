@@ -20,7 +20,6 @@
 			onclick={() => errorMessage.set(null)}
 			class="text-danger-light hover:text-danger focus:border-border-focus rounded-full p-1.5"
 			title="Dismiss"
-			aria-label="Dismiss error message"
 		>
 			<Icon path="M6 18L18 6M6 6l12 12" class="icon-lg" />
 		</button>

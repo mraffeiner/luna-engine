@@ -4,7 +4,7 @@
 	import { currentPage } from '$lib/shared/shared.svelte';
 
 	// Define pages
-	const pages = [
+	const PAGES = [
 		{
 			id: 'docker-page',
 			name: 'Docker Service',
@@ -56,34 +56,42 @@
 		</button>
 	</div>
 
-	<nav class="flex-1 overflow-y-auto p-4 pt-0">
+	<nav class="flex-1 overflow-y-auto">
 		<ul>
-			{#each pages as page}
-				<li class="pt-6">
+			{#each PAGES as page}
+				{@const serviceName = page.id.replace('page', 'service')}
+				{@const status = $containerStatus[serviceName]}
+				{@const selected = currentPage.id === page.id}
+				<li>
 					<button
 						onclick={() => {
 							currentPage.id = page.id;
 							currentPage.name = page.name;
 						}}
-						class="flex cursor-pointer items-center"
+						class="flex w-full cursor-pointer items-center px-4 py-3 {selected
+							? 'glass-effect bg-bg-elevated/50 pl-5'
+							: ''}"
 					>
-						{#if $containerStatus[page.id]}
-							{@const status = $containerStatus[page.id]}
+						{#if status}
 							<Icon
 								path={page.icon}
-								class="icon-sm mr-2 {status.isRunning
-									? 'text-success'
-									: 'text-danger'} {status.isStarting || status.isStopping ? 'status-pulse' : ''}"
+								class="icon-sm mr-2
+									{status.isRunning
+									? selected
+										? 'text-success-light'
+										: 'text-success'
+									: selected
+										? 'text-danger-light'
+										: 'text-danger'}
+									{status.isStarting || status.isStopping ? 'animate-pulse' : ''}"
 							/>
 						{:else}
 							<Icon
 								path={page.icon}
-								class="icon-sm mr-2 {currentPage.id === page.id ? 'text-primary' : ''}"
+								class="icon-sm mr-2 {selected ? 'text-primary' : 'text-primary-light'}"
 							/>
 						{/if}
-						<span class="font-medium {currentPage.id === page.id ? 'text-primary-light' : ''}"
-							>{page.name}</span
-						>
+						<span class="font-medium {selected ? 'text-primary-light' : ''}">{page.name}</span>
 					</button>
 				</li>
 			{/each}
