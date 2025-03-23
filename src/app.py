@@ -120,10 +120,11 @@ async def transcribe_with_openai(audio_path: str, model: str = "whisper-1") -> s
             )
         logger.info(f"OpenAI transcription successful with model {model}")
         return result.text
-    except Exception as e:
-        logger.exception(f"OpenAI transcription error: {str(e)}")
+    except Exception:
+        logger.exception(f"Unexpected error during transcription with OpenAI {model}")
         raise HTTPException(
-            status_code=500, detail=f"OpenAI API error during transcription: {str(e)}"
+            status_code=500,
+            detail=f"Unexpected error during transcription with OpenAI API {model}",
         )
 
 
@@ -136,10 +137,11 @@ async def transcribe_with_groq(audio_path: str, model: str = "whisper-large-v3")
             )
         logger.info(f"Groq transcription successful with model {model}")
         return result.text
-    except Exception as e:
-        logger.exception(f"Groq transcription error: {str(e)}")
+    except Exception:
+        logger.exception(f"Unexpected error during transcription with Groq {model}")
         raise HTTPException(
-            status_code=500, detail=f"Groq API error during transcription: {str(e)}"
+            status_code=500,
+            detail=f"Unexpected error during transcription with Groq {model}",
         )
 
 
@@ -188,11 +190,8 @@ async def stt_endpoint(
             if os.path.exists(temp_filename):
                 os.remove(temp_filename)
 
-    except HTTPException:
-        # Re-raise HTTP exceptions
-        raise
-    except Exception as e:
-        logger.exception(f"Unexpected error during transcription: {str(e)}")
+    except Exception:
+        logger.exception(f"Unexpected error during transcription")
         raise HTTPException(
-            status_code=500, detail=f"Unexpected error during transcription: {str(e)}"
+            status_code=500, detail=f"Unexpected error during transcription"
         )
