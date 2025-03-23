@@ -1,8 +1,8 @@
 import asyncio
 from contextlib import asynccontextmanager
 import json
-from fastapi import FastAPI, HTTPException, Response
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse, StreamingResponse
 from dotenv import load_dotenv
 import logging
 import aiodocker
@@ -93,7 +93,7 @@ async def start_container(container_name: str):
             await container.start(timeout=DOCKER_TIMEOUT)
             logger.info(f"Container '{container_name}' started successfully")
 
-            return Response(
+            return JSONResponse(
                 status_code=200,
                 content=f"Container '{container_name}' started successfully",
             )
@@ -101,18 +101,18 @@ async def start_container(container_name: str):
             logger.info(
                 f"Container '{container_name}' is running or currently restarting"
             )
-            return Response(status_code=200, content="Container is already running")
+            return JSONResponse(status_code=200, content="Container is already running")
         elif status == "paused":
             logger.info(f"Container '{container_name}' was paused, unpausing..")
             await container.unpause()
             logger.info(f"Container '{container_name}' successully unpaused")
-            return Response(
+            return JSONResponse(
                 status_code=200,
                 content=f"Container '{container_name}' was paused and has now been unpaused",
             )
         elif status == "dead":
             logger.error(f"Container '{container_name}' is dead and cannot be started")
-            return Response(
+            return JSONResponse(
                 status_code=500, content=f"Container '{container_name}' is dead"
             )
         else:
@@ -139,16 +139,16 @@ async def stop_container(container_name: str):
             logger.info(f"Stopping container '{container_name}'..")
             await container.stop(timeout=DOCKER_TIMEOUT)
             logger.info(f"Container '{container_name}' stopped successfully")
-            return Response(
+            return JSONResponse(
                 status_code=200,
                 content=f"Container '{container_name}' stopped successfully",
             )
         elif status == "exited" or status == "created" or status == "paused":
             logger.info(f"Container '{container_name}' is already stopped")
-            return Response(status_code=200, content="Container is already stopped")
+            return JSONResponse(status_code=200, content="Container is already stopped")
         elif status == "dead":
             logger.warning(f"Can't stop a dead container '{container_name}'")
-            return Response(status_code=200, content="Container is dead")
+            return JSONResponse(status_code=200, content="Container is dead")
         else:
             raise Exception(f"Unknown container status: {status}")
     except Exception:
@@ -170,30 +170,47 @@ async def get_container_logs():
         await docker_log_client.close()
         logger.info("Docker client closed")
 
+    logger.info("Creating new docker log client")
     docker_log_client = aiodocker.Docker()
     queue = asyncio.Queue()
 
     async def stream_container_logs(container):
-        container_info = await container.show()
-        name = container_info.get("Name", "Unknown").lstrip("/")
-        logger.info(f"Log task for {name} started")
         while container:
             try:
+                container_info = await container.show()
+                name = container_info.get("Name", "Unknown").lstrip("/")
+                status = container_info.get("State", {}).get("Status")
+                logger.info(f"Starting log stream for {status} container {name}")
+
+                if status == "dead":
+                    logger.error(f"Container {name} is dead, terminating log stream")
+                    break
+                elif status != "running":
+                    logger.info(
+                        f"Container {name} is not currently running. Skipping log stream for 30s"
+                    )
+                    await asyncio.sleep(30)
+                    continue
+
                 async for log in container.log(
                     stdout=True, stderr=True, follow=True, tail=100
                 ):
                     data = {"service": name, "log": log.strip()}
                     await queue.put(f"data: {json.dumps(data)}\n\n")
+
+                logger.warning(f"Log stream paused for {name}. Resuming in 5s")
+                await asyncio.sleep(5)
+
             except asyncio.TimeoutError:
                 logger.warning(f"Continuing log stream for {name} after timeout")
-                continue
             except asyncio.CancelledError:
                 logger.warning(f"Log stream for {name} cancelled")
                 raise
             except Exception:
                 logger.error(f"Error streaming logs for {name}")
                 raise
-        logger.warning(f"Lost container {name} during log stream")
+
+        logger.error(f"Lost container {name} during log stream")
 
     async def heartbeat():
         logger.info("Heartbeat task for log stream started")
@@ -210,12 +227,17 @@ async def get_container_logs():
             active_log_tasks.append(heartbeat_task)
 
             # Create log task for each container on the network
+            logger.info("Getting list of containers on the network")
             containers = await docker_log_client.containers.list(
                 filters={"network": ["luna-engine_default"]}
             )
+            logger.info(f"Found {len(containers)} containers on luna-engine_default")
+
+            logger.info("Creating log tasks for each container")
             for container in containers:
                 task = asyncio.create_task(stream_container_logs(container))
                 active_log_tasks.append(task)
+            logger.info(f"Log tasks successfully created")
 
             # Continue yielding logs as they become available
             while True:
@@ -236,4 +258,5 @@ async def get_container_logs():
             active_log_tasks.clear()
             logger.info("Log tasks fnally cancelled")
 
+    logger.info("Starting log streams")
     return StreamingResponse(stream_logs(), media_type="text/event-stream")
