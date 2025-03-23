@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import { serviceError } from './dockerService';
+import { serviceError } from '../docker/dockerService';
 
 export interface SttResponse {
 	text: string;

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { containerStatus } from './dockerService';
 	import Icon from './Icon.svelte';
-	import { currentPage } from './shared.svelte';
+	import { containerStatus } from '$lib/pages/services/docker/dockerService';
+	import { currentPage } from '$lib/shared/shared.svelte';
 
 	// Define pages
 	const pages = [

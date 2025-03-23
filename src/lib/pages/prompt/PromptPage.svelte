@@ -1,6 +1,9 @@
 <script lang="ts">
-	import Card from '$lib/Card.svelte';
-	import { serviceError } from '$lib/dockerService';
+	import Card from '$lib/components/Card.svelte';
+	import { llmOutput, sttOutput, promptOutput } from '$lib/shared/stores';
+	import { tick } from 'svelte';
+	import ContentPage from '../ContentPage.svelte';
+	import { serviceError } from '../services/docker/dockerService';
 	import {
 		listTemplateNames,
 		saveTemplate,
@@ -14,10 +17,7 @@
 		templateName,
 		systemPrompt,
 		userPrompt
-	} from '$lib/promptPage';
-	import { llmOutput, sttOutput, promptOutput } from '$lib/stores';
-	import { tick } from 'svelte';
-	import ContentPage from './ContentPage.svelte';
+	} from './promptPage';
 
 	let templateNames: string[] = $state(listTemplateNames());
 	let selectedTemplate: string = $state('Luna Thinking');

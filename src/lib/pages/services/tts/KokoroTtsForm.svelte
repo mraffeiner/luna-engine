@@ -1,13 +1,13 @@
 <script lang="ts">
+	import Icon from '$lib/components/Icon.svelte';
+	import Spinner from '$lib/components/Spinner.svelte';
+	import { serviceError } from '../docker/dockerService';
 	import {
-		generateSpeech,
-		type KokoroTtsRequestParams,
 		type VoiceWeight,
+		type KokoroTtsRequestParams,
+		generateSpeech,
 		ttsOptions
 	} from './ttsService';
-	import Icon from './Icon.svelte';
-	import Spinner from './Spinner.svelte';
-	import { serviceError } from './dockerService';
 
 	let text = $state('Hi there hello');
 	let language = $state('en-US');

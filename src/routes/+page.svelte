@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { dockerService } from '$lib/dockerService';
 	import HomePage from '$lib/pages/HomePage.svelte';
-	import PromptPage from '$lib/pages/PromptPage.svelte';
-	import DiscordPage from '$lib/pages/services/DiscordPage.svelte';
-	import DockerPage from '$lib/pages/services/DockerPage.svelte';
-	import LlmPage from '$lib/pages/services/LlmPage.svelte';
-	import SttPage from '$lib/pages/services/SttPage.svelte';
-	import TtsPage from '$lib/pages/services/TtsPage.svelte';
+	import PromptPage from '$lib/pages/prompt/PromptPage.svelte';
+	import DiscordPage from '$lib/pages/services/discord/DiscordPage.svelte';
+	import DockerPage from '$lib/pages/services/docker/DockerPage.svelte';
+	import { dockerService } from '$lib/pages/services/docker/dockerService';
+	import LlmPage from '$lib/pages/services/llm/LlmPage.svelte';
+	import SttPage from '$lib/pages/services/stt/SttPage.svelte';
+	import TtsPage from '$lib/pages/services/tts/TtsPage.svelte';
 
 	const services = [
 		'docker-service',

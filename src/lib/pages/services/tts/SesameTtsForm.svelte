@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { generateSpeech, ttsOptions, type SesameTtsRequestParams } from './ttsService';
-	import Icon from './Icon.svelte';
-	import Spinner from './Spinner.svelte';
-	import { serviceError } from './dockerService';
+	import Icon from '$lib/components/Icon.svelte';
+	import Spinner from '$lib/components/Spinner.svelte';
+	import { serviceError } from '../docker/dockerService';
+	import { type SesameTtsRequestParams, generateSpeech, ttsOptions } from './ttsService';
 
 	let text = $state('Hi there hello');
 	let voice = $state('alloy');

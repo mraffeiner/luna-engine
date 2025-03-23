@@ -1,11 +1,11 @@
 <script lang="ts">
-	import Card from '$lib/Card.svelte';
-	import { serviceError } from '$lib/dockerService';
-	import Spinner from '$lib/Spinner.svelte';
-	import { sttOutput, discordOutput } from '$lib/stores';
-	import { transcribeAudio, fetchSttModels, sttModels, sttStatus } from '$lib/sttService';
-	import ContentPage from '../ContentPage.svelte';
-	import ServicePage from './ServicePage.svelte';
+	import Card from '$lib/components/Card.svelte';
+	import Spinner from '$lib/components/Spinner.svelte';
+	import ContentPage from '$lib/pages/ContentPage.svelte';
+	import { sttOutput, discordOutput } from '$lib/shared/stores';
+	import { serviceError } from '../docker/dockerService';
+	import ServicePage from '../ServicePage.svelte';
+	import { transcribeAudio, fetchSttModels, sttModels, sttStatus } from './sttService';
 
 	let mediaRecorder: MediaRecorder | null = $state(null);
 	let audioChunks: Blob[] = $state([]);

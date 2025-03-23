@@ -1,11 +1,11 @@
 <script lang="ts">
-	import Card from '$lib/Card.svelte';
-	import { discordService } from '$lib/discordService';
-	import Icon from '$lib/Icon.svelte';
-	import { discordOutput } from '$lib/stores';
+	import Card from '$lib/components/Card.svelte';
+	import Icon from '$lib/components/Icon.svelte';
+	import ContentPage from '$lib/pages/ContentPage.svelte';
+	import { discordOutput } from '$lib/shared/stores';
 	import { SvelteMap } from 'svelte/reactivity';
-	import ContentPage from '../ContentPage.svelte';
-	import ServicePage from './ServicePage.svelte';
+	import ServicePage from '../ServicePage.svelte';
+	import { discordService } from './discordService';
 
 	let guildId: string = $state('1194692480805904384');
 	let channelId: string = $state('1349007184406642798');

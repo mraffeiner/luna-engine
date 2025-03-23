@@ -1,4 +1,4 @@
-import { serviceError } from '$lib/dockerService';
+import { serviceError } from '$lib/pages/services/docker/dockerService';
 
 const API_BASE_URL = '/api/discord';
 

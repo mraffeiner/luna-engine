@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { dockerService } from './dockerService';
-	import Icon from './Icon.svelte';
+	import Icon from '$lib/components/Icon.svelte';
+	import { dockerService } from './docker/dockerService';
 
 	// Define props
 	const { serviceName } = $props();

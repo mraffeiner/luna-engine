@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { containerStatus, dockerService } from '$lib/dockerService';
-	import Icon from '$lib/Icon.svelte';
-	import LogsDisplay from '$lib/LogsDisplay.svelte';
-	import Spinner from '$lib/Spinner.svelte';
+	import Icon from '$lib/components/Icon.svelte';
+	import Spinner from '$lib/components/Spinner.svelte';
+	import { containerStatus, dockerService } from './docker/dockerService';
+	import LogsDisplay from './LogsDisplay.svelte';
 
 	// Define props using $props rune
 	const { children, serviceName } = $props();

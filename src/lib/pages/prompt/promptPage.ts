@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import { serviceError } from './dockerService';
+import { serviceError } from '../services/docker/dockerService';
 
 // Interface for user prompt section
 export interface UserPromptSection {

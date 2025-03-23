@@ -1,12 +1,12 @@
 <script lang="ts">
-	import AzureTtsForm from '$lib/AzureTtsForm.svelte';
-	import Card from '$lib/Card.svelte';
-	import KokoroTtsForm from '$lib/KokoroTtsForm.svelte';
-	import SesameTtsForm from '$lib/SesameTtsForm.svelte';
-	import { llmOutput } from '$lib/stores';
-	import { fetchTtsOptions, ttsOptions } from '$lib/ttsService';
-	import ContentPage from '../ContentPage.svelte';
-	import ServicePage from './ServicePage.svelte';
+	import Card from '$lib/components/Card.svelte';
+	import ContentPage from '$lib/pages/ContentPage.svelte';
+	import { llmOutput } from '$lib/shared/stores';
+	import ServicePage from '../ServicePage.svelte';
+	import AzureTtsForm from './AzureTtsForm.svelte';
+	import KokoroTtsForm from './KokoroTtsForm.svelte';
+	import SesameTtsForm from './SesameTtsForm.svelte';
+	import { fetchTtsOptions, ttsOptions } from './ttsService';
 
 	let selectedEngine = $state('kokoro');
 	let azureTtsForm: AzureTtsForm | null = null;

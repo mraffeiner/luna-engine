@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Icon from '$lib/Icon.svelte';
-	import { currentPage } from '$lib/shared.svelte';
+	import Icon from '$lib/components/Icon.svelte';
+	import { currentPage } from '$lib/shared/shared.svelte';
 
 	const { children, name } = $props();
 </script>

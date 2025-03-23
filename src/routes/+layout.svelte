@@ -1,8 +1,8 @@
 <script lang="ts">
 	import '../app.css';
-	import Sidebar from '$lib/Sidebar.svelte';
-	import { serviceError } from '$lib/dockerService';
-	import ErrorBanner from '$lib/ErrorBanner.svelte';
+	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
+	import { serviceError } from '$lib/pages/services/docker/dockerService';
+	import Sidebar from '$lib/components/Sidebar.svelte';
 
 	let { children } = $props();
 </script>
