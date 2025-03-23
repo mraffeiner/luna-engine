@@ -1,7 +1,7 @@
 import asyncio
 from contextlib import asynccontextmanager
 import json
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
 import logging
@@ -25,12 +25,7 @@ docker_log_client = None
 
 # Models
 class ContainerStatusResponse(BaseModel):
-    running: bool
     status: str
-
-
-class ContainerResponse(BaseModel):
-    message: str
 
 
 @asynccontextmanager
@@ -70,10 +65,8 @@ async def get_container_status(container_name: str):
     try:
         container = await docker_client.containers.get(container_name)
         container_info = await container.show()
-        status = container_info.get("State", {}).get("Status")
         return ContainerStatusResponse(
-            running=status == "running",
-            status=status,
+            status=container_info.get("State", {}).get("Status")
         )
     except Exception:
         logger.exception(
@@ -87,7 +80,7 @@ async def get_container_status(container_name: str):
         await docker_client.close()
 
 
-@app.post("/start_container/{container_name}", response_model=ContainerResponse)
+@app.post("/start_container/{container_name}")
 async def start_container(container_name: str):
     docker_client = aiodocker.Docker()
 
@@ -95,15 +88,35 @@ async def start_container(container_name: str):
         container = await docker_client.containers.get(container_name)
         container_info = await container.show()
         status = container_info.get("State", {}).get("Status")
-        if status != "running":
-            await container.start()
+        if status == "created" or status == "exited":
+            logger.info(f"Starting container '{container_name}'..")
+            await container.start(timeout=DOCKER_TIMEOUT)
             logger.info(f"Container '{container_name}' started successfully")
-            return ContainerResponse(
-                message=f"Container '{container_name}' started successfully"
+
+            return Response(
+                status_code=200,
+                content=f"Container '{container_name}' started successfully",
             )
-        return ContainerResponse(
-            message=f"Container '{container_name}' is already running"
-        )
+        elif status == "running" or status == "restarting":
+            logger.info(
+                f"Container '{container_name}' is running or currently restarting"
+            )
+            return Response(status_code=200, content="Container is already running")
+        elif status == "paused":
+            logger.info(f"Container '{container_name}' was paused, unpausing..")
+            await container.unpause()
+            logger.info(f"Container '{container_name}' successully unpaused")
+            return Response(
+                status_code=200,
+                content=f"Container '{container_name}' was paused and has now been unpaused",
+            )
+        elif status == "dead":
+            logger.error(f"Container '{container_name}' is dead and cannot be started")
+            return Response(
+                status_code=500, content=f"Container '{container_name}' is dead"
+            )
+        else:
+            raise Exception(f"Unknown container status: {status}")
     except Exception:
         logger.exception(f"Unexpected error starting container {container_name}")
         raise HTTPException(
@@ -114,7 +127,7 @@ async def start_container(container_name: str):
         await docker_client.close()
 
 
-@app.post("/stop_container/{container_name}", response_model=ContainerResponse)
+@app.post("/stop_container/{container_name}")
 async def stop_container(container_name: str):
     docker_client = aiodocker.Docker()
 
@@ -122,13 +135,22 @@ async def stop_container(container_name: str):
         container = await docker_client.containers.get(container_name)
         container_info = await container.show()
         status = container_info.get("State", {}).get("Status")
-        if status == "running":
+        if status == "running" or status == "restarting":
+            logger.info(f"Stopping container '{container_name}'..")
             await container.stop(timeout=DOCKER_TIMEOUT)
             logger.info(f"Container '{container_name}' stopped successfully")
-            return ContainerResponse(
-                message=f"Container '{container_name}' stopped successfully"
+            return Response(
+                status_code=200,
+                content=f"Container '{container_name}' stopped successfully",
             )
-        return ContainerResponse(message=f"Container '{container_name}' is not running")
+        elif status == "exited" or status == "created" or status == "paused":
+            logger.info(f"Container '{container_name}' is already stopped")
+            return Response(status_code=200, content="Container is already stopped")
+        elif status == "dead":
+            logger.warning(f"Can't stop a dead container '{container_name}'")
+            return Response(status_code=200, content="Container is dead")
+        else:
+            raise Exception(f"Unknown container status: {status}")
     except Exception:
         logger.exception(f"Unexpected error stopping container {container_name}")
         raise HTTPException(
