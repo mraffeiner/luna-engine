@@ -10,8 +10,8 @@
 	<div class="border-border-base bg-bg-base flex-center border-b p-5 pl-2">
 		<button
 			onclick={() => {
-				currentPage.id = 'home';
-				currentPage.name = 'Control Panel';
+				currentPage.id = PAGES[0].id;
+				currentPage.name = PAGES[0].name;
 			}}
 			class="flex cursor-pointer items-center"
 		>
@@ -24,7 +24,7 @@
 
 	<nav class="flex-1 overflow-y-auto">
 		<ul>
-			{#each PAGES as page}
+			{#each PAGES.slice(1, PAGES.length) as page}
 				{@const selected = currentPage.id === page.id}
 				<li>
 					<button
