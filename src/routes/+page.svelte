@@ -7,22 +7,15 @@
 	import LlmPage from '$lib/pages/services/llm/LlmPage.svelte';
 	import SttPage from '$lib/pages/services/stt/SttPage.svelte';
 	import TtsPage from '$lib/pages/services/tts/TtsPage.svelte';
-
-	const services = [
-		'docker-service',
-		'llm-service',
-		'tts-service',
-		'discord-service',
-		'stt-service'
-	];
+	import { SERVICE_PAGES } from '$lib/shared/constants';
 
 	const cleanup = () => {
 		dockerService.stopLogsStream();
 	};
 
 	$effect(() => {
-		services.forEach((serviceName) => {
-			dockerService.checkContainerStatus(serviceName);
+		SERVICE_PAGES.forEach((page) => {
+			dockerService.checkContainerStatus(page.serviceId);
 		});
 	});
 
@@ -33,7 +26,6 @@
 			cleanup();
 		};
 	});
-
 	$effect(() => {
 		window.addEventListener('beforeunload', cleanup);
 

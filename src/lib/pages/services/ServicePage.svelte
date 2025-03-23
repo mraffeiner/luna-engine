@@ -1,37 +1,30 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
-	import { containerStatus, dockerService } from './docker/dockerService';
+	import { containerStatus } from '$lib/shared/shared.svelte';
+	import { dockerService } from './docker/dockerService';
 	import LogsDisplay from './LogsDisplay.svelte';
 
-	// Define props using $props rune
 	const { children, serviceName } = $props();
 
-	// Get the status for this service using $derived
-	const status = $derived(
-		$containerStatus[serviceName] || {
-			isRunning: false,
-			isStarting: false,
-			isStopping: false
-		}
-	);
-
 	let activeTab = $state('configuration');
+
+	const status = $derived(containerStatus.get(serviceName));
 </script>
 
 <div class="card mb-6 flex flex-wrap items-center gap-4">
 	<button
 		onclick={() =>
-			status.isRunning
+			status === 'RUNNING'
 				? dockerService.stopContainer(serviceName)
 				: dockerService.startContainer(serviceName)}
-		class={status.isRunning ? 'btn-danger' : 'btn-success'}
-		disabled={status.isStarting || status.isStopping}
+		class={status === 'RUNNING' ? 'btn-danger' : 'btn-success'}
+		disabled={status === 'STARTING' || status === 'STOPPING'}
 	>
-		{#if status.isStarting || status.isStopping}
+		{#if status === 'STARTING' || status === 'STOPPING'}
 			<Spinner class="text-text-base icon-sm mr-2" />
 			<span>Processing...</span>
-		{:else if status.isRunning}
+		{:else if status === 'RUNNING'}
 			<Icon path="M6 18L18 6M6 6l12 12" class="icon-lg mr-2" />
 			<span>Stop Service</span>
 		{:else}
@@ -49,18 +42,18 @@
 		<span class="text-text-subtle text-md mr-4 font-semibold">Status</span>
 		<div class="flex items-center">
 			<span
-				class="{status.isRunning ? 'status-running' : 'status-stopped'} {status.isStarting ||
-				status.isStopping
+				class="{status === 'RUNNING' ? 'status-running' : 'status-STOPPED'} {status ===
+					'STARTING' || status === 'STOPPING'
 					? 'animate-pulse'
 					: ''}"
-				title={status.isRunning ? 'Running' : 'Stopped'}
+				title={status === 'RUNNING' ? 'Running' : 'Stopped'}
 			></span>
 			<span
-				class="text-md ml-2 font-semibold {status.isRunning
+				class="text-md ml-2 font-semibold {status === 'RUNNING'
 					? 'text-success-light'
 					: 'text-danger-light'}"
 			>
-				{status.isRunning ? 'Running' : 'Stopped'}
+				{status === 'RUNNING' ? 'Running' : 'Stopped'}
 			</span>
 		</div>
 	</div>

@@ -1,39 +1,20 @@
+import { containerStatus } from '$lib/shared/shared.svelte';
 import { writable, type Writable } from 'svelte/store';
 
 /**
  * Interface matching backend ContainerStatusResponse
  */
 export interface ContainerStatusResponse {
-	running: boolean;
 	status: string;
-}
-
-/**
- * Frontend container status with loading state
- */
-export interface ContainerStatus {
-	isRunning: boolean;
-	isStarting: boolean;
-	isStopping: boolean;
-	status?: string;
 }
 
 // Stores
 export const serviceError = writable<string | null>(null);
-export const containerStatus = writable<Record<string, ContainerStatus>>({});
 
 // Private state
 const serviceLogs = new Map<string, Writable<string[]>>();
 const API_BASE_URL = '/api/docker';
 let logStream: EventSource | null = null; // Single EventSource for all logs
-
-// Default container status
-const DEFAULT_STATUS = {
-	isRunning: false,
-	isStarting: false,
-	isStopping: false,
-	status: 'unknown'
-};
 
 /**
  * Makes an API request with consistent error handling
@@ -69,53 +50,41 @@ async function apiRequest<T>(
 }
 
 /**
- * Updates container status with new values
- */
-function updateStatus(serviceName: string, updates: Partial<ContainerStatus>): void {
-	containerStatus.update((status) => ({
-		...status,
-		[serviceName]: {
-			...(status[serviceName] || DEFAULT_STATUS),
-			...updates
-		}
-	}));
-}
-
-/**
  * Service for managing container operations
  */
 export const dockerService = {
 	/**
 	 * Checks the status of a container
 	 */
-	checkContainerStatus: async (serviceName: string): Promise<ContainerStatusResponse | null> => {
+	checkContainerStatus: async (serviceName: string): Promise<void> => {
 		const data = await apiRequest<ContainerStatusResponse>(
 			`/container_status/${serviceName}`,
 			serviceName,
 			'check status'
 		);
 
-		if (data) {
-			updateStatus(serviceName, {
-				isRunning: data.running,
-				status: data.status
-			});
+		if (data?.status) {
+			containerStatus.set(
+				serviceName,
+				data.status === 'running' || data.status === 'restarting' ? 'RUNNING' : 'STOPPED'
+			);
+		} else {
+			containerStatus.set(serviceName, 'UNKNOWN');
 		}
-
-		return data;
 	},
 
 	/**
 	 * Starts a container
 	 */
 	startContainer: async (serviceName: string): Promise<void> => {
-		updateStatus(serviceName, { isStarting: true });
+		containerStatus.set(serviceName, 'STARTING');
 
 		try {
 			await apiRequest(`/start_container/${serviceName}`, serviceName, 'start', { method: 'POST' });
-			updateStatus(serviceName, { isRunning: true });
-		} finally {
-			updateStatus(serviceName, { isStarting: false });
+			containerStatus.set(serviceName, 'RUNNING');
+		} catch (error) {
+			containerStatus.set(serviceName, 'STOPPED');
+			console.error('Failed to start container:', error);
 		}
 	},
 
@@ -123,13 +92,14 @@ export const dockerService = {
 	 * Stops a container
 	 */
 	stopContainer: async (serviceName: string): Promise<void> => {
-		updateStatus(serviceName, { isStopping: true });
+		containerStatus.set(serviceName, 'STOPPING');
 
 		try {
 			await apiRequest(`/stop_container/${serviceName}`, serviceName, 'stop', { method: 'POST' });
-			updateStatus(serviceName, { isRunning: false });
-		} finally {
-			updateStatus(serviceName, { isStopping: false });
+			containerStatus.set(serviceName, 'STOPPED');
+		} catch (error) {
+			containerStatus.set(serviceName, 'RUNNING');
+			console.error('Failed to stop container:', error);
 		}
 	},
 
@@ -169,6 +139,7 @@ export const dockerService = {
 			console.error('Failed to start global log stream:', error);
 		}
 	},
+
 	/**
 	 *  Stops the global log stream
 	 */
