@@ -137,8 +137,8 @@ async def health_check():
             response = await client.get(f"{KOKORO_API_URL}/health", timeout=2.0)
             if response.status_code == 200:
                 status["engines"].append("kokoro")
-    except Exception as e:
-        logger.warning(f"Kokoro health check failed: {e}")
+    except Exception:
+        logger.exception(f"Unexpected error during Kokoro TTS health check")
 
     # Check Sesame
     try:
@@ -146,8 +146,8 @@ async def health_check():
             response = await client.get(f"{SESAME_API_URL}/health", timeout=2.0)
             if response.status_code == 200:
                 status["engines"].append("sesame")
-    except Exception as e:
-        logger.warning(f"Sesame health check failed: {e}")
+    except Exception:
+        logger.exception(f"Unexpected error during Sesame TTS health check")
 
     return status
 
@@ -572,9 +572,7 @@ async def generate_endpoint(request: TTSRequest = Body(...)):
         elif isinstance(request, SesameTTSRequest):
             audio_data = await synthesize_with_sesame(request)
         else:
-            raise HTTPException(
-                status_code=400, detail=f"Unsupported TTS engine: {request.engine}"
-            )
+            raise HTTPException(status_code=400, detail=f"Unsupported TTS engine")
 
         # Return audio data
         return Response(
