@@ -6,15 +6,12 @@
 	import { containerStatus } from '$lib/shared/shared.svelte';
 	import ServicePage from '../ServicePage.svelte';
 	import { dockerService } from './dockerService';
-
-	const pageId = 'docker-page';
-	const serviceId = 'docker-service';
 </script>
 
-<ContentPage name={pageId}>
-	<ServicePage serviceName={serviceId}>
+<ContentPage name="docker-page">
+	<ServicePage serviceName="docker-service">
 		<div class="grid grid-cols-4 gap-4">
-			{#each SERVICE_PAGES.filter((p) => p.serviceId !== serviceId) as page}
+			{#each SERVICE_PAGES.slice(2, SERVICE_PAGES.length) as page}
 				{@const status = containerStatus.get(page.serviceId)}
 				<Card title={page.name}>
 					<div class="flex-between space-x-5">
