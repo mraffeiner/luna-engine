@@ -1,67 +1,17 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
-	import Spinner from '$lib/components/Spinner.svelte';
-	import { containerStatus } from '$lib/shared/shared.svelte';
-	import { dockerService } from './docker/dockerService';
 	import LogsDisplay from './LogsDisplay.svelte';
 
 	const { children, serviceName } = $props();
 
 	let activeTab = $state('configuration');
-
-	const status = $derived(containerStatus.get(serviceName));
 </script>
-
-<div class="card mb-6 flex flex-wrap items-center gap-4">
-	<button
-		onclick={() =>
-			status === 'RUNNING'
-				? dockerService.stopContainer(serviceName)
-				: dockerService.startContainer(serviceName)}
-		class={status === 'RUNNING' ? 'btn-danger' : 'btn-success'}
-		disabled={status === 'STARTING' || status === 'STOPPING'}
-	>
-		{#if status === 'STARTING' || status === 'STOPPING'}
-			<Spinner class="text-text-base icon-sm mr-2" />
-			<span>Processing...</span>
-		{:else if status === 'RUNNING'}
-			<Icon path="M6 18L18 6M6 6l12 12" class="icon-lg mr-2" />
-			<span>Stop Service</span>
-		{:else}
-			<Icon
-				path="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-				class="icon-lg mr-2"
-			/>
-			<span>Start Service</span>
-		{/if}
-	</button>
-
-	<div
-		class="glass-effect border-border-subtle ml-auto flex items-center rounded-md border px-4 py-2.5 shadow-md"
-	>
-		<span class="text-text-subtle text-md mr-4 font-semibold">Status</span>
-		<div class="flex items-center">
-			<span
-				class="{status === 'RUNNING' ? 'status-running' : 'status-STOPPED'} {status ===
-					'STARTING' || status === 'STOPPING'
-					? 'animate-pulse'
-					: ''}"
-				title={status === 'RUNNING' ? 'Running' : 'Stopped'}
-			></span>
-			<span
-				class="text-md ml-2 font-semibold {status === 'RUNNING'
-					? 'text-success-light'
-					: 'text-danger-light'}"
-			>
-				{status === 'RUNNING' ? 'Running' : 'Stopped'}
-			</span>
-		</div>
-	</div>
-</div>
 
 <div class="tabs">
 	<button
-		class="tab-button {activeTab === 'configuration' ? 'tab-button-active' : 'tab-button-inactive'}"
+		class="tab-button rounded-tl-xl {activeTab === 'configuration'
+			? 'tab-button-active'
+			: 'tab-button-inactive'}"
 		onclick={() => (activeTab = 'configuration')}
 	>
 		<Icon
@@ -71,7 +21,9 @@
 		Configuration
 	</button>
 	<button
-		class="tab-button {activeTab === 'logs' ? 'tab-button-active' : 'tab-button-inactive'}"
+		class="tab-button rounded-tr-xl {activeTab === 'logs'
+			? 'tab-button-active'
+			: 'tab-button-inactive'}"
 		onclick={() => (activeTab = 'logs')}
 	>
 		<Icon
