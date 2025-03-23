@@ -93,5 +93,5 @@
 	{@render children()}
 </div>
 <div class="animate-in" class:hidden={activeTab !== 'logs'}>
-	<LogsDisplay {serviceName} />
+	<LogsDisplay visible={activeTab === 'logs'} {serviceName} />
 </div>

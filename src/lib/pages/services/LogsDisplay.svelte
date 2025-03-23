@@ -2,59 +2,45 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import { dockerService } from './docker/dockerService';
 
-	// Define props
-	const { serviceName } = $props();
+	const { visible, serviceName } = $props();
 
-	// Use $state for local state
-	let autoScroll = $state(true);
-	let logsContainer = $state<HTMLDivElement | null>(null);
+	let autoScroll = $state(false);
+	let logsContainer = $state<HTMLDivElement>();
 	let logs: string[] = $state([]);
 	let filterText = $state('');
+	let filteredLogs = $derived(
+		filterText ? logs.filter((log) => log.toLowerCase().includes(filterText.toLowerCase())) : logs
+	);
 
-	/**
-	 * Scroll to the bottom of the logs container
-	 */
-	function scrollToBottom() {
-		if (logsContainer && autoScroll) {
-			logsContainer.scrollTop = logsContainer.scrollHeight;
+	function onscroll() {
+		console.log('entering onscroll');
+		if (logsContainer) {
+			const nearBottom =
+				logsContainer.scrollHeight - logsContainer.scrollTop - logsContainer.clientHeight < 50;
+			autoScroll = nearBottom;
+			console.log(`autoscroll ${autoScroll}`);
 		}
 	}
 
-	/**
-	 * Handle manual scrolling to detect if user has scrolled up
-	 */
-	function handleScroll() {
-		if (!logsContainer) return;
-
-		const isNearBottom =
-			logsContainer.scrollHeight - logsContainer.scrollTop - logsContainer.clientHeight < 10;
-		autoScroll = isNearBottom;
+	function scrollToBottom() {
+		if (logsContainer) logsContainer.scrollTop = logsContainer.scrollHeight;
 	}
 
-	/**
-	 * Filter logs based on search text
-	 */
-	function getFilteredLogs() {
-		if (!filterText) return logs;
-
-		return logs.filter((log) => log.toLowerCase().includes(filterText.toLowerCase()));
-	}
-
-	// Watch for changes to logs array and scroll if autoScroll is enabled
 	$effect(() => {
-		if (logs.length > 0 && autoScroll) {
-			// Use setTimeout to ensure DOM is updated before scrolling
-			setTimeout(scrollToBottom, 0);
+		autoScroll = true;
+	});
+
+	$effect(() => {
+		if (filteredLogs.length > 0 && autoScroll && visible) {
+			scrollToBottom();
 		}
 	});
 
-	// Setup and cleanup
 	$effect(() => {
 		const unsubscribe = dockerService.getLogsStore(serviceName).subscribe((updatedLogs) => {
 			logs = updatedLogs;
 		});
 
-		// Cleanup
 		return () => {
 			unsubscribe();
 		};
@@ -96,7 +82,7 @@
 	<div class="relative">
 		<div
 			bind:this={logsContainer}
-			onscroll={handleScroll}
+			{onscroll}
 			class="border-border-base bg-bg-base text-text-subtle h-[min(70vh,600px)] overflow-auto whitespace-pre-line rounded-md border p-4 font-mono text-sm shadow-inner"
 		>
 			{#if logs.length === 0}
@@ -107,7 +93,7 @@
 					/>
 					<p>No logs available</p>
 				</div>
-			{:else if getFilteredLogs().length === 0}
+			{:else if filteredLogs.length === 0}
 				<div class="text-text-disabled flex-center h-full flex-col">
 					<Icon
 						path="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
@@ -116,15 +102,15 @@
 					<p>No matching logs</p>
 				</div>
 			{:else}
-				{#each getFilteredLogs() as log}
+				{#each filteredLogs as log}
 					<div class="py-0.5">
-						{#if log.toLowerCase().includes('error')}
+						{#if log.includes('ERROR')}
 							<span class="text-danger-light">{log}</span>
-						{:else if log.toLowerCase().includes('warning')}
+						{:else if log.includes('WARNING')}
 							<span class="text-warning-light">{log}</span>
-						{:else if log.toLowerCase().includes('debug')}
+						{:else if log.includes('DEBUG')}
 							<span class="text-info-light">{log}</span>
-						{:else if log.toLowerCase().includes('info')}
+						{:else if log.includes('INFO')}
 							<span class="text-success-light">{log}</span>
 						{:else}
 							<span class="text-text-subtle">{log}</span>
@@ -135,10 +121,8 @@
 		</div>
 		{#if !autoScroll}
 			<button
-				aria-label="Scroll to bottom"
 				onclick={() => {
 					autoScroll = true;
-					scrollToBottom();
 				}}
 				class="bg-bg-elevated hover:bg-bg-elevated-30 focus:border-border-focus text-text-base absolute bottom-4 right-4 rounded-full p-2 shadow-md transition-all duration-200 focus:outline-none focus:ring-2"
 			>
@@ -153,8 +137,7 @@
 				path="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
 				class="icon-sm mr-2"
 			/>
-			{filterText ? `${getFilteredLogs().length} of ${logs.length}` : logs.length} log {logs.length ===
-			1
+			{filterText ? `${filteredLogs.length} of ${logs.length}` : logs.length} log {logs.length === 1
 				? 'entry'
 				: 'entries'}
 		</div>
