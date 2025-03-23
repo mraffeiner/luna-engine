@@ -1,5 +1,5 @@
 <script lang="ts">
-	import HomePage from '$lib/pages/HomePage.svelte';
+	import EnginePage from '$lib/pages/EnginePage.svelte';
 	import PromptPage from '$lib/pages/prompt/PromptPage.svelte';
 	import DiscordPage from '$lib/pages/services/discord/DiscordPage.svelte';
 	import DockerPage from '$lib/pages/services/docker/DockerPage.svelte';
@@ -36,7 +36,7 @@
 </script>
 
 <!-- Load all pages to preserve states, conditionally hidden -->
-<HomePage />
+<EnginePage />
 <DockerPage />
 <PromptPage />
 <LlmPage />
