@@ -60,7 +60,6 @@ export async function transcribeAudio(
 ): Promise<string | null> {
 	try {
 		sttStatus.set('transcribing');
-		serviceError.set(null);
 
 		// Create a FormData object and append the audio blob and model
 		const formData = new FormData();

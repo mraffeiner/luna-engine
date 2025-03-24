@@ -64,7 +64,6 @@
 			transcribedText = null;
 			audioChunks = [];
 			recordingTime = 0;
-			serviceError.set(null);
 
 			// Get audio stream
 			audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });

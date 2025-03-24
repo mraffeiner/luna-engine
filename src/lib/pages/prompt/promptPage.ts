@@ -43,7 +43,6 @@ export function addUserPromptSection(name: string, content: string): void {
 
 	const id = name.toLowerCase().trim().replace(/ /g, '-');
 	userPromptSections.update((prompts) => [...prompts, { id, name, content }]);
-	serviceError.set(null);
 }
 
 export function updateUserPromptSection(
@@ -83,7 +82,6 @@ export function saveTemplate(name: string, template: string) {
 			userPromptSections: get(userPromptSections)
 		};
 		localStorage.setItem(name, JSON.stringify(saveData));
-		serviceError.set(null);
 	} else {
 		serviceError.set('Please enter a name for the prompt.');
 	}
@@ -103,7 +101,6 @@ export function loadTemplate(name: string) {
 						userPromptSections.set([]);
 					}
 				}
-				serviceError.set(null);
 				templateName.set(name);
 			} catch (error) {
 				console.error('Error parsing prompt template:', error);
@@ -117,7 +114,6 @@ export function loadTemplate(name: string) {
 export function deleteTemplate(name: string) {
 	if (name) {
 		localStorage.removeItem(name);
-		serviceError.set(null);
 		systemPrompt.set('');
 		templateName.set('');
 		userPromptSections.set([]);

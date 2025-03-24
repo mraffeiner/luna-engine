@@ -16,7 +16,6 @@
 	let loading = $state(false);
 
 	async function handleGenerateSpeech(params: TtsRequestParams) {
-		serviceError.set(null);
 		loading = true;
 
 		if (params) {

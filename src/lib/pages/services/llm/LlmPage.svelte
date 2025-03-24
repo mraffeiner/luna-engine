@@ -37,10 +37,9 @@
 		}
 	}
 
-	async function generateResponse() {
+	export async function generateResponse() {
 		loading = true;
 		responseText = '';
-		serviceError.set(null);
 
 		const response = await fetch('/api/llm/generate', {
 			method: 'POST',
