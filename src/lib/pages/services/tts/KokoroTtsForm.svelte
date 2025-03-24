@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
+	import { forwardOutput } from '$lib/shared/shared.svelte';
+	import { ttsOutput } from '$lib/shared/stores';
 	import { serviceError } from '../docker/dockerService';
 	import {
 		type VoiceWeight,
@@ -71,10 +73,14 @@
 			params.voiceMix = voiceMix;
 		}
 
-		const blob = await generateSpeech(params);
+		const audioBlob = await generateSpeech(params);
 
-		if (blob) {
-			audioUrl = URL.createObjectURL(blob);
+		if (audioBlob) {
+			audioUrl = URL.createObjectURL(audioBlob);
+
+			if (forwardOutput.tts) {
+				ttsOutput.set({ audioBlob: audioBlob, audioUrl: audioUrl });
+			}
 		}
 
 		loading = false;

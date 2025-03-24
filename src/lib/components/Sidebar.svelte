@@ -16,7 +16,7 @@
 			class="flex cursor-pointer items-center"
 		>
 			<Icon path="M13 10V3L4 14h7v7l9-11h-7z" class="text-primary-light icon-lg mr-2" />
-			<span class="text-xl font-bold {currentPage.id === 'home' ? 'text-primary-subtle' : ''}"
+			<span class="text-xl font-bold {currentPage.id === PAGES[0].id} ? 'text-primary-subtle' : ''}"
 				>Luna Engine</span
 			>
 		</button>

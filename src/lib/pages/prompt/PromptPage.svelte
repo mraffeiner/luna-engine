@@ -18,6 +18,7 @@
 		systemPrompt,
 		userPrompt
 	} from './promptPage';
+	import { engineConfig, forwardOutput } from '$lib/shared/shared.svelte';
 
 	let templateNames: string[] = $state(listTemplateNames());
 	let selectedTemplate: string = $state('Luna Thinking');
@@ -33,8 +34,6 @@
 
 	// For prompt deletion confirmation
 	let deletionConfirmationMode: boolean = $state(false);
-
-	let forwardOutput = $state(true);
 
 	function handleSaveTemplate() {
 		saveTemplate($templateName, $systemPrompt);
@@ -122,9 +121,16 @@
 	});
 
 	$effect(() => {
-		const unsubscribe = llmOutput.subscribe((newText) => {
+		const unsubscribe = llmOutput.subscribe(async (newText) => {
 			if (newText) {
 				userPromptSections.update((sections) => updateConversation(sections, `Luna: ${newText}`));
+				if (engineConfig.auto) {
+					await tick();
+					promptOutput.set({
+						systemPrompt: $systemPrompt,
+						userPrompt: $userPrompt
+					});
+				}
 			}
 		});
 
@@ -137,7 +143,7 @@
 		const unsubscribe = sttOutput.subscribe(async (newText) => {
 			if (newText) {
 				userPromptSections.update((sections) => updateConversation(sections, newText));
-				if (forwardOutput) {
+				if (forwardOutput.prompt) {
 					await tick();
 					promptOutput.set({
 						systemPrompt: $systemPrompt,
@@ -157,7 +163,7 @@
 	<Card title="Template Settings">
 		<div class="flex-start">
 			<label class="space-x-2">
-				<input type="checkbox" bind:checked={forwardOutput} />
+				<input type="checkbox" bind:checked={forwardOutput.prompt} />
 				<span class="text-text-muted">Forward Output</span>
 			</label>
 		</div>

@@ -3,23 +3,24 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import ContentPage from '$lib/pages/ContentPage.svelte';
 	import { discordOutput } from '$lib/shared/stores';
-	import { SvelteMap } from 'svelte/reactivity';
 	import ServicePage from '../ServicePage.svelte';
 	import { discordService } from './discordService';
+	import { forwardOutput, speakerAudio } from '$lib/shared/shared.svelte';
 
 	let guildId: string = $state('1194692480805904384');
 	let channelId: string = $state('1349007184406642798');
-	let speakerAudio: SvelteMap<string, string> = $state(new SvelteMap());
-
-	let forwardOutput = $state(true);
 
 	async function connect() {
 		const success = await discordService.connect(guildId, channelId);
 		if (success) {
 			discordService.connectWebSocket(async (username, audioBlob) => {
-				speakerAudio.set(username, URL.createObjectURL(audioBlob));
-				if (forwardOutput) {
-					discordOutput.set({ username: username, audioBlob: audioBlob });
+				let audioUrl = speakerAudio.get(username);
+				if (audioUrl) URL.revokeObjectURL(audioUrl);
+
+				audioUrl = URL.createObjectURL(audioBlob);
+				speakerAudio.set(username, audioUrl);
+				if (forwardOutput.discord) {
+					discordOutput.set({ username: username, audioBlob: audioBlob, audioUrl: audioUrl });
 				}
 			});
 		}
@@ -40,7 +41,7 @@
 		<Card title="Discord Settings">
 			<div class="flex-start">
 				<label class="space-x-2">
-					<input type="checkbox" bind:checked={forwardOutput} />
+					<input type="checkbox" bind:checked={forwardOutput.discord} />
 					<span class="text-text-muted">Forward Output</span>
 				</label>
 			</div>

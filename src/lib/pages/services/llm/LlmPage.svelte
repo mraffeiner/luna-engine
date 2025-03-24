@@ -2,6 +2,7 @@
 	import Card from '$lib/components/Card.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
 	import ContentPage from '$lib/pages/ContentPage.svelte';
+	import { forwardOutput } from '$lib/shared/shared.svelte';
 	import { llmOutput, promptOutput } from '$lib/shared/stores';
 	import { cleanText } from '$lib/shared/utils';
 	import { serviceError } from '../docker/dockerService';
@@ -16,8 +17,6 @@
 	let system_prompt = $state('You are Luna, a young AI woman an space elf Vtuber');
 	let loading = $state(false);
 	let responseText = $state<string | null>(null);
-
-	let forwardOutput = $state(true);
 
 	let models = $state<{ provider: string; id: string; name: string; isReasoning: boolean }[]>([]);
 
@@ -76,7 +75,7 @@
 
 		loading = false;
 
-		if (forwardOutput && responseText) {
+		if (forwardOutput.llm && responseText) {
 			llmOutput.set(cleanText(selectedIsReasoning.toLowerCase() === 'true', responseText));
 		}
 	}
@@ -109,7 +108,7 @@
 		<Card title="LLM Settings">
 			<div class="flex-start">
 				<label class="space-x-2">
-					<input type="checkbox" bind:checked={forwardOutput} />
+					<input type="checkbox" bind:checked={forwardOutput.llm} />
 					<span class="text-text-muted">Forward Output</span>
 				</label>
 			</div>

@@ -2,6 +2,7 @@
 	import Card from '$lib/components/Card.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
 	import ContentPage from '$lib/pages/ContentPage.svelte';
+	import { forwardOutput } from '$lib/shared/shared.svelte';
 	import { sttOutput, discordOutput } from '$lib/shared/stores';
 	import { serviceError } from '../docker/dockerService';
 	import ServicePage from '../ServicePage.svelte';
@@ -16,7 +17,6 @@
 	let audioStream: MediaStream | null = $state(null);
 	let selectedModel = $state('whisper-large-v3-turbo');
 
-	let forwardOutput = $state(true);
 	let directInputPrefix = $state('TastiHam: ');
 	let directInputText = $state('');
 
@@ -35,7 +35,7 @@
 			audioStream = null;
 		}
 
-		if (forwardOutput && transcribedText) {
+		if (forwardOutput.stt && transcribedText) {
 			sttOutput.set(transcribedText);
 		}
 	}
@@ -137,7 +137,7 @@
 		transcribedText = directInputPrefix ? directInputPrefix + directInputText : directInputText;
 
 		// Forward the text if the checkbox is checked
-		if (forwardOutput && transcribedText) {
+		if (forwardOutput.stt && transcribedText) {
 			sttOutput.set(transcribedText);
 		}
 
@@ -186,7 +186,7 @@
 		<Card title="Speech to Text Settings">
 			<div class="flex-start">
 				<label class="space-x-2">
-					<input type="checkbox" bind:checked={forwardOutput} />
+					<input type="checkbox" bind:checked={forwardOutput.stt} />
 					<span class="text-text-muted">Forward Output</span>
 				</label>
 			</div>

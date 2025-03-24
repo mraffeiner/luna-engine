@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
+	import { forwardOutput } from '$lib/shared/shared.svelte';
+	import { ttsOutput } from '$lib/shared/stores';
 	import { serviceError } from '../docker/dockerService';
 	import { generateSpeech, type AzureTtsRequestParams, ttsOptions } from './ttsService';
 
@@ -23,7 +25,7 @@
 			text = newText;
 		}
 
-		const blob = await generateSpeech({
+		const audioBlob = await generateSpeech({
 			engine: 'azure',
 			language,
 			voice,
@@ -33,8 +35,12 @@
 			text
 		} as AzureTtsRequestParams);
 
-		if (blob) {
-			audioUrl = URL.createObjectURL(blob);
+		if (audioBlob) {
+			audioUrl = URL.createObjectURL(audioBlob);
+
+			if (forwardOutput.tts) {
+				ttsOutput.set({ audioBlob: audioBlob, audioUrl: audioUrl });
+			}
 		}
 
 		loading = false;
