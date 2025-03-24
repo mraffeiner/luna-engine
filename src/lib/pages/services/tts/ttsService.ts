@@ -26,17 +26,11 @@ export interface AzureTtsRequestParams extends BaseTtsRequestParams {
 	pitch: string;
 }
 
-export interface VoiceWeight {
-	voice: string;
-	weight: number;
-}
-
 export interface KokoroTtsRequestParams extends BaseTtsRequestParams {
 	engine: 'kokoro';
 	language: string;
 	speed: number;
 	pitch?: number;
-	voiceMix?: VoiceWeight[];
 }
 
 export interface SesameTtsRequestParams extends BaseTtsRequestParams {
@@ -80,17 +74,6 @@ export async function fetchTtsOptions(): Promise<void> {
  */
 export async function generateSpeech(params: TtsRequestParams): Promise<Blob | null> {
 	try {
-		// Process voice mix for Kokoro if present
-		if (params.engine === 'kokoro') {
-			const kokoroParams = params as KokoroTtsRequestParams;
-			const voiceMix = kokoroParams.voiceMix;
-
-			// Format voice string as "voice1:weight1+voice2:weight2+..."
-			if (voiceMix && voiceMix.length > 0) {
-				kokoroParams.voice = voiceMix.map((v) => `${v.voice}(${v.weight})`).join('+');
-			}
-		}
-
 		const response = await fetch('/api/tts/generate', {
 			method: 'POST',
 			headers: {

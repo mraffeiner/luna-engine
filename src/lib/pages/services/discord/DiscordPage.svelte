@@ -2,10 +2,9 @@
 	import Card from '$lib/components/Card.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import ContentPage from '$lib/pages/ContentPage.svelte';
-	import { discordOutput } from '$lib/shared/stores';
 	import ServicePage from '../ServicePage.svelte';
 	import { discordService } from './discordService';
-	import { forwardOutput, speakerAudio } from '$lib/shared/shared.svelte';
+	import { serviceOutput, speakerAudio } from '$lib/shared/shared.svelte';
 
 	let guildId: string = $state('1194692480805904384');
 	let channelId: string = $state('1349007184406642798');
@@ -19,9 +18,7 @@
 
 				audioUrl = URL.createObjectURL(audioBlob);
 				speakerAudio.set(username, audioUrl);
-				if (forwardOutput.discord) {
-					discordOutput.set({ username: username, audioBlob: audioBlob, audioUrl: audioUrl });
-				}
+				serviceOutput.discord.set(username, { blob: audioBlob, url: audioUrl });
 			});
 		}
 	}
@@ -39,13 +36,6 @@
 <ContentPage name="discord-page">
 	<ServicePage serviceName="discord-service">
 		<Card title="Discord Settings">
-			<div class="flex-start">
-				<label class="space-x-2">
-					<input type="checkbox" bind:checked={forwardOutput.discord} />
-					<span class="text-text-muted">Forward Output</span>
-				</label>
-			</div>
-
 			<div class="form-group">
 				<label for="guildId">Guild ID</label>
 				<input type="text" id="guildId" name="guildId" bind:value={guildId} class="form-control" />

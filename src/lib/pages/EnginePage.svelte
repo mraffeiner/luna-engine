@@ -2,10 +2,19 @@
 	import EngineCard from '$lib/components/EngineCard.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import { PAGES } from '$lib/shared/constants';
-	import { engineConfig, forwardOutput } from '$lib/shared/shared.svelte';
-	import { discordOutput, llmOutput, promptOutput, sttOutput, ttsOutput } from '$lib/shared/stores';
+	import { engineConfig, receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
 	import ContentPage from './ContentPage.svelte';
 	import ServicePage from './services/ServicePage.svelte';
+
+	let combinedPrompt = $derived.by(() => {
+		const prompt = serviceOutput.prompt;
+		let combined = '';
+		if (prompt) {
+			combined += prompt.system ? prompt.system : '';
+			combined += prompt.user ? prompt.user : '';
+		}
+		return combined;
+	});
 </script>
 
 <ContentPage name="engine-page">
@@ -28,31 +37,27 @@
 			{#each PAGES.slice(2, PAGES.length) as page}
 				{#if page.id === 'prompt-page'}
 					<div class="col-span-5 row-span-9">
-						<EngineCard title={page.name} bind:forward={forwardOutput.prompt}>
+						<EngineCard title={page.name} bind:receiveInput={receiveInput.prompt}>
 							<div class="whitespace-pre-wrap">
-								{#if $promptOutput?.systemPrompt || $promptOutput?.userPrompt}
-									{$promptOutput.systemPrompt}{$promptOutput.userPrompt
-										? `${$promptOutput.userPrompt}`
-										: ''}
-								{/if}
+								{combinedPrompt}
 							</div>
 						</EngineCard>
 					</div>
 				{:else if page.id === 'llm-page'}
 					<div class="col-span-3 row-span-3">
-						<EngineCard title={page.name} bind:forward={forwardOutput.llm}>
+						<EngineCard title={page.name} bind:receiveInput={receiveInput.llm}>
 							<div class="whitespace-pre-wrap">
-								{#if $llmOutput}
-									{$llmOutput}
+								{#if serviceOutput.llm}
+									{serviceOutput.llm}
 								{/if}
 							</div>
 						</EngineCard>
 					</div>
 				{:else if page.id === 'tts-page'}
 					<div class="col-span-3 row-span-2">
-						<EngineCard title={page.name} bind:forward={forwardOutput.tts}>
+						<EngineCard title={page.name} bind:receiveInput={receiveInput.tts}>
 							<div>
-								{#if $ttsOutput}
+								{#if serviceOutput.tts}
 									<h4 class="text-text-subtle mb-2 flex items-center text-sm font-medium">
 										<Icon
 											path="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
@@ -60,34 +65,35 @@
 										/>
 										Luna
 									</h4>
-									<audio controls src={$ttsOutput.audioUrl} class="w-full rounded-md"></audio>
+									<audio controls src={serviceOutput.tts.url} class="w-full rounded-md"></audio>
 								{/if}
 							</div>
 						</EngineCard>
 					</div>
 				{:else if page.id === 'discord-page'}
 					<div class="col-span-3 row-span-2">
-						<EngineCard title={page.name} bind:forward={forwardOutput.discord}>
+						<EngineCard title={page.name} bind:receiveInput={receiveInput.discord}>
 							<div>
-								{#if $discordOutput}
+								{#if serviceOutput.discord}
+									{@const [username, audio] = [...serviceOutput.discord.entries()].pop() ?? []}
 									<h4 class="text-text-subtle mb-2 flex items-center text-sm font-medium">
 										<Icon
 											path="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
 											class="text-success icon-sm mr-2"
 										/>
-										{$discordOutput.username}
+										{username}
 									</h4>
-									<audio controls src={$discordOutput.audioUrl} class="w-full rounded-md"></audio>
+									<audio controls src={audio?.url} class="w-full rounded-md"></audio>
 								{/if}
 							</div>
 						</EngineCard>
 					</div>
 				{:else if page.id === 'stt-page'}
 					<div class="col-span-3 row-span-2">
-						<EngineCard title={page.name} bind:forward={forwardOutput.stt}>
+						<EngineCard title={page.name} bind:receiveInput={receiveInput.stt}>
 							<div class="whitespace-pre-wrap">
-								{#if $sttOutput}
-									{$sttOutput}
+								{#if serviceOutput.stt}
+									{serviceOutput.stt}
 								{/if}
 							</div>
 						</EngineCard>

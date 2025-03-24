@@ -1,22 +1,15 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
-	import { forwardOutput } from '$lib/shared/shared.svelte';
-	import { ttsOutput } from '$lib/shared/stores';
-	import { serviceError } from '../docker/dockerService';
-	import {
-		type VoiceWeight,
-		type KokoroTtsRequestParams,
-		generateSpeech,
-		ttsOptions
-	} from './ttsService';
+	import { receiveInput } from '$lib/shared/shared.svelte';
+	import { type KokoroTtsRequestParams, ttsOptions } from './ttsService';
 
-	let text = $state('Hi there hello');
+	let { text, loading, handleGenerateSpeech } = $props();
+
 	let language = $state('en-US');
 	let voice = $state('af_nicole');
-	// Voice mixing
 	let useVoiceMix = $state(true);
-	let voiceMix = $state<VoiceWeight[]>([
+	let voiceMix: { voice: string; weight: number }[] = $state([
 		{ voice: 'af_nicole', weight: 2.5 },
 		{ voice: 'am_echo', weight: 1.0 },
 		{ voice: 'jf_alpha', weight: 1.0 },
@@ -25,8 +18,16 @@
 	let speed = $state(0.9);
 	let pitch = $state(1.17);
 
-	let audioUrl = $state<string | null>(null);
-	let loading = $state(false);
+	const voiceMixParams = $derived(voiceMix.map((v) => `${v.voice}(${v.weight})`).join('+'));
+
+	const params: KokoroTtsRequestParams = $derived({
+		engine: 'kokoro',
+		language,
+		voice: useVoiceMix ? voiceMixParams : voice,
+		speed,
+		pitch,
+		text
+	});
 
 	function addVoice() {
 		const kokoroVoices = $ttsOptions.engines['kokoro']?.voices || [];
@@ -48,42 +49,6 @@
 
 	function updateVoiceSelection(index: number, voiceValue: string) {
 		voiceMix = voiceMix.map((v, i) => (i === index ? { ...v, voice: voiceValue } : v));
-	}
-
-	export async function handleGenerateSpeech(_event?: MouseEvent, newText?: string): Promise<void> {
-		serviceError.set(null);
-		audioUrl = null;
-		loading = true;
-
-		if (newText) {
-			text = newText;
-		}
-
-		const params: KokoroTtsRequestParams = {
-			engine: 'kokoro',
-			language,
-			voice: useVoiceMix ? voiceMix[0].voice : voice, // Fallback voice
-			speed,
-			pitch,
-			text
-		};
-
-		// Add voice mix if enabled
-		if (useVoiceMix && voiceMix.length > 0) {
-			params.voiceMix = voiceMix;
-		}
-
-		const audioBlob = await generateSpeech(params);
-
-		if (audioBlob) {
-			audioUrl = URL.createObjectURL(audioBlob);
-
-			if (forwardOutput.tts) {
-				ttsOutput.set({ audioBlob: audioBlob, audioUrl: audioUrl });
-			}
-		}
-
-		loading = false;
 	}
 </script>
 
@@ -114,13 +79,10 @@
 	<!-- Voice Mixing Toggle -->
 	<div class="form-group col-span-1 lg:col-span-2">
 		<div class="flex-start rounded-md">
-			<input
-				id="useVoiceMix"
-				type="checkbox"
-				bind:checked={useVoiceMix}
-				class="border-border-subtle bg-bg-elevated primary focus:ring-primary mr-3 h-5 w-5 rounded border"
-			/>
-			<label for="useVoiceMix" class="mb-0!">Mix Voices</label>
+			<label>
+				<input type="checkbox" bind:checked={useVoiceMix} />
+				<span>Use Voice Mix</span>
+			</label>
 		</div>
 	</div>
 
@@ -231,7 +193,7 @@
 </div>
 
 <div class="mt-6">
-	<button onclick={handleGenerateSpeech} disabled={loading} class="btn-primary">
+	<button onclick={() => handleGenerateSpeech(params)} disabled={loading} class="btn-primary">
 		{#if loading}
 			<Spinner class="text-text-base icon-lg mr-2" />
 			<span>Generating...</span>
@@ -244,16 +206,3 @@
 		{/if}
 	</button>
 </div>
-
-{#if audioUrl}
-	<div class="glass-effect primary mt-6 rounded-xl border p-4 shadow-lg">
-		<h4 class="text-primary-light mb-3 flex items-center text-sm font-medium">
-			<Icon
-				path="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-				class="text-success icon-sm mr-2"
-			/>
-			Generated Audio
-		</h4>
-		<audio controls autoplay={true} src={audioUrl} class="w-full rounded-md"></audio>
-	</div>
-{/if}

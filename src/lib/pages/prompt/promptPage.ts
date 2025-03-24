@@ -1,5 +1,6 @@
-import { writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import { serviceError } from '../services/docker/dockerService';
+import { serviceOutput } from '$lib/shared/shared.svelte';
 
 // Interface for user prompt section
 export interface UserPromptSection {
@@ -17,28 +18,21 @@ export interface TemplateData {
 // Store for prompt template
 export const templateName = writable('');
 export const systemPrompt = writable('');
+export const userPrompt = writable('');
 export const userPromptSections = writable<UserPromptSection[]>([]);
-export const userPrompt = writable<string>('');
 
-// Update user prompt whenever the sections change
-function updateUserPrompt() {
-	let sections: UserPromptSection[] = [];
-	userPromptSections.subscribe((value) => {
-		sections = value;
-	})();
-
-	let text = '';
+systemPrompt.subscribe((content) => (serviceOutput.prompt.system = content));
+userPromptSections.subscribe((sections) => {
+	let content = '';
 	if (sections.length > 0) {
 		sections.forEach((section) => {
-			text += `\n\n# ${section.name}\n${section.content}`;
+			content += `\n\n# ${section.name}\n${section.content}`;
 		});
 	}
 
-	userPrompt.set(text);
-}
-
-// Subscribe to changes in userPromptSections
-userPromptSections.subscribe(() => updateUserPrompt());
+	userPrompt.set(content);
+	serviceOutput.prompt.user = content;
+});
 
 // Functions for managing user prompt sections
 export function addUserPromptSection(name: string, content: string): void {
@@ -47,15 +41,33 @@ export function addUserPromptSection(name: string, content: string): void {
 		return;
 	}
 
-	const id = Date.now().toString();
+	const id = name.toLowerCase().trim().replace(/ /g, '-');
 	userPromptSections.update((prompts) => [...prompts, { id, name, content }]);
 	serviceError.set(null);
 }
 
-export function updateUserPromptSection(id: string, name: string, content: string): void {
-	userPromptSections.update((prompts) =>
-		prompts.map((p) => (p.id === id ? { ...p, name, content } : p))
-	);
+export function updateUserPromptSection(
+	id: string,
+	name: string | null,
+	content: string,
+	append: boolean = false
+): void {
+	userPromptSections.update((prompts) => {
+		const updatedPrompts = prompts.map((prompt) => {
+			if (prompt.id === id) {
+				if (name) {
+					prompt.name = name;
+				}
+				if (append) {
+					prompt.content += content;
+				} else {
+					prompt.content = content;
+				}
+			}
+			return prompt;
+		});
+		return updatedPrompts;
+	});
 }
 
 export function deleteUserPromptSection(id: string): void {
@@ -68,7 +80,7 @@ export function saveTemplate(name: string, template: string) {
 		// Save the template and its dynamic prompts
 		const saveData: TemplateData = {
 			systemPrompt: template,
-			userPromptSections: getCurrentUserPromptSections()
+			userPromptSections: get(userPromptSections)
 		};
 		localStorage.setItem(name, JSON.stringify(saveData));
 		serviceError.set(null);
@@ -135,13 +147,4 @@ export function listTemplateNames(): string[] {
 		}
 	}
 	return keys;
-}
-
-// Helper function to get current user prompt sections
-function getCurrentUserPromptSections(): UserPromptSection[] {
-	let result: UserPromptSection[] = [];
-	userPromptSections.subscribe((value) => {
-		result = value;
-	})();
-	return result;
 }

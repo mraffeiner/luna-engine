@@ -1,7 +1,5 @@
 <script lang="ts">
 	import Card from '$lib/components/Card.svelte';
-	import { llmOutput, sttOutput, promptOutput } from '$lib/shared/stores';
-	import { tick } from 'svelte';
 	import ContentPage from '../ContentPage.svelte';
 	import { serviceError } from '../services/docker/dockerService';
 	import {
@@ -18,7 +16,7 @@
 		systemPrompt,
 		userPrompt
 	} from './promptPage';
-	import { engineConfig, forwardOutput } from '$lib/shared/shared.svelte';
+	import { receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
 
 	let templateNames: string[] = $state(listTemplateNames());
 	let selectedTemplate: string = $state('Luna Thinking');
@@ -104,14 +102,6 @@
 		}
 	}
 
-	function updateConversation(sections: UserPromptSection[], newText: string): UserPromptSection[] {
-		const conversationSection = sections?.find((section) => section.name === 'Conversation');
-		if (conversationSection) {
-			conversationSection.content += `\n${newText.trim()}`;
-		}
-		return sections;
-	}
-
 	$effect(() => {
 		if (selectedTemplate) {
 			loadTemplate(selectedTemplate);
@@ -121,55 +111,29 @@
 	});
 
 	$effect(() => {
-		const unsubscribe = llmOutput.subscribe(async (newText) => {
-			if (newText) {
-				userPromptSections.update((sections) => updateConversation(sections, `Luna: ${newText}`));
-				if (engineConfig.auto) {
-					await tick();
-					promptOutput.set({
-						systemPrompt: $systemPrompt,
-						userPrompt: $userPrompt
-					});
-				}
-			}
-		});
-
-		return () => {
-			unsubscribe;
-		};
+		if (receiveInput.prompt && serviceOutput.llm) {
+			updateUserPromptSection('conversation', null, `\nLuna: ${serviceOutput.llm}`, true);
+		}
 	});
 
 	$effect(() => {
-		const unsubscribe = sttOutput.subscribe(async (newText) => {
-			if (newText) {
-				userPromptSections.update((sections) => updateConversation(sections, newText));
-				if (forwardOutput.prompt) {
-					await tick();
-					promptOutput.set({
-						systemPrompt: $systemPrompt,
-						userPrompt: $userPrompt
-					});
-				}
-			}
-		});
-
-		return () => {
-			unsubscribe;
-		};
+		if (receiveInput.prompt && serviceOutput.stt) {
+			updateUserPromptSection('conversation', null, `\n${serviceOutput.stt}`, true);
+		}
 	});
 </script>
 
 <ContentPage name="prompt-page">
 	<Card title="Template Settings">
-		<div class="flex-start">
-			<label class="space-x-2">
-				<input type="checkbox" bind:checked={forwardOutput.prompt} />
-				<span class="text-text-muted">Forward Output</span>
+		<div class="">
+			<label>
+				<input type="checkbox" bind:checked={receiveInput.prompt} />
+				<span>Receive Input</span>
 			</label>
 		</div>
 
 		<div class="form-group">
-			<label class="mb-2" for="savedTemplates">Saved Templates:</label>
+			<label for="savedTemplates">Saved Templates:</label>
 			<select id="savedTemplates" bind:value={selectedTemplate} class="form-control">
 				<option value="">Select a saved prompt</option>
 				{#each templateNames as name}
@@ -180,7 +144,7 @@
 
 		<div class="form-group">
 			<label for="templateName">Template Name:</label>
-			<input type="text" id="templateName" bind:value={$templateName} class="form-control" />
+			<input id="templateName" type="text" bind:value={$templateName} class="form-control" />
 		</div>
 
 		<!-- Main Prompt Template Section -->

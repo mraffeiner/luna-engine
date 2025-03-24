@@ -2,8 +2,7 @@
 	import Card from '$lib/components/Card.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
 	import ContentPage from '$lib/pages/ContentPage.svelte';
-	import { forwardOutput } from '$lib/shared/shared.svelte';
-	import { llmOutput, promptOutput } from '$lib/shared/stores';
+	import { receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
 	import { cleanText } from '$lib/shared/utils';
 	import { serviceError } from '../docker/dockerService';
 	import ServicePage from '../ServicePage.svelte';
@@ -64,7 +63,7 @@
 			while (!done) {
 				const { value, done: readerDone } = await reader.read();
 				done = readerDone;
-				const chunk = decoder.decode(value);
+				const chunk = decoder.decode(value, { stream: true });
 				if (chunk) {
 					responseText += chunk;
 				}
@@ -75,9 +74,7 @@
 
 		loading = false;
 
-		if (forwardOutput.llm && responseText) {
-			llmOutput.set(cleanText(selectedIsReasoning.toLowerCase() === 'true', responseText));
-		}
+		serviceOutput.llm = cleanText(selectedIsReasoning.toLowerCase() === 'true', responseText);
 	}
 
 	$effect(() => {
@@ -85,21 +82,10 @@
 	});
 
 	$effect(() => {
-		const unsubscribe = promptOutput.subscribe((newPrompt) => {
-			if (newPrompt) {
-				if (newPrompt.systemPrompt !== system_prompt) {
-					system_prompt = newPrompt.systemPrompt;
-				}
-				if (newPrompt.userPrompt !== prompt) {
-					prompt = newPrompt.userPrompt;
-				}
-				generateResponse();
-			}
-		});
-
-		return () => {
-			unsubscribe();
-		};
+		if (receiveInput.llm && serviceOutput.prompt) {
+			system_prompt = serviceOutput.prompt.system;
+			prompt = serviceOutput.prompt.user;
+		}
 	});
 </script>
 
@@ -107,9 +93,9 @@
 	<ServicePage serviceName="llm-service">
 		<Card title="LLM Settings">
 			<div class="flex-start">
-				<label class="space-x-2">
-					<input type="checkbox" bind:checked={forwardOutput.llm} />
-					<span class="text-text-muted">Forward Output</span>
+				<label>
+					<input type="checkbox" bind:checked={receiveInput.llm} />
+					<span>Receive Input</span>
 				</label>
 			</div>
 

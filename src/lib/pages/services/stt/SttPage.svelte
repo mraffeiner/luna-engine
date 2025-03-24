@@ -2,8 +2,7 @@
 	import Card from '$lib/components/Card.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
 	import ContentPage from '$lib/pages/ContentPage.svelte';
-	import { forwardOutput } from '$lib/shared/shared.svelte';
-	import { sttOutput, discordOutput } from '$lib/shared/stores';
+	import { receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
 	import { serviceError } from '../docker/dockerService';
 	import ServicePage from '../ServicePage.svelte';
 	import { transcribeAudio, fetchSttModels, sttModels, sttStatus } from './sttService';
@@ -35,8 +34,8 @@
 			audioStream = null;
 		}
 
-		if (forwardOutput.stt && transcribedText) {
-			sttOutput.set(transcribedText);
+		if (transcribedText) {
+			serviceOutput.stt = transcribedText;
 		}
 	}
 
@@ -133,23 +132,20 @@
 	}
 
 	function handleDirectTextInput() {
-		// Set the transcribed text with the prefix
-		transcribedText = directInputPrefix ? directInputPrefix + directInputText : directInputText;
+		transcribedText = directInputPrefix
+			? directInputPrefix + directInputText.trim()
+			: directInputText.trim();
 
-		// Forward the text if the checkbox is checked
-		if (forwardOutput.stt && transcribedText) {
-			sttOutput.set(transcribedText);
+		if (transcribedText) {
+			serviceOutput.stt = transcribedText;
 		}
 
-		// Clear the input text after forwarding
 		directInputText = '';
 	}
 
-	// Fetch available models on component initialization
 	async function loadModels() {
 		try {
 			await fetchSttModels();
-			// If no model is selected yet and we have models, select the first one
 			if (!selectedModel && $sttModels.length > 0) {
 				selectedModel = $sttModels[0].value;
 			}
@@ -162,22 +158,20 @@
 
 	const isTranscribing = $derived($sttStatus === 'transcribing');
 
-	// Load models when component is mounted
 	$effect(() => {
 		loadModels();
 	});
 
-	// Clean up resources when component is destroyed
 	$effect(() => {
-		const unsubscribe = discordOutput.subscribe(async (newAudio) => {
-			if (newAudio) {
-				await handleTranscribeAudio(newAudio.audioBlob, newAudio.username + ': ');
+		if (receiveInput.stt && serviceOutput.discord) {
+			const [username, audio] = [...serviceOutput.discord.entries()].pop() ?? [];
+			if (audio && audio.blob) {
+				(async () => {
+					await handleTranscribeAudio(audio.blob, username + ': ');
+				})();
 			}
-		});
-		return () => {
-			unsubscribe;
-			cleanup;
-		};
+		}
+		return () => cleanup;
 	});
 </script>
 
@@ -185,9 +179,9 @@
 	<ServicePage serviceName="stt-service">
 		<Card title="Speech to Text Settings">
 			<div class="flex-start">
-				<label class="space-x-2">
-					<input type="checkbox" bind:checked={forwardOutput.stt} />
-					<span class="text-text-muted">Forward Output</span>
+				<label>
+					<input type="checkbox" bind:checked={receiveInput.stt} />
+					<span>Receive Input</span>
 				</label>
 			</div>
 
@@ -225,13 +219,7 @@
 					</div>
 				</div>
 				<div>
-					<button
-						onclick={handleDirectTextInput}
-						disabled={!directInputText}
-						class="btn-primary self-end"
-					>
-						Send
-					</button>
+					<button onclick={handleDirectTextInput} class="btn-primary self-end">Send</button>
 				</div>
 			</div>
 

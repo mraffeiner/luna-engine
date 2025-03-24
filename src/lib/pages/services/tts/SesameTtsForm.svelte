@@ -1,43 +1,17 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
-	import { forwardOutput } from '$lib/shared/shared.svelte';
-	import { ttsOutput } from '$lib/shared/stores';
-	import { serviceError } from '../docker/dockerService';
-	import { type SesameTtsRequestParams, generateSpeech, ttsOptions } from './ttsService';
+	import { type SesameTtsRequestParams, ttsOptions } from './ttsService';
 
-	let text = $state('Hi there hello');
+	let { text, loading, handleGenerateSpeech } = $props();
+
 	let voice = $state('alloy');
 
-	let audioUrl = $state<string | null>(null);
-	let loading = $state(false);
-
-	export async function handleGenerateSpeech(_event?: MouseEvent, newText?: string): Promise<void> {
-		serviceError.set(null);
-		audioUrl = null;
-		loading = true;
-
-		if (newText) {
-			text = newText;
-		}
-
-		const params: SesameTtsRequestParams = {
-			engine: 'sesame',
-			voice,
-			text
-		};
-
-		const audioBlob = await generateSpeech(params);
-		if (audioBlob) {
-			audioUrl = URL.createObjectURL(audioBlob);
-
-			if (forwardOutput.tts) {
-				ttsOutput.set({ audioBlob: audioBlob, audioUrl: audioUrl });
-			}
-		}
-
-		loading = false;
-	}
+	const params: SesameTtsRequestParams = $derived({
+		engine: 'sesame',
+		voice,
+		text
+	});
 </script>
 
 <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -67,27 +41,16 @@
 </div>
 
 <div class="mt-6">
-	<button
-		onclick={handleGenerateSpeech}
-		disabled={loading}
-		class="text-primary hover:text-primary-light focus:border-border-focus flex items-center rounded-md px-5 py-2.5 font-semibold shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
-	>
+	<button onclick={() => handleGenerateSpeech(params)} disabled={loading} class="btn-primary">
 		{#if loading}
 			<Spinner class="text-text-base icon-lg mr-2" />
+			<span>Generating...</span>
+		{:else}
+			<Icon
+				path="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+				class="icon-lg mr-2"
+			/>
+			<span>Generate Speech</span>
 		{/if}
-		{loading ? 'Generating...' : 'Generate Speech'}
 	</button>
 </div>
-
-{#if audioUrl}
-	<div class="border-border-subtle bg-bg-surface mt-6 rounded-lg border p-4">
-		<h4 class="text-text-muted mb-2 flex items-center text-sm font-medium">
-			<Icon
-				path="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-				class="text-success icon-lg mr-2"
-			/>
-			Generated Audio
-		</h4>
-		<audio controls autoplay={true} src={audioUrl} class="w-full rounded-md"></audio>
-	</div>
-{/if}

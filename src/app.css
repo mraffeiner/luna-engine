@@ -106,7 +106,7 @@ body {
 }
 
 label {
-	@apply text-text-muted flex-start mb-2 text-sm font-medium;
+	@apply text-text-subtle flex-start mb-2 space-x-2 text-base font-semibold;
 }
 
 input[type='range'] {

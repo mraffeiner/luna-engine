@@ -2,6 +2,10 @@
  * Utility functions for the control panel
  */
 
+export function asyncSleep(ms: number) {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /**
  * Cleans text by removing thinking tags and non-alphanumeric/punctuation characters.
  *
