@@ -1,10 +1,16 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
-	import { receiveInput } from '$lib/shared/shared.svelte';
-	import { type KokoroTtsRequestParams, ttsOptions } from './ttsService';
+	import {
+		generateSpeech,
+		type KokoroTtsRequestParams,
+		loading,
+		selectedTts,
+		ttsOptions,
+		type TtsParams
+	} from './ttsService';
 
-	let { text, loading, handleGenerateSpeech } = $props();
+	let { active, text } = $props();
 
 	let language = $state('en-US');
 	let voice = $state('af_nicole');
@@ -50,6 +56,15 @@
 	function updateVoiceSelection(index: number, voiceValue: string) {
 		voiceMix = voiceMix.map((v, i) => (i === index ? { ...v, voice: voiceValue } : v));
 	}
+
+	$effect(() => {
+		if (active && params) {
+			selectedTts.update((current: TtsParams) => ({
+				...current,
+				requestParams: params
+			}));
+		}
+	});
 </script>
 
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -193,8 +208,8 @@
 </div>
 
 <div class="mt-6">
-	<button onclick={() => handleGenerateSpeech(params)} disabled={loading} class="btn-primary">
-		{#if loading}
+	<button onclick={generateSpeech} disabled={$loading} class="btn-primary">
+		{#if $loading}
 			<Spinner class="text-text-base icon-lg mr-2" />
 			<span>Generating...</span>
 		{:else}

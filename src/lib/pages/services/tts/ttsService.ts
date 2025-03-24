@@ -1,5 +1,6 @@
-import { writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import { serviceError } from '../docker/dockerService';
+import { serviceOutput } from '$lib/shared/shared.svelte';
 
 export interface EngineOptions {
 	label: string;
@@ -43,10 +44,19 @@ export type TtsRequestParams =
 	| KokoroTtsRequestParams
 	| SesameTtsRequestParams;
 
+export type TtsParams = {
+	requestParams: TtsRequestParams;
+};
+
 // Shared store for TTS options
 export const ttsOptions = writable<TtsOptions>({
 	engines: {}
 });
+
+export const selectedTts = writable<TtsParams>();
+
+export const loading = writable(false);
+export const ttsAudioUrl = writable('');
 
 /**
  * Fetches TTS options from the API
@@ -58,40 +68,41 @@ export async function fetchTtsOptions(): Promise<void> {
 			const data = await response.json();
 			ttsOptions.set(data);
 		} else {
-			const errorMsg = `Failed to fetch TTS options: ${response.status} ${response.statusText}`;
-			console.error(errorMsg);
-			serviceError.set(errorMsg);
+			serviceError.set(`Failed to fetch TTS options: ${response.status} ${response.statusText}`);
 		}
 	} catch (error) {
-		const errorMsg = `Error fetching TTS options: ${error}`;
-		console.error(errorMsg);
-		serviceError.set(errorMsg);
+		serviceError.set(`Error fetching TTS options: ${error}`);
 	}
 }
 
 /**
  * Generates speech using the TTS API
  */
-export async function generateSpeech(params: TtsRequestParams): Promise<Blob | null> {
+export async function generateSpeech() {
+	loading.set(true);
 	try {
+		if (get(ttsAudioUrl)) {
+			URL.revokeObjectURL(get(ttsAudioUrl));
+		}
 		const response = await fetch('/api/tts/generate', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify(params)
+			body: JSON.stringify(get(selectedTts).requestParams)
 		});
 
 		if (response.ok) {
-			return await response.blob();
+			const audioBlob = await response.blob();
+			if (audioBlob) {
+				ttsAudioUrl.set(URL.createObjectURL(audioBlob));
+				serviceOutput.tts = { blob: audioBlob, url: get(ttsAudioUrl) };
+			}
 		} else {
-			const errorMsg = `Error generating speech: ${response.status} ${response.statusText}`;
-			serviceError.set(errorMsg);
-			return null;
+			serviceError.set(`Error generating speech: ${response.status} ${response.statusText}`);
 		}
 	} catch (error) {
-		const errorMsg = `Error generating speech: ${error}`;
-		serviceError.set(errorMsg);
-		return null;
+		serviceError.set(`Error generating speech: ${error}`);
 	}
+	loading.set(false);
 }

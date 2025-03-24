@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
+	import { onMount } from 'svelte';
 	import { dockerService } from './docker/dockerService';
 
 	const { visible, serviceName } = $props();
@@ -25,19 +26,17 @@
 	}
 
 	$effect(() => {
-		autoScroll = true;
-	});
-
-	$effect(() => {
 		if (filteredLogs.length > 0 && autoScroll && visible) {
 			scrollToBottom();
 		}
 	});
 
-	$effect(() => {
+	onMount(() => {
 		const unsubscribe = dockerService.getLogsStore(serviceName).subscribe((updatedLogs) => {
 			logs = updatedLogs;
 		});
+
+		autoScroll = true;
 
 		return () => {
 			unsubscribe();

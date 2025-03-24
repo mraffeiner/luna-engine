@@ -5,6 +5,7 @@
 	import ServicePage from '../ServicePage.svelte';
 	import { discordService } from './discordService';
 	import { serviceOutput, speakerAudio } from '$lib/shared/shared.svelte';
+	import { onDestroy } from 'svelte';
 
 	let guildId: string = $state('1194692480805904384');
 	let channelId: string = $state('1349007184406642798');
@@ -27,9 +28,10 @@
 		await discordService.disconnect();
 	}
 
-	// Clean up resources when component is destroyed
-	$effect(() => {
-		return disconnect;
+	onDestroy(() => {
+		(async () => {
+			await disconnect();
+		})();
 	});
 </script>
 

@@ -8,38 +8,34 @@
 	import SttPage from '$lib/pages/services/stt/SttPage.svelte';
 	import TtsPage from '$lib/pages/services/tts/TtsPage.svelte';
 	import { SERVICE_PAGES } from '$lib/shared/constants';
+	import { onMount } from 'svelte';
 
 	const cleanup = () => {
 		dockerService.stopLogsStream();
 	};
 
-	$effect(() => {
+	onMount(() => {
+		window.addEventListener('beforeunload', cleanup);
+
 		SERVICE_PAGES.forEach((page) => {
 			dockerService.checkContainerStatus(page.serviceId);
 		});
-	});
 
-	$effect(() => {
 		dockerService.startLogsStream();
 
 		return () => {
-			cleanup();
-		};
-	});
-	$effect(() => {
-		window.addEventListener('beforeunload', cleanup);
-
-		return () => {
 			window.removeEventListener('beforeunload', cleanup);
+			cleanup();
 		};
 	});
 </script>
 
 <!-- Load all pages to preserve states, conditionally hidden -->
-<EnginePage />
 <DockerPage />
 <PromptPage />
 <LlmPage />
 <SttPage />
 <TtsPage />
 <DiscordPage />
+<!-- Load last to ensure all other pages are fully loaded before engine starts -->
+<EnginePage />

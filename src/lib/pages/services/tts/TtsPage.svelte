@@ -3,42 +3,26 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import ContentPage from '$lib/pages/ContentPage.svelte';
 	import { receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
-	import { serviceError } from '../docker/dockerService';
+	import { onMount } from 'svelte';
 	import ServicePage from '../ServicePage.svelte';
 	import AzureTtsForm from './AzureTtsForm.svelte';
 	import KokoroTtsForm from './KokoroTtsForm.svelte';
 	import SesameTtsForm from './SesameTtsForm.svelte';
-	import { fetchTtsOptions, generateSpeech, ttsOptions, type TtsRequestParams } from './ttsService';
+	import { fetchTtsOptions, ttsAudioUrl, ttsOptions } from './ttsService';
 
 	let selectedEngine = $state('kokoro');
 	let text = $state('Hey there, hello!');
-	let audioUrl = $state('');
-	let loading = $state(false);
-
-	async function handleGenerateSpeech(params: TtsRequestParams) {
-		loading = true;
-
-		if (params) {
-			const audioBlob = await generateSpeech(params);
-
-			if (audioBlob) {
-				if (audioUrl) URL.revokeObjectURL(audioUrl);
-				audioUrl = URL.createObjectURL(audioBlob);
-				serviceOutput.tts = { blob: audioBlob, url: audioUrl };
-			}
-		}
-
-		loading = false;
-	}
-
-	$effect(() => {
-		fetchTtsOptions();
-	});
 
 	$effect(() => {
 		if (receiveInput.tts && serviceOutput.llm) {
 			text = serviceOutput.llm;
 		}
+	});
+
+	onMount(() => {
+		(async () => {
+			await fetchTtsOptions();
+		})();
 	});
 </script>
 
@@ -64,16 +48,16 @@
 
 			<div class="mt-4">
 				<div class="animate-in" class:hidden={selectedEngine !== 'azure'}>
-					<AzureTtsForm {text} {loading} {handleGenerateSpeech} />
+					<AzureTtsForm active={selectedEngine === 'azure'} {text} />
 				</div>
 				<div class="animate-in" class:hidden={selectedEngine !== 'kokoro'}>
-					<KokoroTtsForm {text} {loading} {handleGenerateSpeech} />
+					<KokoroTtsForm active={selectedEngine === 'kokoro'} {text} />
 				</div>
 				<div class="animate-in" class:hidden={selectedEngine !== 'sesame'}>
-					<SesameTtsForm {text} {loading} {handleGenerateSpeech} />
+					<SesameTtsForm active={selectedEngine === 'sesame'} {text} />
 				</div>
 
-				{#if audioUrl}
+				{#if $ttsAudioUrl}
 					<div class="border-border-subtle bg-bg-surface mt-6 rounded-lg border p-4">
 						<h4 class="text-text-muted mb-2 flex items-center text-sm font-medium">
 							<Icon
@@ -82,7 +66,7 @@
 							/>
 							Generated Audio
 						</h4>
-						<audio controls autoplay={true} src={audioUrl} class="w-full rounded-md"></audio>
+						<audio controls autoplay={true} src={$ttsAudioUrl} class="w-full rounded-md"></audio>
 					</div>
 				{/if}
 			</div>

@@ -1,9 +1,16 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
-	import { type SesameTtsRequestParams, ttsOptions } from './ttsService';
+	import {
+		generateSpeech,
+		loading,
+		selectedTts,
+		type SesameTtsRequestParams,
+		ttsOptions,
+		type TtsParams
+	} from './ttsService';
 
-	let { text, loading, handleGenerateSpeech } = $props();
+	let { active, text } = $props();
 
 	let voice = $state('alloy');
 
@@ -11,6 +18,15 @@
 		engine: 'sesame',
 		voice,
 		text
+	});
+
+	$effect(() => {
+		if (active && params) {
+			selectedTts.update((current: TtsParams) => ({
+				...current,
+				requestParams: params
+			}));
+		}
 	});
 </script>
 
@@ -41,8 +57,8 @@
 </div>
 
 <div class="mt-6">
-	<button onclick={() => handleGenerateSpeech(params)} disabled={loading} class="btn-primary">
-		{#if loading}
+	<button onclick={generateSpeech} disabled={$loading} class="btn-primary">
+		{#if $loading}
 			<Spinner class="text-text-base icon-lg mr-2" />
 			<span>Generating...</span>
 		{:else}

@@ -3,6 +3,7 @@
 	import Spinner from '$lib/components/Spinner.svelte';
 	import ContentPage from '$lib/pages/ContentPage.svelte';
 	import { receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
+	import { onMount } from 'svelte';
 	import ServicePage from '../ServicePage.svelte';
 	import type { LlmParams } from './llmService';
 	import {
@@ -24,10 +25,6 @@
 	let userPrompt = $state('Hey there, hello!');
 
 	$effect(() => {
-		fetchModels();
-	});
-
-	$effect(() => {
 		if (currentModelOption) {
 			selectedLlm.update((current: LlmParams) => ({
 				...current,
@@ -47,6 +44,12 @@
 			systemPrompt = serviceOutput.prompt.system;
 			userPrompt = serviceOutput.prompt.user;
 		}
+	});
+
+	onMount(() => {
+		(async () => {
+			await fetchModels();
+		})();
 	});
 </script>
 

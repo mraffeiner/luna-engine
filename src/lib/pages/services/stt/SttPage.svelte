@@ -3,6 +3,7 @@
 	import Spinner from '$lib/components/Spinner.svelte';
 	import ContentPage from '$lib/pages/ContentPage.svelte';
 	import { receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
+	import { onMount } from 'svelte';
 	import { serviceError } from '../docker/dockerService';
 	import ServicePage from '../ServicePage.svelte';
 	import { transcribeAudio, fetchSttModels, sttModels, sttStatus } from './sttService';
@@ -158,10 +159,6 @@
 	const isTranscribing = $derived($sttStatus === 'transcribing');
 
 	$effect(() => {
-		loadModels();
-	});
-
-	$effect(() => {
 		if (receiveInput.stt && serviceOutput.discord) {
 			const [username, audio] = [...serviceOutput.discord.entries()].pop() ?? [];
 			if (audio && audio.blob) {
@@ -171,6 +168,12 @@
 			}
 		}
 		return () => cleanup;
+	});
+
+	onMount(() => {
+		(async () => {
+			await loadModels();
+		})();
 	});
 </script>
 

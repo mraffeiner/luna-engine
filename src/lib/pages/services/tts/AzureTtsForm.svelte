@@ -1,10 +1,16 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
-	import { receiveInput } from '$lib/shared/shared.svelte';
-	import { type AzureTtsRequestParams, ttsOptions } from './ttsService';
+	import {
+		type AzureTtsRequestParams,
+		generateSpeech,
+		loading,
+		selectedTts,
+		ttsOptions,
+		type TtsParams
+	} from './ttsService';
 
-	let { text, loading, handleGenerateSpeech } = $props();
+	let { active, text } = $props();
 
 	let language = $state('en-US');
 	let voice = $state('en-US-NancyNeural');
@@ -12,7 +18,7 @@
 	let rate = $state(20);
 	let pitch = $state(17);
 
-	let params: AzureTtsRequestParams = $derived({
+	const params: AzureTtsRequestParams = $derived({
 		engine: 'azure',
 		language,
 		voice,
@@ -20,6 +26,15 @@
 		rate: rate + '%',
 		pitch: pitch + '%',
 		text
+	});
+
+	$effect(() => {
+		if (active && params) {
+			selectedTts.update((current: TtsParams) => ({
+				...current,
+				requestParams: params
+			}));
+		}
 	});
 </script>
 
@@ -112,8 +127,8 @@
 </div>
 
 <div class="mt-6">
-	<button onclick={() => handleGenerateSpeech(params)} disabled={loading} class="btn-primary">
-		{#if loading}
+	<button onclick={generateSpeech} disabled={$loading} class="btn-primary">
+		{#if $loading}
 			<Spinner class="text-text-base icon-lg mr-2" />
 			<span>Generating...</span>
 		{:else}

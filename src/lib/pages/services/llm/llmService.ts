@@ -48,33 +48,35 @@ export async function fetchModels() {
 
 export async function generateResponse() {
 	loading.set(true);
-	responseText.set('');
+	try {
+		responseText.set('');
+		const response = await fetch('/api/llm/generate', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(get(selectedLlm).requestParams)
+		});
 
-	const response = await fetch('/api/llm/generate', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify(get(selectedLlm).requestParams)
-	});
+		if (response.ok && response.body) {
+			const reader = response.body.getReader();
+			const decoder = new TextDecoder();
 
-	if (response.ok && response.body) {
-		const reader = response.body.getReader();
-		const decoder = new TextDecoder();
-
-		while (true) {
-			const { done, value } = await reader.read();
-			if (done) {
-				break;
-			} else {
-				responseText.update((text) => text + decoder.decode(value, { stream: true }));
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) {
+					break;
+				} else {
+					responseText.update((text) => text + decoder.decode(value, { stream: true }));
+				}
 			}
+			// Clean response when done
+			serviceOutput.llm = cleanText(get(selectedLlm).isReasoning, get(responseText));
+		} else {
+			serviceError.set(`Error generating response: ${response.status} ${response.statusText}`);
 		}
-		// Clean response when done
-		serviceOutput.llm = cleanText(get(selectedLlm).isReasoning, get(responseText));
-	} else {
-		serviceError.set(`Error generating response: ${response.status} ${response.statusText}`);
+	} catch (error) {
+		serviceError.set(`Error generating response: ${error}`);
 	}
-
 	loading.set(false);
 }
