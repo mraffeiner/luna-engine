@@ -7,16 +7,16 @@
 <aside
 	class="glass-effect border-border-base bg-bg-surface text-text-base flex h-full w-56 flex-col border-r shadow-xl"
 >
-	<div class="border-border-base bg-bg-base flex-center border-b p-5 pl-2">
+	<div class="border-border-base bg-bg-base flex-center border-b">
 		<button
 			onclick={() => {
 				currentPage.id = PAGES[0].id;
 				currentPage.name = PAGES[0].name;
 			}}
-			class="flex cursor-pointer items-center"
+			class="flex-center grow cursor-pointer p-5 pl-2"
 		>
 			<Icon path="M13 10V3L4 14h7v7l9-11h-7z" class="text-primary-light icon-lg mr-2" />
-			<span class="text-xl font-bold {currentPage.id === PAGES[0].id} ? 'text-primary-subtle' : ''}"
+			<span class="text-xl font-bold {currentPage.id === PAGES[0].id ? 'text-primary-subtle' : ''}"
 				>Luna Engine</span
 			>
 		</button>
