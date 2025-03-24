@@ -2,9 +2,20 @@
 	import EngineCard from '$lib/components/EngineCard.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import { PAGES } from '$lib/shared/constants';
-	import { engineConfig, receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
+	import {
+		engineConfig,
+		engineState,
+		receiveInput,
+		serviceOutput
+	} from '$lib/shared/shared.svelte';
+	import { onMount, tick } from 'svelte';
 	import ContentPage from './ContentPage.svelte';
+	import { generateResponse } from './services/llm/llmService';
 	import ServicePage from './services/ServicePage.svelte';
+	import { generateSpeech } from './services/tts/ttsService';
+
+	let busy = $derived(engineState.thinking || engineState.speaking || engineState.waiting);
+	let auto = $state(false);
 
 	let combinedPrompt = $derived.by(() => {
 		const prompt = serviceOutput.prompt;
@@ -15,13 +26,58 @@
 		}
 		return combined;
 	});
+
+	/**
+	 * Auto: Respond continuously when finishing previous response
+	 */
+	$effect(() => {
+		if (engineConfig.mode !== 'AUTO' || busy) return;
+
+		engineState.thinking = true;
+		generateResponse().then(() => {
+			generateSpeech().then(() => {
+				engineState.speaking = true;
+				engineState.thinking = false;
+			});
+		});
+	});
+
+	/**
+	 * React: Respond only when input changes
+	 */
+	$effect(() => {
+		if (engineConfig.mode !== 'REACT' || busy) return;
+
+		if (serviceOutput.stt) {
+			// Tick to ensure prompt received stt output first
+			tick().then(() => {
+				engineState.thinking = true;
+				generateResponse().then(() => {
+					generateSpeech().then(() => {
+						engineState.speaking = true;
+						engineState.thinking = false;
+					});
+				});
+			});
+		}
+	});
+
+	$effect(() => {
+		engineConfig.mode = auto ? 'AUTO' : 'REACT';
+	});
+
+	onMount(() => {
+		setTimeout(() => {
+			engineState.waiting = false;
+		}, 5);
+	});
 </script>
 
 <ContentPage name="engine-page">
 	<ServicePage serviceName="control-panel">
 		<div class="flex-start mb-4 gap-3">
 			<label class="mb-0! relative cursor-pointer">
-				<input type="checkbox" bind:checked={engineConfig.auto} class="peer sr-only" />
+				<input type="checkbox" bind:checked={auto} class="peer sr-only" />
 				<div
 					class="peer-checked:bg-primary-light peer-focus:ring-primary bg-bg-elevated h-5 w-10
 					rounded-full after:absolute after:left-[4px] after:top-[2px] after:h-4
@@ -30,7 +86,7 @@
 					peer-checked:after:translate-x-full peer-focus:outline-none peer-focus:ring-2"
 				></div>
 			</label>
-			<span class="text-text-subtle text-lg font-bold">{engineConfig.auto ? 'Auto' : 'React'}</span>
+			<span class="text-text-subtle text-lg font-bold">{auto ? 'Auto' : 'React'}</span>
 		</div>
 
 		<div class="grid grid-cols-8 grid-rows-9 gap-4">

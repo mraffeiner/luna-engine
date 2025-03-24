@@ -6,21 +6,25 @@ export const currentPage = $state({
 	name: PAGES[0].name
 });
 
-export const containerStatus: SvelteMap<
-	string,
-	'RUNNING' | 'STOPPED' | 'STARTING' | 'STOPPING' | 'UNKNOWN'
-> = new SvelteMap();
+export type ContainerStatus = 'RUNNING' | 'STOPPED' | 'STARTING' | 'STOPPING' | 'UNKNOWN';
+
+export const containerStatus: SvelteMap<string, ContainerStatus> = new SvelteMap();
+
+export type EngineMode = 'AUTO' | 'REACT' | 'WAIT';
 
 export const engineConfig: {
-	auto: boolean;
+	mode: EngineMode;
 } = $state({
-	auto: false
+	mode: 'AUTO'
 });
 
-export const lunaState = $state({
-	listening: false,
+export const engineState: {
+	thinking: boolean;
+	speaking: boolean;
+	waiting: boolean;
+} = $state({
 	thinking: false,
-	talking: false,
+	speaking: false,
 	waiting: true
 });
 
