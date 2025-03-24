@@ -53,6 +53,16 @@
 							</div>
 						</EngineCard>
 					</div>
+				{:else if page.id === 'stt-page'}
+					<div class="col-span-3 row-span-2">
+						<EngineCard title={page.name} bind:receiveInput={receiveInput.stt}>
+							<div class="whitespace-pre-wrap">
+								{#if serviceOutput.stt}
+									{serviceOutput.stt}
+								{/if}
+							</div>
+						</EngineCard>
+					</div>
 				{:else if page.id === 'tts-page'}
 					<div class="col-span-3 row-span-2">
 						<EngineCard title={page.name} bind:receiveInput={receiveInput.tts}>
@@ -84,16 +94,6 @@
 										{username}
 									</h4>
 									<audio controls src={audio?.url} class="w-full rounded-md"></audio>
-								{/if}
-							</div>
-						</EngineCard>
-					</div>
-				{:else if page.id === 'stt-page'}
-					<div class="col-span-3 row-span-2">
-						<EngineCard title={page.name} bind:receiveInput={receiveInput.stt}>
-							<div class="whitespace-pre-wrap">
-								{#if serviceOutput.stt}
-									{serviceOutput.stt}
 								{/if}
 							</div>
 						</EngineCard>

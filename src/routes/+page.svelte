@@ -40,6 +40,6 @@
 <DockerPage />
 <PromptPage />
 <LlmPage />
+<SttPage />
 <TtsPage />
 <DiscordPage />
-<SttPage />
