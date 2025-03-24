@@ -68,7 +68,6 @@ export async function generateResponse() {
 				break;
 			} else {
 				responseText.update((text) => text + decoder.decode(value, { stream: true }));
-				serviceOutput.llm = get(responseText); // Output stream chunks while generating
 			}
 		}
 		// Clean response when done
