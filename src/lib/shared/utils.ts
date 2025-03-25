@@ -36,15 +36,12 @@ export function cleanText(reasoning: boolean, text: string): string {
 		}
 	}
 
-	// Handle special characters before processing asterisks and quotes
-
 	// Replace double single quotes with regular quotes (will be handled by quote removal)
 	cleanedText = cleanedText.replace(/''/g, '"');
 
 	// Replace full width exclamation marks and periods with regular ones
 	cleanedText = cleanedText.replace(/\uff01/g, '!');
 	cleanedText = cleanedText.replace(/[\u2014\u2015\uFF0D]/g, '. ');
-
 	// Replace various tilde-like characters
 	cleanedText = cleanedText.replace(/[\u007E\uFF5E\u2053\u223C]/g, '..');
 	// Replace fancy quotes with regular quotes
@@ -53,16 +50,15 @@ export function cleanText(reasoning: boolean, text: string): string {
 	cleanedText = cleanedText.replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'");
 
 	// Replace enclosed asterisks with quotation marks
-	cleanedText = cleanedText.replace(/\*(.*?)\*/g, '"');
-
+	cleanedText = cleanedText.replace(/\*\*(.*?)\*\*/g, '"$1"');
 	// Remove remaining asterisks
 	cleanedText = cleanedText.replace(/\*/g, '');
 
-	// Remove quotation marks if entire text is quoted
-	cleanedText = cleanedText.replace(/["(.*?)"]/g, '');
-
-	// Remove "Luna: " prefix
+	// Remove Luna: prefix
 	cleanedText = cleanedText.replace(/^Luna: /, '');
+
+	// Remove quotation marks if remaining text is quoted
+	cleanedText = cleanedText.replace(/(^"|"$)/g, '');
 
 	// Remove emojis and other pictographic characters
 	cleanedText = cleanedText.replace(/\p{Extended_Pictographic}/gu, '');
