@@ -18,7 +18,7 @@
 		if (receiveInput.tts && serviceOutput.llm) {
 			text = normalizeTtsInput(
 				serviceOutput.llm,
-				selectedEngine === 'kokoro' ? '\u2014' : '\u2026' // em dash (—) : ellipsis (…)
+				selectedEngine === 'kokoro' ? '\u2014' : '. ' // em dash (—) : period (. )
 			);
 		}
 	});
