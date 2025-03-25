@@ -152,16 +152,16 @@
 			<input id="templateName" type="text" bind:value={$templateName} class="form-control" />
 		</div>
 
-		<!-- Main Prompt Template Section -->
+		<!-- System Prompt -->
 		<div class="form-group bg-bg-surface rounded-md">
-			<h3 class="text-text-muted mb-4 text-lg font-medium">Main Prompt Template</h3>
+			<h3 class="text-text-muted mb-4 text-lg font-medium">System Prompt</h3>
 			<textarea id="prompt-template" bind:value={$systemPrompt} rows="5" class="form-control"
 			></textarea>
 		</div>
 
 		<!-- Dynamic Prompts Section -->
 		<div class="form-group bg-bg-surface rounded-md">
-			<h3 class="text-text-muted mb-4 text-lg font-medium">Dynamic Prompts</h3>
+			<h3 class="text-text-muted mb-4 text-lg font-medium">Dynamic User Prompts</h3>
 
 			<!-- Add New Dynamic Prompt -->
 			<div class="form-group">
