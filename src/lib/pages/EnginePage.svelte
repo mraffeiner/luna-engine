@@ -73,8 +73,8 @@
 	});
 </script>
 
-<ContentPage name="engine-page">
-	<ServicePage serviceName="control-panel">
+<ContentPage name="home">
+	<ServicePage serviceName="luna-engine">
 		<div class="flex-start mb-4 gap-3">
 			<label class="mb-0! relative cursor-pointer">
 				<input type="checkbox" bind:checked={auto} class="peer sr-only" />
