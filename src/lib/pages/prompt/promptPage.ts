@@ -64,13 +64,14 @@ export function updateUserPromptSection(
 				}
 				if (append) {
 					// Remove oldest lines when limit is exceeded
-					if (prompt.limit > 0) {
-						const [staticContent, dynamicContent] = prompt.content.split('\n\n')[1];
-						const lines = dynamicContent.split('\n');
-						while (lines.join('\n').length > prompt.limit) {
+					if (prompt.limit > 0 && prompt.content.split('\n').length > 2) {
+						const [headline, ...lines] = prompt.content.split('\n');
+						let characters = lines.join('\n').length;
+						while (characters > prompt.limit) {
 							lines.shift();
+							characters = lines.join('\n').length;
 						}
-						prompt.content = staticContent + '\n\n' + lines.join('\n').trim() + content;
+						prompt.content = headline + '\n\n' + lines.join('\n').trim() + content;
 					} else {
 						prompt.content += content;
 					}

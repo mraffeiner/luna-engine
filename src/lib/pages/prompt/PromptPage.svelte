@@ -194,8 +194,8 @@
 							id="newUserPromptLimit"
 							type="range"
 							min="0"
-							max="8000"
-							step="100"
+							max="40000"
+							step="2000"
 							bind:value={newUserPromptLimit}
 						/>
 						<div class="text-text-disabled flex-between mt-2 px-1 text-base">
@@ -245,8 +245,8 @@
 											id="editPromptLimit"
 											type="range"
 											min="0"
-											max="8000"
-											step="100"
+											max="40000"
+											step="2000"
 											bind:value={editPromptLimit}
 										/>
 										<div class="text-text-disabled flex-between mt-2 px-1 text-base">
