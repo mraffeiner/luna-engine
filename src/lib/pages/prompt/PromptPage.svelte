@@ -24,11 +24,13 @@
 	// For adding new user prompts
 	let newUserPromptName: string = $state('');
 	let newUserPromptContent: string = $state('');
+	let newUserPromptLimit: number = $state(0);
 
 	// For editing user prompts
 	let editingPromptId: string | null = $state(null);
 	let editPromptName: string = $state('');
 	let editPromptContent: string = $state('');
+	let editPromptLimit: number = $state(0);
 
 	// For prompt deletion confirmation
 	let deletionConfirmationMode: boolean = $state(false);
@@ -71,20 +73,22 @@
 			return;
 		}
 
-		addUserPromptSection(newUserPromptName, newUserPromptContent);
+		addUserPromptSection(newUserPromptName, newUserPromptContent, newUserPromptLimit);
 		newUserPromptName = '';
 		newUserPromptContent = '';
+		newUserPromptLimit = 0;
 	}
 
 	function startEditingPrompt(section: UserPromptSection) {
 		editingPromptId = section.id;
 		editPromptName = section.name;
 		editPromptContent = section.content;
+		editPromptLimit = section.limit;
 	}
 
 	function saveEditingPrompt() {
 		if (editingPromptId) {
-			updateUserPromptSection(editingPromptId, editPromptName, editPromptContent);
+			updateUserPromptSection(editingPromptId, editPromptName, editPromptContent, editPromptLimit);
 			cancelEditingPrompt();
 		}
 	}
@@ -93,6 +97,7 @@
 		editingPromptId = null;
 		editPromptName = '';
 		editPromptContent = '';
+		editPromptLimit = 0;
 	}
 
 	function handleDeleteDynamicPrompt(id: string) {
@@ -112,13 +117,13 @@
 
 	$effect(() => {
 		if (receiveInput.prompt && serviceOutput.llm) {
-			updateUserPromptSection('conversation', null, `\nLuna: ${serviceOutput.llm}`, true);
+			updateUserPromptSection('conversation', null, `\nLuna: ${serviceOutput.llm}`, null, true);
 		}
 	});
 
 	$effect(() => {
 		if (receiveInput.prompt && serviceOutput.stt) {
-			updateUserPromptSection('conversation', null, `\n${serviceOutput.stt}`, true);
+			updateUserPromptSection('conversation', null, `\n${serviceOutput.stt}`, null, true);
 		}
 	});
 </script>
@@ -161,10 +166,10 @@
 			<!-- Add New Dynamic Prompt -->
 			<div class="form-group">
 				<div class="form-group">
-					<label for="newDynamicName">Name:</label>
+					<label for="newUserPromptName">Name:</label>
 					<input
 						type="text"
-						id="newDynamicName"
+						id="newUserPromptName"
 						bind:value={newUserPromptName}
 						class="form-control"
 						placeholder="Enter prompt name"
@@ -172,14 +177,33 @@
 				</div>
 
 				<div class="form-group">
-					<label for="newDynamicContent">Content:</label>
+					<label for="newUserPromptContent">Content:</label>
 					<textarea
-						id="newDynamicContent"
+						id="newUserPromptContent"
 						bind:value={newUserPromptContent}
 						rows="3"
 						class="form-control"
 						placeholder="Enter prompt content"
 					></textarea>
+				</div>
+
+				<div class="form-group">
+					<label for="newUserPromptLimit">Character Limit:</label>
+					<div class="relative mt-1 px-1">
+						<input
+							id="newUserPromptLimit"
+							type="range"
+							min="0"
+							max="8000"
+							step="100"
+							bind:value={newUserPromptLimit}
+						/>
+						<div class="text-text-disabled flex-between mt-2 px-1 text-base">
+							<span>Min</span>
+							<span class="text-text-subtle px-2 py-1 font-semibold">{newUserPromptLimit}</span>
+							<span>Max</span>
+						</div>
+					</div>
 				</div>
 
 				<button onclick={handleAddUserPrompt} class="btn-success">Add Dynamic Prompt</button>
@@ -212,6 +236,27 @@
 										rows="3"
 										class="form-control"
 									></textarea>
+								</div>
+
+								<div class="form-group">
+									<label for="editPromptLimit">Character Limit:</label>
+									<div class="relative mt-1 px-1">
+										<input
+											id="editPromptLimit"
+											type="range"
+											min="0"
+											max="8000"
+											step="100"
+											bind:value={editPromptLimit}
+										/>
+										<div class="text-text-disabled flex-between mt-2 px-1 text-base">
+											<span>Min</span>
+											<span class="text-text-subtle px-2 py-1 font-semibold">
+												{editPromptLimit}
+											</span>
+											<span>Max</span>
+										</div>
+									</div>
 								</div>
 
 								<div class="flex items-center">

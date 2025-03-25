@@ -7,6 +7,7 @@ export interface UserPromptSection {
 	id: string;
 	name: string;
 	content: string;
+	limit: number;
 }
 
 // Interface for prompt template
@@ -35,20 +36,21 @@ userPromptSections.subscribe((sections) => {
 });
 
 // Functions for managing user prompt sections
-export function addUserPromptSection(name: string, content: string): void {
+export function addUserPromptSection(name: string, content: string, limit: number): void {
 	if (!name) {
 		serviceError.set('Please enter a name for the dynamic prompt.');
 		return;
 	}
 
 	const id = name.toLowerCase().trim().replace(/ /g, '-');
-	userPromptSections.update((prompts) => [...prompts, { id, name, content }]);
+	userPromptSections.update((prompts) => [...prompts, { id, name, content, limit }]);
 }
 
 export function updateUserPromptSection(
 	id: string,
 	name: string | null,
-	content: string,
+	content: string | null,
+	limit: number | null,
 	append: boolean = false
 ): void {
 	userPromptSections.update((prompts) => {
@@ -57,9 +59,22 @@ export function updateUserPromptSection(
 				if (name) {
 					prompt.name = name;
 				}
+				if (limit) {
+					prompt.limit = limit;
+				}
 				if (append) {
-					prompt.content += content;
-				} else {
+					// Remove oldest lines when limit is exceeded
+					if (prompt.limit > 0) {
+						const [staticContent, dynamicContent] = prompt.content.split('\n\n')[1];
+						const lines = dynamicContent.split('\n');
+						while (lines.join('\n').length > prompt.limit) {
+							lines.shift();
+						}
+						prompt.content = staticContent + '\n\n' + lines.join('\n').trim() + content;
+					} else {
+						prompt.content += content;
+					}
+				} else if (content) {
 					prompt.content = content;
 				}
 			}
