@@ -1,5 +1,5 @@
 import { serviceOutput } from '$lib/shared/shared.svelte';
-import { cleanText } from '$lib/shared/utils';
+import { normalizeLlmResponse } from '$lib/shared/utils';
 import { get, writable } from 'svelte/store';
 import { serviceError } from '../docker/dockerService';
 
@@ -71,7 +71,11 @@ export async function generateResponse() {
 				}
 			}
 			// Clean response when done
-			serviceOutput.llm = cleanText(get(selectedLlm).isReasoning, get(responseText));
+			serviceOutput.llm = normalizeLlmResponse(
+				get(responseText),
+				get(selectedLlm).isReasoning,
+				'Luna:'
+			);
 		} else {
 			serviceError.set(`Error generating response: ${response.status} ${response.statusText}`);
 		}

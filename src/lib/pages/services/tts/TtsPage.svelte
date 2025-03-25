@@ -9,13 +9,14 @@
 	import KokoroTtsForm from './KokoroTtsForm.svelte';
 	import SesameTtsForm from './SesameTtsForm.svelte';
 	import { fetchTtsOptions, ttsAudioUrl, ttsOptions } from './ttsService';
+	import { normalizeTtsInput } from '$lib/shared/utils';
 
 	let selectedEngine = $state('kokoro');
 	let text = $state('Hey there, hello!');
 
 	$effect(() => {
 		if (receiveInput.tts && serviceOutput.llm) {
-			text = serviceOutput.llm;
+			text = normalizeTtsInput(serviceOutput.llm, selectedEngine === 'kokoro' ? '...' : '.');
 		}
 	});
 
