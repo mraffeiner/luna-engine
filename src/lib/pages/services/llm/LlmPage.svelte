@@ -74,16 +74,31 @@
 				</select>
 			</div>
 
-			<div class="form-group">
-				<label for="systemPrompt">System Prompt</label>
-				<textarea id="systemPrompt" bind:value={systemPrompt} rows="3" class="form-control"
-				></textarea>
-			</div>
-
-			<div class="form-group">
-				<label for="prompt">User Prompt</label>
-				<textarea id="prompt" bind:value={userPrompt} rows="4" class="form-control"></textarea>
-			</div>
+			{#if receiveInput.llm}
+				<div class="form-group">
+					<label for="systemPrompt">System Prompt</label>
+					<textarea id="systemPrompt" rows="4" class="form-control" disabled
+						>{serviceOutput.prompt.system.trim()}</textarea
+					>
+				</div>
+				<div class="form-group">
+					<label for="userPrompt">User Prompt</label>
+					<textarea id="userPrompt" rows="4" class="form-control" disabled
+						>{serviceOutput.prompt.user.trim()}</textarea
+					>
+				</div>
+			{:else}
+				<div class="form-group">
+					<label for="systemPrompt">System Prompt</label>
+					<textarea id="systemPrompt" bind:value={systemPrompt} rows="3" class="form-control"
+					></textarea>
+				</div>
+				<div class="form-group">
+					<label for="userPrompt">User Prompt</label>
+					<textarea id="userPrompt" bind:value={userPrompt} rows="4" class="form-control"
+					></textarea>
+				</div>
+			{/if}
 
 			<div>
 				<button onclick={generateResponse} disabled={$loading} class="btn-primary">
