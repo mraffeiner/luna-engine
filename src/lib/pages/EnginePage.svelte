@@ -48,7 +48,7 @@
 	$effect(() => {
 		if (engineConfig.mode !== 'REACT' || busy) return;
 
-		if (serviceOutput.stt) {
+		if (receiveInput.prompt && serviceOutput.stt) {
 			// Tick to ensure prompt received stt output first
 			tick().then(() => {
 				engineState.thinking = true;
