@@ -16,7 +16,7 @@
 	let voice = $state('af_nicole');
 	let useVoiceMix = $state(true);
 	let voiceMix: { voice: string; weight: number }[] = $state([
-		{ voice: 'af_nicole', weight: 2.5 },
+		{ voice: 'af_nicole', weight: 3 },
 		{ voice: 'am_echo', weight: 1.0 },
 		{ voice: 'jf_alpha', weight: 1.0 },
 		{ voice: 'zf_xiaoxiao', weight: 0.5 }
