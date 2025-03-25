@@ -2,10 +2,6 @@ export function asyncSleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function escapeRegex(str: string): string {
-	return str.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-}
-
 export function normalizeText(text: string): string {
 	if (!text) return text;
 
@@ -65,7 +61,7 @@ export function normalizeTtsInput(text: string, pauseChar: string = '—') {
 	//  • Asterisk: *
 	//  • Ellipsis variants: three or more periods, Unicode ellipsis, midline ellipsis,
 	//    or three or more fullwidth periods.
-	//  • Dash/Tilde variants: ASCII hyphen, en dash, em dash, fullwidth hyphen,
+	//  • Dash/Tilde variants: en dash, em dash, fullwidth hyphen,
 	//    ASCII tilde, modifier letter small tilde, tilde operator, fullwidth tilde.
 	const pauseIndicatorsRegex = new RegExp(
 		[
@@ -74,14 +70,20 @@ export function normalizeTtsInput(text: string, pauseChar: string = '—') {
 			'[\u2026]', // Unicode ellipsis (…)
 			'[\u22EF]', // midline horizontal ellipsis (⋯)
 			'[\uFF0E]{3,}', // three or more fullwidth periods
-			'[\u002D\u2013\u2014\uFF0D]', // hyphen variants: ASCII hyphen, en dash, em dash, fullwidth hyphen
+			'[\u2013\u2014\uFF0D]', // dash variants: en dash, em dash, fullwidth hyphen
 			'[\u007E\u02DC\u223C\uFF5E]' // tilde variants: ASCII tilde, modifier letter small tilde, tilde operator, fullwidth tilde
 		].join('|'),
 		'g'
 	);
 
+	// Add a negative lookahead and lookbehind to avoid replacing hyphens between words
+	const wordHyphenRegex = /(?<!\w)-(?!\w)/g; // Matches hyphens not between words
+
 	// Replace every occurrence of any pause indicator with the desired pause character.
 	text = text.replace(pauseIndicatorsRegex, pauseChar);
+
+	// Replace isolated hyphens (not between words) with the pause character
+	text = text.replace(wordHyphenRegex, pauseChar);
 
 	// Collapse any sequences of the pause character (possibly with whitespace between) into a single instance.
 	const escapedPause = escapeRegex(pauseChar);
@@ -89,4 +91,8 @@ export function normalizeTtsInput(text: string, pauseChar: string = '—') {
 	text = text.replace(collapseRegex, pauseChar);
 
 	return text;
+}
+
+function escapeRegex(string: string) {
+	return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
