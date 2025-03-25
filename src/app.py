@@ -116,7 +116,11 @@ async def transcribe_with_openai(audio_path: str, model: str = "whisper-1") -> s
     try:
         with open(audio_path, "rb") as audio_file:
             result = openai.audio.transcriptions.create(
-                model=model, file=audio_file, language="en", response_format="json"
+                model=model,
+                file=audio_file,
+                language="en",
+                response_format="json",
+                prompt="Transcribe all verbalized filler words like 'um,' 'uh,' and 'like' exactly as spoken, preserving speech patterns including pauses and repetitions or even complete silence with *silence* or noise with *noise*",
             )
         logger.info(f"OpenAI transcription successful with model {model}")
         return result.text
@@ -133,7 +137,11 @@ async def transcribe_with_groq(audio_path: str, model: str = "whisper-large-v3")
     try:
         with open(audio_path, "rb") as audio_file:
             result = groq_client.audio.transcriptions.create(
-                model=model, file=audio_file, language="en", response_format="json"
+                model=model,
+                file=audio_file,
+                language="en",
+                response_format="json",
+                prompt="Transcribe all verbalized filler words like 'um,' 'uh,' and 'like' exactly as spoken, preserving speech patterns including pauses and repetitions or even complete silence with *silence* or noise with *noise*",
             )
         logger.info(f"Groq transcription successful with model {model}")
         return result.text
