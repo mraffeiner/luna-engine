@@ -52,6 +52,7 @@
 			// Tick to ensure prompt received stt output first
 			tick().then(() => {
 				engineState.thinking = true;
+				serviceOutput.stt = ''; // Prevent reacting to previous input
 				generateResponse().then(() => {
 					generateSpeech().then(() => {
 						engineState.speaking = true;
