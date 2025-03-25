@@ -19,7 +19,7 @@
 	import { receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
 
 	let templateNames: string[] = $state(listTemplateNames());
-	let selectedTemplate: string = $state('Luna Thinking');
+	let selectedTemplate: string = $state('Luna Comfy');
 
 	// For adding new user prompts
 	let newUserPromptName: string = $state('');
