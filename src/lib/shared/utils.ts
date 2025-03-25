@@ -45,15 +45,24 @@ export function cleanText(reasoning: boolean, text: string): string {
 	cleanedText = cleanedText.replace(/\uff01/g, '!');
 	cleanedText = cleanedText.replace(/[\u2014\u2015\uFF0D]/g, '. ');
 
-	// Replace other special characters
-	cleanedText = cleanedText.replace(/[\u007E\uFF5E\u2053\u223C]/g, '..'); // Replace various tilde-like characters
-	cleanedText = cleanedText.replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"'); // Replace fancy quotes with regular quotes
-	cleanedText = cleanedText.replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'"); // Replace fancy apostrophes with regular ones
+	// Replace various tilde-like characters
+	cleanedText = cleanedText.replace(/[\u007E\uFF5E\u2053\u223C]/g, '..');
+	// Replace fancy quotes with regular quotes
+	cleanedText = cleanedText.replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"');
+	// Replace fancy apostrophes with regular ones
+	cleanedText = cleanedText.replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'");
 
-	cleanedText = cleanedText.replace(/\*/g, ''); // Remove asterisks
+	// Replace enclosed asterisks with quotation marks
+	cleanedText = cleanedText.replace(/\*(.*?)\*/g, '"');
 
-	// Remove various quotation marks (straight and smart quotes)
-	cleanedText = cleanedText.replace(/[“”"']/g, '');
+	// Remove remaining asterisks
+	cleanedText = cleanedText.replace(/\*/g, '');
+
+	// Remove quotation marks if entire text is quoted
+	cleanedText = cleanedText.replace(/["(.*?)"]/g, '');
+
+	// Remove "Luna: " prefix
+	cleanedText = cleanedText.replace(/^Luna: /, '');
 
 	// Remove emojis and other pictographic characters
 	cleanedText = cleanedText.replace(/\p{Extended_Pictographic}/gu, '');
