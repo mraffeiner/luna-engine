@@ -50,8 +50,7 @@ export function cleanText(reasoning: boolean, text: string): string {
 	cleanedText = cleanedText.replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"'); // Replace fancy quotes with regular quotes
 	cleanedText = cleanedText.replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'"); // Replace fancy apostrophes with regular ones
 
-	// Remove text enclosed in slashes, e.g., /whispers/
-	cleanedText = cleanedText.replace(/\/[^/]+\//g, '');
+	cleanedText = cleanedText.replace(/\*/g, ''); // Remove asterisks
 
 	// Remove various quotation marks (straight and smart quotes)
 	cleanedText = cleanedText.replace(/[“”"']/g, '');
