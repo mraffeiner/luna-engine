@@ -66,7 +66,7 @@ export const discordService = {
 		};
 	},
 
-	async playAudio(audioBlob: Blob): Promise<void> {
+	playAudio(audioBlob: Blob): Promise<void> {
 		if (!audioWebSocket) {
 			throw new Error('WebSocket not connected');
 		}
