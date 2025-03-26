@@ -95,6 +95,41 @@
 				></div>
 			</label>
 			<span class="text-text-subtle text-lg font-bold">{auto ? 'Auto' : 'React'}</span>
+			<div class="text-md ml-2 flex items-center gap-2">
+				{#if !busy && engineConfig.mode !== 'AUTO' && !engineState.hasNewMessages}
+					<span
+						class="text-text-muted animate-pulse font-semibold transition-colors"
+						title="Waiting"
+					>
+						Waiting
+					</span>
+				{:else}
+					<span
+						class="font-semibold transition-colors {engineState.thinking
+							? 'text-primary-light animate-pulse'
+							: 'text-text-disabled'}"
+						title="Thinking"
+					>
+						Thinking
+					</span>
+					<span
+						class="font-semibold transition-colors {engineState.speaking
+							? 'text-primary-light animate-pulse'
+							: 'text-text-disabled'}"
+						title="Speaking"
+					>
+						Speaking
+					</span>
+					<span
+						class="font-semibold transition-colors {engineState.paused
+							? 'text-primary-light animate-pulse'
+							: 'text-text-disabled'}"
+						title="Paused"
+					>
+						Paused
+					</span>
+				{/if}
+			</div>
 		</div>
 
 		<div class="grid grid-cols-8 grid-rows-9 gap-4">
