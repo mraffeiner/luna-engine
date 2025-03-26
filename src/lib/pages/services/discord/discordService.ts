@@ -3,6 +3,7 @@ import { serviceError } from '$lib/pages/services/docker/dockerService';
 const API_BASE_URL = '/api/discord';
 
 let audioWebSocket: WebSocket | null = null;
+let resolvePlaybackComplete: () => void = () => {};
 
 export const discordService = {
 	async connect(guildId: string, channelId: string): Promise<boolean> {
@@ -36,15 +37,22 @@ export const discordService = {
 		audioWebSocket.binaryType = 'arraybuffer';
 
 		audioWebSocket.onmessage = (event: MessageEvent) => {
-			// Extract username and audio blob
-			const dataView = new DataView(event.data);
-			const usernameLength = dataView.getUint32(0, false);
-			const usernameBytes = new Uint8Array(event.data, 4, usernameLength);
-			const username = new TextDecoder().decode(usernameBytes);
-			const audioData = new Uint8Array(event.data, 4 + usernameLength);
-			const audioBlob = new Blob([audioData], { type: 'audio/wav' });
+			if (event.data instanceof ArrayBuffer) {
+				// Extract username and audio blob
+				const dataView = new DataView(event.data);
+				const usernameLength = dataView.getUint32(0, false);
+				const usernameBytes = new Uint8Array(event.data, 4, usernameLength);
+				const username = new TextDecoder().decode(usernameBytes);
+				const audioData = new Uint8Array(event.data, 4 + usernameLength);
+				const audioBlob = new Blob([audioData], { type: 'audio/wav' });
 
-			onAudioReceived(username, audioBlob);
+				onAudioReceived(username, audioBlob);
+			} else if (typeof event.data === 'string') {
+				const message = JSON.parse(event.data);
+				if (message.type === 'playback_complete') {
+					resolvePlaybackComplete();
+				}
+			}
 		};
 
 		audioWebSocket.onclose = () => {
@@ -56,6 +64,20 @@ export const discordService = {
 			serviceError.set('WebSocket error: ' + String(event));
 			audioWebSocket = null;
 		};
+	},
+
+	async playAudio(audioBlob: Blob): Promise<void> {
+		if (!audioWebSocket) {
+			throw new Error('WebSocket not connected');
+		}
+
+		audioWebSocket.send(audioBlob);
+		return new Promise((resolve, reject) => {
+			resolvePlaybackComplete = resolve;
+			setTimeout(() => {
+				reject(new Error('Playback timeout'));
+			}, 60000);
+		});
 	},
 
 	async disconnect(): Promise<boolean> {

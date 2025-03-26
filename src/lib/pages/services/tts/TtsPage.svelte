@@ -2,7 +2,7 @@
 	import Card from '$lib/components/Card.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import ContentPage from '$lib/pages/ContentPage.svelte';
-	import { engineState, receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
+	import { receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
 	import { onMount } from 'svelte';
 	import ServicePage from '../ServicePage.svelte';
 	import AzureTtsForm from './AzureTtsForm.svelte';
@@ -71,11 +71,8 @@
 							Generated Audio
 						</h4>
 						<audio
-							onended={() => {
-								engineState.speaking = false;
-							}}
 							controls
-							autoplay={true}
+							autoplay={!receiveInput.discord}
 							src={$ttsAudioUrl}
 							class="w-full rounded-md"
 						></audio>
