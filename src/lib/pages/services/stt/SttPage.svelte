@@ -6,7 +6,7 @@
 	import { onMount } from 'svelte';
 	import { serviceError } from '../docker/dockerService';
 	import ServicePage from '../ServicePage.svelte';
-	import { transcribeAudio, fetchSttModels, sttModels, sttStatus } from './sttService';
+	import { transcribeAudio, fetchSttModels, sttModels, loading } from './sttService';
 
 	let mediaRecorder: MediaRecorder | null = $state(null);
 	let audioChunks: Blob[] = $state([]);
@@ -156,24 +156,20 @@
 		}
 	}
 
-	const isTranscribing = $derived($sttStatus === 'transcribing');
-
 	$effect(() => {
 		if (receiveInput.stt && serviceOutput.discord) {
 			const [username, audio] = [...serviceOutput.discord.entries()].pop() ?? [];
 			if (audio && audio.blob) {
-				(async () => {
-					await handleTranscribeAudio(audio.blob, username + ': ');
-				})();
+				handleTranscribeAudio(audio.blob, username + ': ');
 			}
 		}
-		return () => cleanup;
+		return () => {
+			cleanup();
+		};
 	});
 
-	onMount(() => {
-		(async () => {
-			await loadModels();
-		})();
+	onMount(async () => {
+		await loadModels();
 	});
 </script>
 
@@ -228,7 +224,7 @@
 			<div class="mt-6">
 				<button
 					onclick={() => (isRecording ? stopRecording() : recordAudio())}
-					disabled={isTranscribing}
+					disabled={$loading}
 					class="btn-primary"
 				>
 					{isRecording ? 'Stop Recording' : 'Start Recording'}
@@ -241,7 +237,7 @@
 					</div>
 				{/if}
 
-				{#if isTranscribing}
+				{#if $loading}
 					<div class="flex-start mt-6">
 						<Spinner class="text-text-base icon-lg mr-2" />
 						<span class="text-text-muted text-sm">Transcribing...</span>

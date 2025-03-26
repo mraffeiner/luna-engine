@@ -81,6 +81,8 @@ export async function generateResponse() {
 		}
 	} catch (error) {
 		serviceError.set(`Error generating response: ${error}`);
+		throw error;
+	} finally {
+		loading.set(false);
 	}
-	loading.set(false);
 }

@@ -46,10 +46,8 @@
 		}
 	});
 
-	onMount(() => {
-		(async () => {
-			await fetchModels();
-		})();
+	onMount(async () => {
+		await fetchModels();
 	});
 </script>
 

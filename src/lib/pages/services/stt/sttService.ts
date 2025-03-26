@@ -11,7 +11,7 @@ export interface SttModel {
 }
 
 // Shared stores
-export const sttStatus = writable<'idle' | 'recording' | 'transcribing'>('idle');
+export const loading = writable(false);
 export const sttModels = writable<SttModel[]>([]);
 
 /**
@@ -59,7 +59,7 @@ export async function transcribeAudio(
 	model: string = 'whisper-large-v3'
 ): Promise<string | null> {
 	try {
-		sttStatus.set('transcribing');
+		loading.set(true);
 
 		// Create a FormData object and append the audio blob and model
 		const formData = new FormData();
@@ -75,7 +75,6 @@ export async function transcribeAudio(
 		// Handle the response
 		if (response.ok) {
 			const data: SttResponse = await response.json();
-			sttStatus.set('idle');
 			return data.text;
 		} else {
 			// Try to get more detailed error information
@@ -89,13 +88,13 @@ export async function transcribeAudio(
 
 			const errorMsg = `Error transcribing audio: ${response.status} ${errorDetail}`;
 			serviceError.set(errorMsg);
-			sttStatus.set('idle');
 			return null;
 		}
 	} catch (error) {
 		const errorMsg = `Error transcribing audio: ${error instanceof Error ? error.message : String(error)}`;
 		serviceError.set(errorMsg);
-		sttStatus.set('idle');
 		return null;
+	} finally {
+		loading.set(false);
 	}
 }

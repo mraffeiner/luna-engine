@@ -103,6 +103,8 @@ export async function generateSpeech() {
 		}
 	} catch (error) {
 		serviceError.set(`Error generating speech: ${error}`);
+		throw error;
+	} finally {
+		loading.set(false);
 	}
-	loading.set(false);
 }
