@@ -6,25 +6,37 @@ import {
   ChannelType,
 } from "discord.js";
 import {
+  AudioPlayer,
   AudioReceiveStream,
+  createAudioPlayer,
+  createAudioResource,
+  EndBehaviorType,
   joinVoiceChannel,
+  NoSubscriberBehavior,
   VoiceConnection,
 } from "@discordjs/voice";
-import { opus } from "prism-media";
 import { Buffer } from "node:buffer";
-
+import { spawn } from "node:child_process";
+import { Transform } from "node:stream";
 import { createRequire } from "node:module";
+import { Readable } from "node:stream";
+
 const require = createRequire(import.meta.url);
-const wave = require("wavefile");
+const { OpusEncoder } = require("@discordjs/opus");
 
 log.setup({
   handlers: {
     console: new log.ConsoleHandler("INFO", {
       useColors: false,
-      formatter: (record: log.LogRecord) =>
-        `[${record.datetime.toISOString()}] - ${record.levelName}: ${
+      formatter: (record: log.LogRecord) => {
+        const extra =
+          record.args && record.args.length > 0
+            ? " " + record.args.map(String).join(" ")
+            : "";
+        return `[${record.datetime.toISOString()}] - ${record.levelName}: ${
           record.msg
-        }`,
+        }${extra}`;
+      },
     }),
   },
 
@@ -48,10 +60,10 @@ const client = new Client({
 });
 
 let connection: VoiceConnection | null = null;
+let audioPlayer: AudioPlayer | null = null;
 let audioWebSocket: WebSocket | null = null;
-const activeStreams = new Map();
-const speakingTimeouts = new Map<string, number>();
-const GRACE_PERIOD_MS = 500;
+
+const activeStreams = new Map<string, AudioReceiveStream>();
 
 client.on("ready", () => {
   logger.info(`Logged in as ${client.user?.tag}!`);
@@ -79,6 +91,19 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
     throw new Error("Invalid channel ID: Not a voice channel");
   }
 
+  audioPlayer = createAudioPlayer({
+    behaviors: {
+      noSubscriber: NoSubscriberBehavior.Pause,
+    },
+  });
+
+  audioPlayer.on("stateChange", (_, newState) => {
+    logger.info("Audio player state changed:", newState.status);
+    if (newState.status === "idle") {
+      audioWebSocket?.send(JSON.stringify({ type: "playback_complete" }));
+    }
+  });
+
   connection = joinVoiceChannel({
     channelId: channel.id,
     guildId: channel.guild.id,
@@ -86,102 +111,139 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
     selfMute: false,
     adapterCreator: (channel as VoiceChannel).guild.voiceAdapterCreator,
   });
+
+  connection.subscribe(audioPlayer);
   logger.info(
     `Connected to voice channel ${channel.name} in guild ${guild.name}`
   );
 
-  let pcmData: Buffer[] = [];
+  // Set your audio configuration (Discord typically sends mono audio)
+  const SAMPLE_RATE = 48000;
+  const CHANNELS = 1;
 
   connection.receiver.speaking.on("start", async (userId) => {
-    const user = await client.users.fetch(userId);
-    const username = user.displayName;
-    logger.info(`${username} started speaking`);
+    try {
+      const user = await client.users.fetch(userId);
+      const username = user.displayName;
+      logger.info(`${username} started speaking`);
 
-    // Clear any existing timeout for this user
-    if (speakingTimeouts.has(userId)) {
-      clearTimeout(speakingTimeouts.get(userId));
-      speakingTimeouts.delete(userId);
-      logger.info(`${username} continued speaking within grace period`);
-    } else {
-      // Only create a new stream if this is not a continuation within grace period
+      // Clear any existing timeout for this user
       if (!connection) {
         logger.error("Connection is null when user started speaking.");
         return;
       }
 
-      const stream: AudioReceiveStream = connection.receiver.subscribe(userId);
-      activeStreams.set(userId, stream);
+      if (activeStreams.has(userId) && activeStreams.get(userId)) {
+        logger.info(
+          `${username} started speaking during active stream. No action taken.`
+        );
+        return;
+      }
 
-      const decoder = new opus.Decoder({
-        channels: 2,
-        frameSize: 960,
-        rate: 48000,
+      // Start new opus stream for user
+      const opusStream = connection.receiver.subscribe(userId, {
+        end: {
+          behavior: EndBehaviorType.AfterSilence,
+          duration: 500,
+        },
+      });
+      activeStreams.set(userId, opusStream);
+
+      // Initialize the Opus decoder
+      const opusCodec = new OpusEncoder(SAMPLE_RATE, CHANNELS);
+      const opusToPCM = new Transform({
+        transform(chunk, _encoding, callback) {
+          try {
+            const pcmData = opusCodec.decode(chunk);
+            callback(null, pcmData);
+          } catch (err) {
+            if (err instanceof Error) {
+              callback(err);
+            } else {
+              callback(new Error("Unknown Error"));
+            }
+          }
+        },
       });
 
-      stream.pipe(decoder);
-      decoder.on("data", (chunk) => {
-        pcmData.push(chunk);
+      // Spawn ffmpeg to convert raw PCM to WAV
+      const ffmpeg = spawn("ffmpeg", [
+        "-loglevel",
+        "error",
+        "-f",
+        "s16le",
+        "-ar",
+        SAMPLE_RATE.toString(),
+        "-ac",
+        CHANNELS.toString(),
+        "-i",
+        "pipe:0",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "wav",
+        "pipe:1",
+      ]);
+
+      // Pipe the Opus stream through the decoder and into ffmpeg
+      opusStream.pipe(opusToPCM).pipe(ffmpeg.stdin);
+
+      // Collect the WAV data chunks
+      const wavChunks: Buffer[] = [];
+      ffmpeg.stdout.on("data", (chunk) => {
+        wavChunks.push(chunk);
+        logger.info(
+          `ffmpeg out chunk size: ${chunk.length} total chunks: ${wavChunks.length}`
+        );
       });
+
+      // Log any ffmpeg errors
+      ffmpeg.stderr.on("data", (data) => {
+        logger.error(`ffmpeg stderr: ${data}`);
+      });
+
+      // When the session is complete, end the ffmpeg input to finalize the WAV file.
+      opusStream.on("end", () => {
+        logger.info(`Opus stream for ${username} ended, closing ffmpeg`);
+        ffmpeg.stdin.end();
+      });
+
+      // Finalize and process audio buffer
+      ffmpeg.on("close", (code) => {
+        if (code !== 0) {
+          logger.error(`ffmpeg exited with code ${code}`);
+        } else {
+          logger.info(
+            `Stream finished, processing ${wavChunks.length} chunks for ${username}`
+          );
+          const finalBuffer = Buffer.concat(wavChunks);
+          processAudio(username, finalBuffer);
+          logger.info(
+            `Finished processing audio for ${username}, final buffer size: ${finalBuffer.length}`
+          );
+          activeStreams.get(userId)?.destroy();
+          activeStreams.delete(userId);
+        }
+      });
+    } catch (error) {
+      logger.error("Error processing audio:", error);
     }
   });
 
   connection.receiver.speaking.on("end", async (userId) => {
     const user = await client.users.fetch(userId);
     const username = user.displayName;
-    logger.info(
-      `${username} stopped speaking, waiting for grace period of ${GRACE_PERIOD_MS}ms`
-    );
-
-    // Set a timeout for the grace period
-    const timeoutId = setTimeout(() => {
-      // Process audio only after grace period expires
-      processAudio(userId, username, pcmData);
-
-      // Clean up
-      activeStreams.get(userId)?.destroy();
-      activeStreams.delete(userId);
-      speakingTimeouts.delete(userId);
-      pcmData = [];
-    }, GRACE_PERIOD_MS);
-
-    // Store the timeout ID
-    speakingTimeouts.set(userId, timeoutId);
+    logger.info(`${username} stopped speaking`);
   });
 
   // Function to process audio data and send it to the WebSocket
-  function processAudio(
-    _userId: string,
-    username: string,
-    audioData: Buffer[]
-  ) {
-    if (audioData.length === 0) {
-      logger.info(`No audio data to process for ${username}`);
-      return;
-    }
-
-    const concatenatedPcmData = Buffer.concat(audioData);
-
-    // Deinterleave stereo pcm data
-    const totalFrames = concatenatedPcmData.length / 4;
-    const leftChannel = new Int16Array(totalFrames);
-    const rightChannel = new Int16Array(totalFrames);
-    for (let i = 0; i < totalFrames; i++) {
-      // For each frame, read 2 bytes for left and 2 bytes for right.
-      leftChannel[i] = concatenatedPcmData.readInt16LE(i * 4);
-      rightChannel[i] = concatenatedPcmData.readInt16LE(i * 4 + 2);
-    }
-
-    // Convert to wav
-    const wav = new wave.WaveFile();
-    wav.fromScratch(2, 48000, "16", [leftChannel, rightChannel]);
-
+  function processAudio(username: string, audioBuffer: Buffer) {
     if (audioWebSocket?.readyState === WebSocket.OPEN) {
       // Encode username as UTF-8 bytes
       const usernameBytes = new TextEncoder().encode(username);
       const usernameLength = usernameBytes.length;
 
       // Create a buffer to hold username length, username, and audio data
-      const audioBuffer = wav.toBuffer();
       const combinedBuffer = new Uint8Array(
         4 + usernameLength + audioBuffer.length
       );
@@ -204,14 +266,32 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
   }
 }
 
+function playAudio(audioBuffer: ArrayBuffer) {
+  if (!audioPlayer || !connection) {
+    logger.error("No active voice connection");
+    return;
+  }
+
+  if (audioPlayer.state.status !== "idle") {
+    audioPlayer.stop();
+  }
+
+  const stream = Readable.from([new Uint8Array(audioBuffer)]);
+
+  // Create an audio resource from ffmpeg's stdout
+  const resource = createAudioResource(stream);
+  audioPlayer.play(resource);
+}
+
 function disconnectFromVoiceChannel() {
   if (connection) {
-    // Clear all pending timeouts
-    for (const [userId, timeoutId] of speakingTimeouts.entries()) {
-      clearTimeout(timeoutId);
-      logger.info(`Cleared pending timeout for user ${userId}`);
-    }
-    speakingTimeouts.clear();
+    activeStreams.forEach((stream) => {
+      stream.destroy();
+    });
+    activeStreams.clear();
+    audioPlayer?.stop();
+    audioPlayer?.removeAllListeners();
+    audioPlayer = null;
 
     connection.destroy();
     connection = null;
@@ -245,6 +325,18 @@ function handleWebSocket(request: Request) {
 
   audioWebSocket.onmessage = (event: MessageEvent) => {
     logger.info("Received message from WebSocket client:", event.data);
+    if (event.data instanceof ArrayBuffer) {
+      try {
+        playAudio(event.data);
+      } catch (error) {
+        logger.error("Error trying to play received buffer:", error);
+      }
+    } else {
+      logger.error(
+        "Received unsupported data from WebSocket client:",
+        event.data
+      );
+    }
   };
 
   audioWebSocket.onclose = () => {
