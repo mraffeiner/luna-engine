@@ -56,10 +56,10 @@ export function updateUserPromptSection(
 	userPromptSections.update((prompts) => {
 		const updatedPrompts = prompts.map((prompt) => {
 			if (prompt.id === id) {
-				if (name) {
+				if (name && name !== '') {
 					prompt.name = name;
 				}
-				if (limit) {
+				if (limit && limit >= 0) {
 					prompt.limit = limit;
 				}
 				if (append) {
@@ -87,6 +87,18 @@ export function updateUserPromptSection(
 
 export function deleteUserPromptSection(id: string): void {
 	userPromptSections.update((prompts) => prompts.filter((p) => p.id !== id));
+}
+
+export function clearDynamicPromptContent(): void {
+	userPromptSections.update((prompts) => {
+		const updatedPrompts = prompts.map((prompt) => {
+			if (prompt.content.split('\n').length > 2) {
+				prompt.content = prompt.content.split('\n')[0] + '\n\n';
+			}
+			return prompt;
+		});
+		return updatedPrompts;
+	});
 }
 
 // Functions for managing prompt templates
