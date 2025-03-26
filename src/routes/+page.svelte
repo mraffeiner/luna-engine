@@ -1,6 +1,7 @@
 <script lang="ts">
 	import EnginePage from '$lib/pages/EnginePage.svelte';
 	import PromptPage from '$lib/pages/prompt/PromptPage.svelte';
+	import ChatPage from '$lib/pages/services/chat/ChatPage.svelte';
 	import DiscordPage from '$lib/pages/services/discord/DiscordPage.svelte';
 	import DockerPage from '$lib/pages/services/docker/DockerPage.svelte';
 	import { dockerService } from '$lib/pages/services/docker/dockerService';
@@ -37,5 +38,6 @@
 <SttPage />
 <TtsPage />
 <DiscordPage />
+<ChatPage />
 <!-- Load last to ensure all other pages are fully loaded before engine starts -->
 <EnginePage />

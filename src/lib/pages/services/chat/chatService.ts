@@ -1,0 +1,224 @@
+import { writable, type Writable } from 'svelte/store';
+
+// --- Types ---
+export interface ChatMessage {
+	platform: 'twitch' | 'youtube' | 'system' | 'unknown';
+	channel: string;
+	author: string;
+	text: string;
+	timestamp: string;
+}
+
+export type Platform = 'twitch' | 'youtube';
+export type ConnectionStatus =
+	| 'disconnected'
+	| 'connecting'
+	| 'connected'
+	| 'auth_required'
+	| 'error'
+	| 'error_config'
+	| 'error_api'
+	| 'error_quota'
+	| 'error_chat_ended'
+	| 'error_auth'
+	| 'authenticated';
+
+// --- Constants ---
+const MAX_MESSAGES = 150;
+const API_BASE_URL = '/api/chat';
+
+// --- Stores ---
+export const chatMessages: Writable<ChatMessage[]> = writable([]);
+export const platformStatus: Writable<Record<Platform, ConnectionStatus>> = writable({
+	twitch: 'disconnected',
+	youtube: 'disconnected'
+});
+export const webSocketStatus: Writable<'connecting' | 'connected' | 'disconnected' | 'error'> =
+	writable('disconnected');
+
+// --- WebSocket Management ---
+let socket: WebSocket | null = null;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+const RECONNECT_DELAY_MS = 3000;
+
+function addMessage(message: ChatMessage) {
+	chatMessages.update((messages) => {
+		const newMessages = [...messages, message];
+		if (newMessages.length > MAX_MESSAGES) {
+			return newMessages.slice(newMessages.length - MAX_MESSAGES);
+		}
+		return newMessages;
+	});
+}
+
+function addSystemMessage(text: string) {
+	const systemMessage: ChatMessage = {
+		platform: 'system',
+		channel: '',
+		author: 'System',
+		text: text,
+		timestamp: new Date().toISOString()
+	};
+	addMessage(systemMessage);
+}
+
+function connectWebSocket() {
+	if (
+		socket &&
+		(socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)
+	) {
+		console.log('WebSocket already open or connecting.');
+		return;
+	}
+
+	webSocketStatus.set('connecting');
+	console.log(`Attempting to connect WebSocket: ${API_BASE_URL}/ws`);
+	socket = new WebSocket(`${API_BASE_URL}/ws`);
+
+	socket.onopen = () => {
+		console.log('WebSocket connection established.');
+		webSocketStatus.set('connected');
+		reconnectAttempts = 0;
+		addSystemMessage('Connected to chat message feed.');
+	};
+
+	socket.onmessage = (event) => {
+		try {
+			const messageData = JSON.parse(event.data);
+			if (
+				messageData?.platform &&
+				messageData?.author &&
+				messageData?.text &&
+				messageData?.timestamp
+			) {
+				const newMessage: ChatMessage = {
+					platform: messageData.platform,
+					channel: messageData.channel || 'unknown',
+					author: messageData.author,
+					text: messageData.text,
+					timestamp: messageData.timestamp
+				};
+				addMessage(newMessage);
+			} else {
+				console.warn('Received malformed message via WebSocket:', messageData);
+			}
+		} catch (error) {
+			console.error('Failed to parse WebSocket message:', error, 'Data:', event.data);
+		}
+	};
+
+	socket.onerror = (error) => {
+		console.error('WebSocket error:', error);
+		webSocketStatus.set('error');
+		addSystemMessage('WebSocket connection error.');
+	};
+
+	socket.onclose = (event) => {
+		console.log(`WebSocket connection closed: Code=${event.code}, Reason=${event.reason}`);
+		webSocketStatus.set('disconnected');
+		addSystemMessage('Disconnected from chat message feed.');
+		socket = null;
+
+		if (!event.wasClean && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+			reconnectAttempts++;
+			console.log(
+				`Attempting WebSocket reconnect (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`
+			);
+			setTimeout(connectWebSocket, RECONNECT_DELAY_MS * Math.pow(2, reconnectAttempts - 1));
+		} else if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+			console.error('Max WebSocket reconnect attempts reached.');
+		}
+	};
+}
+
+function disconnectWebSocket() {
+	if (socket) {
+		console.log('Closing WebSocket connection.');
+		reconnectAttempts = MAX_RECONNECT_ATTEMPTS;
+		socket.close(1000, 'Client initiated disconnect');
+		socket = null;
+		webSocketStatus.set('disconnected');
+	}
+}
+
+// --- API Interaction ---
+
+async function fetchPlatformStatus(): Promise<void> {
+	try {
+		const response = await fetch(`${API_BASE_URL}/status`);
+		if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+		const statusData: Record<Platform, ConnectionStatus> = await response.json();
+		platformStatus.set(statusData);
+		console.log('Fetched platform status:', statusData);
+	} catch (error) {
+		console.error('Failed to fetch platform status:', error);
+		addSystemMessage(`Error fetching platform status: ${error}`);
+	}
+}
+
+async function controlPlatform(
+	platform: Platform,
+	action: 'connect' | 'disconnect'
+): Promise<void> {
+	platformStatus.update((current): Record<Platform, ConnectionStatus> => {
+		return {
+			...current,
+			[platform]: action === 'connect' ? 'connecting' : 'disconnected'
+		};
+	});
+
+	try {
+		const response = await fetch(`${API_BASE_URL}/${action}/${platform}`, { method: 'POST' }); // Uses relative path
+		if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+		const statusData: Record<Platform, ConnectionStatus> = await response.json();
+
+		if (action === 'connect' && statusData[platform] === 'auth_required') {
+			addSystemMessage(`YouTube authentication required. Fetching auth URL...`);
+			await fetchAndCopyAuthUrl();
+		} else {
+			addSystemMessage(
+				`${platform.charAt(0).toUpperCase() + platform.slice(1)} ${action} request processed. New status: ${statusData[platform]}`
+			);
+		}
+		platformStatus.set(statusData);
+	} catch (error) {
+		console.error(`Failed to ${action} ${platform}:`, error);
+		addSystemMessage(`Error processing ${action} request for ${platform}: ${error}`);
+		fetchPlatformStatus();
+	}
+}
+
+async function fetchAndCopyAuthUrl(): Promise<void> {
+	try {
+		const response = await fetch(`${API_BASE_URL}/auth-url`); // Uses relative path
+		if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+		const data = await response.json();
+		if (data.auth_url) {
+			await navigator.clipboard.writeText(data.auth_url);
+			addSystemMessage(
+				"YouTube Auth URL copied to clipboard! Please paste it into Luna's browser profile, grant access, then try connecting YouTube again."
+			);
+		} else {
+			addSystemMessage(
+				'Could not retrieve YouTube Auth URL. Is it needed? ' + (data.message || '')
+			);
+		}
+	} catch (error) {
+		console.error('Failed to fetch or copy auth URL:', error);
+		addSystemMessage(`Error fetching YouTube Auth URL: ${error}`);
+	}
+}
+
+// --- Service Object ---
+export const chatService = {
+	connectWebSocket,
+	disconnectWebSocket,
+	connectPlatform: (platform: Platform) => controlPlatform(platform, 'connect'),
+	disconnectPlatform: (platform: Platform) => controlPlatform(platform, 'disconnect'),
+	fetchStatus: fetchPlatformStatus,
+	fetchAndCopyAuthUrl: fetchAndCopyAuthUrl
+};
+
+// --- Initialization ---
+connectWebSocket();

@@ -8,7 +8,7 @@ services:
       - stt-service
       - tts-service
       - discord-service
-
+      - chat-service
     build: .
     ports:
       - "8080:80"
@@ -59,6 +59,18 @@ services:
       - "5004:5004"
     env_file:
       - ../discord-service/.env
+
+  chat-service:
+    image: chat-service
+    container_name: chat-service
+    build: ../chat-service
+    ports:
+      - "8005:8005"
+    env_file:
+      - ../chat-service/.env
+    volumes:
+      # Mount the secrets file (read-only)
+      - ../chat-service/youtube_secret.json:/app/youtube_secret.json:ro
 
   kokoro-tts:
     image: kokoro-tts
