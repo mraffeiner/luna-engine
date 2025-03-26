@@ -105,6 +105,10 @@ body {
 	@apply border-primary shadow-primary-light shadow-xs;
 }
 
+span {
+	@apply cursor-default;
+}
+
 label {
 	@apply text-text-subtle flex-start mb-2 space-x-2 text-base font-semibold;
 }
@@ -198,7 +202,7 @@ input[type='radio']:focus {
 
 /* ===== Alert/Error Styles ===== */
 @utility alert {
-	@apply mb-6 rounded-lg border p-4 shadow-sm;
+	@apply ml-0.5 border p-4;
 }
 
 .alert-error {
@@ -247,7 +251,7 @@ h1,
 h2,
 h3,
 h4 {
-	@apply text-primary-subtle font-bold;
+	@apply text-primary-subtle cursor-default font-bold;
 }
 
 h1 {
@@ -303,6 +307,10 @@ h4 {
 
 @utility flex-start {
 	@apply flex items-center justify-start;
+}
+
+@utility flex-end {
+	@apply flex items-center justify-end;
 }
 
 /* ===== Animations ===== */
