@@ -10,31 +10,28 @@ export type ContainerStatus = 'RUNNING' | 'STOPPED' | 'STARTING' | 'STOPPING' | 
 
 export const containerStatus: SvelteMap<string, ContainerStatus> = new SvelteMap();
 
-export type EngineMode = 'AUTO' | 'REACT' | 'WAIT';
+export type EngineMode = 'AUTO' | 'REACT' | 'PAUSED';
 
 export const engineConfig: {
 	mode: EngineMode;
+	msMinAfterResponse: number;
+	msMinAfterError: number;
 } = $state({
-	mode: 'AUTO'
+	mode: 'PAUSED',
+	msMinAfterResponse: 1000,
+	msMinAfterError: 5000
 });
 
-export const engineState: {
+export const engineStates: {
 	thinking: boolean;
 	speaking: boolean;
 	hasNewMessages: boolean;
-	paused: boolean;
-	reset: () => void;
+	waiting: boolean;
 } = $state({
 	thinking: false,
 	speaking: false,
 	hasNewMessages: false,
-	paused: true,
-	reset: () => {
-		engineState.thinking = false;
-		engineState.speaking = false;
-		engineState.hasNewMessages = false;
-		engineState.paused = true;
-	}
+	waiting: false
 });
 
 export const receiveInput = $state({

@@ -4,7 +4,7 @@
 	import { PAGES } from '$lib/shared/constants';
 	import {
 		engineConfig,
-		engineState,
+		engineStates,
 		receiveInput,
 		serviceOutput
 	} from '$lib/shared/shared.svelte';
@@ -15,11 +15,16 @@
 	import { generateSpeech } from './services/tts/ttsService';
 	import { discordService } from './services/discord/discordService';
 	import { asyncSleep } from '$lib/shared/utils';
+	import { clearDynamicPromptContent } from './prompt/promptPage';
 
-	let auto = $state(false);
-	const busy = $derived(engineState.thinking || engineState.speaking || engineState.paused);
+	const busy = $derived(
+		engineConfig.mode === 'PAUSED' ||
+			engineStates.thinking ||
+			engineStates.speaking ||
+			engineStates.waiting
+	);
 	const shouldRespond = $derived(
-		(engineConfig.mode === 'AUTO' || engineState.hasNewMessages) && !busy
+		(engineConfig.mode === 'AUTO' || engineStates.hasNewMessages) && !busy
 	);
 
 	let combinedPrompt = $derived.by(() => {
@@ -33,103 +38,119 @@
 	});
 
 	async function respond() {
-		engineState.thinking = true;
+		engineStates.thinking = true;
 		return generateResponse()
 			.then(() => {
 				return generateSpeech();
 			})
 			.then(() => {
-				engineState.speaking = true;
-				engineState.thinking = false;
+				engineStates.speaking = true;
+				engineStates.thinking = false;
 
 				if (receiveInput.discord && serviceOutput.tts?.blob) {
 					return discordService.playAudio(serviceOutput.tts?.blob);
 				}
 			})
 			.then(() => {
-				engineState.speaking = false;
-				engineState.hasNewMessages = false; // Successfully responded to new messages
+				engineStates.waiting = true;
+				engineStates.speaking = false;
+				engineStates.hasNewMessages = false; // Successfully responded to new messages
+				return asyncSleep(engineConfig.msMinAfterResponse);
 			})
 			.catch(async (error) => {
-				engineState.paused = true;
-				engineState.thinking = false;
-				engineState.speaking = false;
-				console.error('Error during engine loop. Restarting in 5s', error);
-				await asyncSleep(5000);
-				engineState.paused = false;
+				engineConfig.mode = 'PAUSED';
+				engineStates.thinking = false;
+				engineStates.speaking = false;
+				engineStates.waiting = false;
+				console.error(`Engine ${engineConfig.mode} because of error: `, error);
 			});
 	}
 
 	$effect(() => {
-		if (shouldRespond) respond();
-	});
-
-	$effect(() => {
-		if (receiveInput.prompt && (serviceOutput.stt || serviceOutput.chat)) {
-			engineState.hasNewMessages = true;
+		if (shouldRespond) {
+			respond().then(() => {
+				engineStates.waiting = false;
+			});
 		}
 	});
 
 	$effect(() => {
-		engineConfig.mode = auto ? 'AUTO' : 'REACT';
+		if (receiveInput.prompt && (serviceOutput.stt || serviceOutput.chat)) {
+			engineStates.hasNewMessages = true;
+		}
 	});
 
 	onMount(async () => {
 		console.log('Clear for take-off. Starting engine..');
 		await asyncSleep(5000);
-		engineState.paused = false;
+		engineStates.waiting = false;
 		console.log('Luna is now ready, have fun!');
 	});
 </script>
 
 <ContentPage name="home">
 	<ServicePage serviceName="luna-engine">
-		<div class="flex-start mb-4 gap-3">
-			<label class="mb-0! relative cursor-pointer">
-				<input type="checkbox" bind:checked={auto} class="peer sr-only" />
-				<div
-					class="peer-checked:bg-primary-light peer-focus:ring-primary bg-bg-elevated h-5 w-10
-					rounded-full after:absolute after:left-[4px] after:top-[2px] after:h-4
-					after:w-4 after:rounded-full after:bg-white
-					after:shadow-md after:transition-all after:content-['']
-					peer-checked:after:translate-x-full peer-focus:outline-none peer-focus:ring-2"
-				></div>
-			</label>
-			<span class="text-text-subtle text-lg font-bold">{auto ? 'Auto' : 'React'}</span>
-			<div class="text-md ml-2 flex items-center gap-2">
-				{#if !busy && engineConfig.mode !== 'AUTO' && !engineState.hasNewMessages}
-					<span
-						class="text-text-muted animate-pulse font-semibold transition-colors"
-						title="Waiting"
-					>
-						Waiting
+		<div class="flex-between mb-4 gap-3">
+			<div class="flex-start min-w-1/4 gap-3">
+				<button
+					id="modeSwitch"
+					onclick={() => {
+						engineConfig.mode = engineConfig.mode !== 'AUTO' ? 'AUTO' : 'REACT';
+					}}
+					class="relative cursor-pointer"
+					aria-label="Engine Mode Switch"
+				>
+					<input type="checkbox" checked={engineConfig.mode === 'AUTO'} class="peer sr-only" />
+					<div
+						class="peer-checked:bg-primary-light peer-focus:ring-primary bg-bg-elevated
+								h-5 w-10 rounded-full after:absolute after:left-[4px] after:top-[2px] after:h-4 after:w-4
+								after:rounded-full after:bg-white after:shadow-md after:transition-all after:content-['']
+								peer-checked:after:translate-x-full peer-focus:outline-none peer-focus:ring-2"
+					></div>
+				</button>
+				<label
+					for="modeSwitch"
+					class="text-text-subtle mb-0! text-lg! cursor-pointer font-bold capitalize"
+				>
+					{engineConfig.mode.toLowerCase()}
+				</label>
+			</div>
+			<div class="flex-center grow gap-2 text-lg">
+				{#if engineConfig.mode === 'PAUSED'}
+					<span class="text-danger-light animate-pulse font-semibold transition-colors">
+						PAUSED
 					</span>
 				{:else}
 					<span
-						class="font-semibold transition-colors {engineState.thinking
+						class="font-semibold transition-colors {engineStates.thinking
 							? 'text-primary-light animate-pulse'
 							: 'text-text-disabled'}"
-						title="Thinking"
 					>
 						Thinking
 					</span>
 					<span
-						class="font-semibold transition-colors {engineState.speaking
+						class="font-semibold transition-colors {engineStates.speaking
 							? 'text-primary-light animate-pulse'
 							: 'text-text-disabled'}"
-						title="Speaking"
 					>
 						Speaking
 					</span>
 					<span
-						class="font-semibold transition-colors {engineState.paused
+						class="font-semibold transition-colors {engineStates.waiting
 							? 'text-primary-light animate-pulse'
 							: 'text-text-disabled'}"
-						title="Paused"
 					>
-						Paused
+						Waiting
 					</span>
 				{/if}
+			</div>
+			<div class="flex-end min-w-1/4">
+				<button onclick={() => clearDynamicPromptContent()}>
+					<Icon
+						path="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+						class="icon-lg text-text-subtle hover:text-danger-light/70 cursor-pointer"
+					/>
+				</button>
 			</div>
 		</div>
 
