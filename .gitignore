@@ -1,0 +1,21 @@
+# Python bytecode and cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Environment variables
+.env
+
+# Secrets
+youtube_secret.json
+credentials/
+
+# Docker Compose overrides
+docker-compose.override.yml
+
+# OS generated files
+.DS_Store

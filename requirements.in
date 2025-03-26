@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+twitchio
+google-api-python-client
+google-auth-oauthlib
