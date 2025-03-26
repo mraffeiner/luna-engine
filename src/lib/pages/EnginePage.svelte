@@ -33,6 +33,7 @@
 	});
 
 	async function respond() {
+		engineState.thinking = true;
 		return generateResponse()
 			.then(() => {
 				return generateSpeech();
