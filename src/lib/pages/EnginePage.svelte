@@ -8,14 +8,19 @@
 		receiveInput,
 		serviceOutput
 	} from '$lib/shared/shared.svelte';
-	import { onMount, tick } from 'svelte';
+	import { onMount } from 'svelte';
 	import ContentPage from './ContentPage.svelte';
 	import { generateResponse } from './services/llm/llmService';
 	import ServicePage from './services/ServicePage.svelte';
 	import { generateSpeech } from './services/tts/ttsService';
+	import { discordService } from './services/discord/discordService';
+	import { asyncSleep } from '$lib/shared/utils';
 
-	let busy = $derived(engineState.thinking || engineState.speaking || engineState.waiting);
 	let auto = $state(false);
+	const busy = $derived(engineState.thinking || engineState.speaking || engineState.paused);
+	const shouldRespond = $derived(
+		(engineConfig.mode === 'AUTO' || engineState.hasNewMessages) && !busy
+	);
 
 	let combinedPrompt = $derived.by(() => {
 		const prompt = serviceOutput.prompt;
@@ -27,39 +32,40 @@
 		return combined;
 	});
 
-	/**
-	 * Auto: Respond continuously when finishing previous response
-	 */
-	$effect(() => {
-		if (engineConfig.mode !== 'AUTO' || busy) return;
-
-		engineState.thinking = true;
-		generateResponse().then(() => {
-			generateSpeech().then(() => {
+	async function respond() {
+		return generateResponse()
+			.then(() => {
+				return generateSpeech();
+			})
+			.then(() => {
 				engineState.speaking = true;
 				engineState.thinking = false;
+
+				if (receiveInput.discord && serviceOutput.tts?.blob) {
+					return discordService.playAudio(serviceOutput.tts?.blob);
+				}
+			})
+			.then(() => {
+				engineState.speaking = false;
+				engineState.hasNewMessages = false; // Successfully responded to new messages
+			})
+			.catch(async (error) => {
+				engineState.paused = true;
+				engineState.thinking = false;
+				engineState.speaking = false;
+				console.error('Error during engine loop. Restarting in 5s', error);
+				await asyncSleep(5000);
+				engineState.paused = false;
 			});
-		});
+	}
+
+	$effect(() => {
+		if (shouldRespond) respond();
 	});
 
-	/**
-	 * React: Respond only when input changes
-	 */
 	$effect(() => {
-		if (engineConfig.mode !== 'REACT' || busy) return;
-
-		if (receiveInput.prompt && serviceOutput.stt) {
-			// Tick to ensure prompt received stt output first
-			tick().then(() => {
-				engineState.thinking = true;
-				serviceOutput.stt = ''; // Prevent reacting to previous input
-				generateResponse().then(() => {
-					generateSpeech().then(() => {
-						engineState.speaking = true;
-						engineState.thinking = false;
-					});
-				});
-			});
+		if (receiveInput.prompt && (serviceOutput.stt || serviceOutput.chat)) {
+			engineState.hasNewMessages = true;
 		}
 	});
 
@@ -67,10 +73,11 @@
 		engineConfig.mode = auto ? 'AUTO' : 'REACT';
 	});
 
-	onMount(() => {
-		setTimeout(() => {
-			engineState.waiting = false;
-		}, 5);
+	onMount(async () => {
+		console.log('Clear for take-off. Starting engine..');
+		await asyncSleep(5000);
+		engineState.paused = false;
+		console.log('Luna is now ready, have fun!');
 	});
 </script>
 

@@ -21,11 +21,20 @@ export const engineConfig: {
 export const engineState: {
 	thinking: boolean;
 	speaking: boolean;
-	waiting: boolean;
+	hasNewMessages: boolean;
+	paused: boolean;
+	reset: () => void;
 } = $state({
 	thinking: false,
 	speaking: false,
-	waiting: true
+	hasNewMessages: false,
+	paused: true,
+	reset: () => {
+		engineState.thinking = false;
+		engineState.speaking = false;
+		engineState.hasNewMessages = false;
+		engineState.paused = true;
+	}
 });
 
 export const receiveInput = $state({
@@ -39,15 +48,17 @@ export const receiveInput = $state({
 export const serviceOutput: {
 	prompt: { system: string; user: string };
 	llm: string;
-	tts: { blob: Blob | undefined; url: string } | undefined;
+	tts: { blob: Blob | undefined; url: string };
 	discord: SvelteMap<string, { blob: Blob; url: string }>;
 	stt: string;
+	chat: string;
 } = $state({
 	prompt: { system: '', user: '' },
 	llm: '',
 	tts: { blob: undefined, url: '' },
 	discord: new SvelteMap(),
-	stt: ''
+	stt: '',
+	chat: ''
 });
 
 export const speakerAudio: SvelteMap<string, string> = $state(new SvelteMap());
