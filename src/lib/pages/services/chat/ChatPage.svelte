@@ -52,18 +52,19 @@
 			case 'connected':
 				return 'text-success-light';
 			case 'connecting':
-			case 'authenticated': // Show connecting/auth intermediate states as warning
+			case 'authenticated':
 				return 'text-warning-light';
 			case 'disconnected':
 				return 'text-text-disabled';
 			case 'auth_required':
-				return 'text-primary-light'; // Use primary color to highlight auth needed
+				return 'text-primary-light';
 			case 'error':
 			case 'error_config':
 			case 'error_api':
 			case 'error_quota':
 			case 'error_chat_ended':
 			case 'error_auth':
+			case 'error_no_live_chat':
 				return 'text-danger-light';
 			default:
 				return 'text-text-disabled';
@@ -128,6 +129,14 @@
 								class="icon-sm mr-1 inline-block align-text-bottom"
 							/>
 							Auth URL copied to clipboard! Paste it into your browser and grant access
+						</div>
+					{:else if $platformStatus.youtube === 'error_no_live_chat'}
+						<div class="text-danger-light mt-2 text-sm">
+							<Icon
+								path="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+								class="icon-sm mr-1 inline-block align-text-bottom"
+							/>
+							Could not find an active YouTube live stream chat to connect to.
 						</div>
 					{/if}
 				</div>

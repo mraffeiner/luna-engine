@@ -21,6 +21,7 @@ export type ConnectionStatus =
 	| 'error_quota'
 	| 'error_chat_ended'
 	| 'error_auth'
+	| 'error_no_live_chat'
 	| 'authenticated';
 
 // --- Constants ---
