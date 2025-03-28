@@ -83,10 +83,8 @@
 	});
 
 	onMount(async () => {
-		console.log('Clear for take-off. Starting engine..');
-		await asyncSleep(5000);
+		asyncSleep(1000); // Wait 1 second just in case
 		engineStates.waiting = false;
-		console.log('Luna is now ready, have fun!');
 	});
 </script>
 

@@ -69,17 +69,13 @@ function connectWebSocket() {
 	if (
 		socket &&
 		(socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)
-	) {
-		console.log('WebSocket already open or connecting.');
+	)
 		return;
-	}
 
 	webSocketStatus.set('connecting');
-	console.log(`Attempting to connect WebSocket: ${WS_URL}`);
 	socket = new WebSocket(WS_URL);
 
 	socket.onopen = () => {
-		console.log('WebSocket connection established.');
 		webSocketStatus.set('connected');
 		reconnectAttempts = 0;
 		addSystemMessage('Connected to chat message feed.');
@@ -118,7 +114,6 @@ function connectWebSocket() {
 				// Update the specific platform's status in the store
 				platformStatus.update((current) => {
 					if (current[platform] !== status) {
-						console.log(`WebSocket status update: ${platform} -> ${status}`);
 						return { ...current, [platform]: status };
 					}
 					return current; // No change needed
@@ -138,16 +133,12 @@ function connectWebSocket() {
 	};
 
 	socket.onclose = (event) => {
-		console.log(`WebSocket connection closed: Code=${event.code}, Reason=${event.reason}`);
 		webSocketStatus.set('disconnected');
 		addSystemMessage('Disconnected from chat message feed.');
 		socket = null;
 
 		if (!event.wasClean && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
 			reconnectAttempts++;
-			console.log(
-				`Attempting WebSocket reconnect (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`
-			);
 			setTimeout(connectWebSocket, RECONNECT_DELAY_MS * Math.pow(2, reconnectAttempts - 1));
 		} else if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
 			console.error('Max WebSocket reconnect attempts reached.');
@@ -157,7 +148,6 @@ function connectWebSocket() {
 
 function disconnectWebSocket() {
 	if (socket) {
-		console.log('Closing WebSocket connection.');
 		reconnectAttempts = MAX_RECONNECT_ATTEMPTS;
 		socket.close(1000, 'Client initiated disconnect');
 		socket = null;
@@ -173,7 +163,6 @@ async function fetchPlatformStatus(): Promise<void> {
 		if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 		const statusData: Record<Platform, ConnectionStatus> = await response.json();
 		platformStatus.set(statusData);
-		console.log('Fetched platform status:', statusData);
 	} catch (error) {
 		console.error('Failed to fetch platform status:', error);
 		addSystemMessage(`Error fetching platform status: ${error}`);
