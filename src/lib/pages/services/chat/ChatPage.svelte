@@ -122,17 +122,12 @@
 						</span>
 					</div>
 					{#if $platformStatus.youtube === 'auth_required'}
-						<div class="mt-2">
-							<button class="btn-secondary text-sm" onclick={chatService.fetchAndCopyAuthUrl}>
-								<Icon
-									path="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-									class="icon-sm mr-1"
-								/>
-								Copy Auth URL
-							</button>
-							<span class="text-primary-light ml-2 text-xs"
-								>Paste URL into Luna's browser profile & grant access.</span
-							>
+						<div class="text-primary-light mt-2 text-sm">
+							<Icon
+								path="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+								class="icon-sm mr-1 inline-block align-text-bottom"
+							/>
+							Auth URL copied to clipboard! Paste it into your browser and grant access
 						</div>
 					{/if}
 				</div>

@@ -212,7 +212,7 @@ async function fetchAndCopyAuthUrl(): Promise<void> {
 		if (data.auth_url) {
 			await navigator.clipboard.writeText(data.auth_url);
 			addSystemMessage(
-				"YouTube Auth URL copied to clipboard! Please paste it into Luna's browser profile, grant access, then try connecting YouTube again."
+				'YouTube Auth URL copied to clipboard! Paste it into your browser and grant access'
 			);
 		} else {
 			addSystemMessage(
