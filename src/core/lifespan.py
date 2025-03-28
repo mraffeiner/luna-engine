@@ -89,7 +89,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if ws_manager_instance:
         logger.info("Closing active WebSocket connections...")
         # Use a list copy to avoid modification issues during iteration
-        connections_to_close = list(ws_manager_instance.active_connections.values())
+        connections_to_close = list(
+            ws_manager_instance.active_connections
+        )  # Create a copy
         closed_count = 0
         for ws in connections_to_close:
             try:
