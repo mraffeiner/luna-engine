@@ -85,8 +85,7 @@ async def oauth2callback(
         logger.info(
             "API: OAuth callback processed successfully. Triggering YouTube listener start if needed."
         )
-        # Optionally trigger connect_youtube if desired immediately after auth
-        # await orchestrator.connect_youtube(background_tasks)
+        await orchestrator.connect_youtube(background_tasks)
         return HTMLResponse(
             "<html><head><title>Auth Success</title></head><body><h1>Authentication Successful!</h1><p>You have successfully authenticated with Google. You can close this window now. The YouTube chat listener will attempt to connect if required.</p></body></html>"
         )
