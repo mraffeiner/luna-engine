@@ -43,9 +43,7 @@ app = FastAPI(
 
 # --- Include Routers ---
 # Mount the API routers
-app.include_router(
-    chat_router.router, prefix="/api/v1"
-)  # Added a prefix for API routes
+app.include_router(chat_router.router)
 app.include_router(websocket_router.router)  # Include WebSocket router
 
 
