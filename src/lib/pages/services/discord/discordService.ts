@@ -76,7 +76,7 @@ export const discordService = {
 			resolvePlaybackComplete = resolve;
 			setTimeout(() => {
 				reject(new Error('Playback timeout'));
-			}, 120000);
+			}, 300000); // 5 minutes
 		});
 	},
 
