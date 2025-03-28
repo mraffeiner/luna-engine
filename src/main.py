@@ -66,8 +66,6 @@ async def oauth2callback(
 
     if error:
         logger.error(f"API: Google OAuth callback error: {error}")
-        # Optionally update status via orchestrator if needed, though auth manager might do it
-        # orchestrator.status_manager.update(Platform.YOUTUBE, ConnectionStatus.ERROR_AUTH)
         return HTMLResponse(
             f"<html><head><title>Auth Error</title></head><body><h1>Authentication Error</h1><p>An error occurred during Google authentication: {error}. Please check the service logs and try again.</p></body></html>",
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -75,7 +73,6 @@ async def oauth2callback(
     if not code or not state:
         error_detail = "Missing 'code'" if not code else "Missing 'state'"
         logger.error(f"API: Google OAuth callback error: {error_detail}.")
-        # orchestrator.status_manager.update(Platform.YOUTUBE, ConnectionStatus.ERROR_AUTH)
         return HTMLResponse(
             f"<html><head><title>Auth Error</title></head><body><h1>Authentication Error</h1><p>{error_detail} parameter from Google. Please try the authentication process again.</p></body></html>",
             status_code=status.HTTP_400_BAD_REQUEST,

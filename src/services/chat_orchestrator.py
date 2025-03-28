@@ -78,14 +78,33 @@ class ChatOrchestrator:
             # Status should already be AUTH_REQUIRED
             return  # Don't proceed
 
+        # --- Check Credentials Before Starting Listener ---
+        logger.info(
+            "Orchestrator: Checking YouTube credentials before starting listener..."
+        )
+        # Attempt to get credentials, initiating auth flow if necessary
+        creds = self.google_auth_manager.get_credentials(initiate_auth_flow=True)
+
+        if not creds:
+            # get_credentials returned None, meaning auth is required.
+            # The status is already set to AUTH_REQUIRED by get_credentials.
+            logger.warning(
+                "Orchestrator: YouTube authentication required. Listener not started."
+            )
+            # The frontend should react to the AUTH_REQUIRED status.
+            return  # Do not proceed to start the listener
+
+        # --- Credentials Valid - Proceed to Start Listener ---
+        logger.info(
+            "Orchestrator: YouTube credentials valid. Proceeding to start listener."
+        )
+        # Update status to CONNECTING immediately and broadcast
+        self.status_manager.update(Platform.YOUTUBE, ConnectionStatus.CONNECTING)
+
         logger.info("Orchestrator: Starting YouTube listener via background task.")
-        # The listener's start method handles thread creation and status updates
-        # Get the current event loop from the async context
+        # The listener's start method handles thread creation and further status updates
         current_loop = asyncio.get_running_loop()
-        # Pass the loop to the start method when adding the background task
         background_tasks.add_task(self.youtube_listener.start, current_loop)
-        # Give a brief moment for the thread to potentially start and update status
-        await asyncio.sleep(0.1)
 
     async def disconnect_youtube(self, background_tasks: BackgroundTasks):
         """Stops the YouTube listener thread."""

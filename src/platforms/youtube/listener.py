@@ -136,11 +136,12 @@ class YouTubeListener:
                             f"YouTube listener stopping due to error: {current_yt_status.value}"
                         )
                         return  # Stop thread if unrecoverable error
-                    else:  # Should be disconnected if no creds and no specific error/auth_req
-                        logger.info("YouTube listener waiting: No valid credentials.")
-                        self.status_manager.update(
-                            Platform.YOUTUBE, ConnectionStatus.DISCONNECTED
+                    else:  # Status is likely CONNECTING or DISCONNECTED (if no token file existed)
+                        # Don't force DISCONNECTED here. Let the auth flow handle AUTH_REQUIRED.
+                        logger.info(
+                            "YouTube listener waiting: No valid credentials found yet."
                         )
+                        # Status remains as it is (e.g., CONNECTING)
                     if self.stop_event.wait(10):
                         return  # Wait and check stop event
                     continue  # Re-check credentials

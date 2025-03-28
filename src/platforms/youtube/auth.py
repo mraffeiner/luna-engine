@@ -133,9 +133,10 @@ class GoogleAuthManager:
         if os.path.exists(
             GOOGLE_TOKEN_FILE
         ):  # File existed but wasn't valid/refreshable
+            logger.warning(
+                "Token file exists but credentials are invalid or unrefreshable. Setting status to AUTH_REQUIRED."
+            )
             self.status_manager.update(Platform.YOUTUBE, ConnectionStatus.AUTH_REQUIRED)
-        else:  # No token file at all
-            self.status_manager.update(Platform.YOUTUBE, ConnectionStatus.DISCONNECTED)
 
     def _build_service(self) -> bool:
         """Builds the YouTube API service using current credentials."""

@@ -79,9 +79,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # 1. Stop Platform Connections via Orchestrator
     if orchestrator:
         logger.info("Initiating platform disconnection via orchestrator...")
-        await orchestrator.disconnect_all(
-            timeout=10.0
-        )  # Assuming an disconnect_all method
+        await orchestrator.disconnect_all(app_state=app.state, timeout=10.0)
     else:
         logger.warning("Chat orchestrator not found in state during shutdown.")
 
