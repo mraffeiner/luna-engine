@@ -68,5 +68,7 @@ export const PAGES: PageConfig[] = [
 	}
 ];
 
+export const SUPPORTED_PLATFORMS = ['twitch', 'youtube'] as const;
+
 export const SERVICE_PAGES = PAGES.filter((page) => page.serviceId) as ServicePageConfig[];
 export const CONTENT_PAGES = PAGES.filter((page) => !page.serviceId) as ContentPageConfig[];

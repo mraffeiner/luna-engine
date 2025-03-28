@@ -16,7 +16,8 @@
 		systemPrompt,
 		userPrompt
 	} from './promptPage';
-	import { receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
+	import { engineStates, receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
+	import { SUPPORTED_PLATFORMS } from '$lib/shared/constants';
 
 	let templateNames: string[] = $state(listTemplateNames());
 	let selectedTemplate: string = $state('Luna Base');
@@ -122,13 +123,33 @@
 	});
 
 	$effect(() => {
+		if (receiveInput.prompt && serviceOutput.chat) {
+			const newMessage = serviceOutput.chat.shift();
+			if (newMessage && SUPPORTED_PLATFORMS.includes(newMessage.platform as any)) {
+				updateUserPromptSection(
+					'conversation',
+					null,
+					`\n[${newMessage.platform}] ${newMessage.author}: ${newMessage.text}`,
+					null,
+					true
+				);
+				engineStates.hasNewMessages = true;
+			}
+		}
+	});
+
+	$effect(() => {
 		if (receiveInput.prompt && serviceOutput.stt) {
-			for (const [username, transcript] of serviceOutput.stt.entries()) {
-				if (transcript) {
-					updateUserPromptSection('conversation', null, `\n${username}: ${transcript}`, null, true);
-					//FIXME: This is a hack, but works for now
-					serviceOutput.stt.set(username, ''); // Clear transcript to prevent duplicate reactions
-				}
+			const newTranscript = serviceOutput.stt.shift();
+			if (newTranscript) {
+				updateUserPromptSection(
+					'conversation',
+					null,
+					`\n[discord] ${newTranscript.username}: ${newTranscript.transcript}`,
+					null,
+					true
+				);
+				engineStates.hasNewMessages = true;
 			}
 		}
 	});

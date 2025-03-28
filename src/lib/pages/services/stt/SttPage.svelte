@@ -20,12 +20,12 @@
 	let directInputText = $state('');
 
 	async function handleTranscribeAudio(audioBlob: Blob, username?: string) {
-		const transcript = await transcribeAudio(audioBlob, selectedModel);
+		const transcript = (await transcribeAudio(audioBlob, selectedModel))?.trim();
 
 		cleanupRecorder();
 
 		if (transcript) {
-			serviceOutput.stt.set(username ? username : 'Anonymous', transcript);
+			serviceOutput.stt.push({ username: username ? username : 'Anonymous', transcript });
 		}
 	}
 
@@ -120,7 +120,7 @@
 	}
 
 	function handleDirectTextInput() {
-		serviceOutput.stt.set(directInputUsername, directInputText);
+		serviceOutput.stt.push({ username: directInputUsername, transcript: directInputText });
 		directInputText = '';
 	}
 
@@ -230,9 +230,9 @@
 
 			<div class="mt-6">
 				<h3 class="text-text-muted mb-2 text-lg font-medium">Transcribed Text:</h3>
-				{#each serviceOutput.stt as [username, transcript]}
+				{#each serviceOutput.stt as entry}
 					<div class="form-control whitespace-pre-wrap p-4">
-						{username}: {receiveInput.prompt ? '<Consumed by Prompt>' : transcript}
+						{entry.username}: {entry.transcript}
 					</div>
 				{/each}
 			</div>

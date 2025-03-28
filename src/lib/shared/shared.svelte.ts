@@ -1,5 +1,6 @@
 import { SvelteMap } from 'svelte/reactivity';
 import { PAGES } from './constants';
+import type { ChatMessage } from '$lib/pages/services/chat/chatService';
 
 export const currentPage = $state({
 	id: PAGES[0].id,
@@ -10,14 +11,14 @@ export type ContainerStatus = 'RUNNING' | 'STOPPED' | 'STARTING' | 'STOPPING' | 
 
 export const containerStatus: SvelteMap<string, ContainerStatus> = new SvelteMap();
 
-export type EngineMode = 'AUTO' | 'REACT' | 'PAUSED';
+export type EngineMode = 'AUTO' | 'REACT';
 
 export const engineConfig: {
 	mode: EngineMode;
 	msMinAfterResponse: number;
 	msMinAfterError: number;
 } = $state({
-	mode: 'PAUSED',
+	mode: 'REACT',
 	msMinAfterResponse: 1000,
 	msMinAfterError: 5000
 });
@@ -27,11 +28,13 @@ export const engineStates: {
 	speaking: boolean;
 	hasNewMessages: boolean;
 	waiting: boolean;
+	paused: boolean;
 } = $state({
 	thinking: false,
 	speaking: false,
 	hasNewMessages: false,
-	waiting: false
+	waiting: false,
+	paused: true
 });
 
 export const receiveInput = $state({
@@ -47,15 +50,15 @@ export const serviceOutput: {
 	llm: string;
 	tts: { blob: Blob | undefined; url: string };
 	discord: SvelteMap<string, { blob: Blob; url: string }>;
-	stt: SvelteMap<string, string>;
-	chat: string;
+	stt: { username: string; transcript: string }[];
+	chat: ChatMessage[];
 } = $state({
 	prompt: { system: '', user: '' },
 	llm: '',
 	tts: { blob: undefined, url: '' },
 	discord: new SvelteMap(),
-	stt: new SvelteMap(),
-	chat: ''
+	stt: [],
+	chat: []
 });
 
 export const speakerAudio: SvelteMap<string, string> = $state(new SvelteMap());

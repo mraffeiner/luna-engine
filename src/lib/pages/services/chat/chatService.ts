@@ -1,15 +1,11 @@
+import type { SUPPORTED_PLATFORMS } from '$lib/shared/constants';
+import { serviceOutput } from '$lib/shared/shared.svelte';
 import { writable, type Writable } from 'svelte/store';
 
 // --- Types ---
-export interface ChatMessage {
-	platform: 'twitch' | 'youtube' | 'system' | 'unknown';
-	channel: string;
-	author: string;
-	text: string;
-	timestamp: string;
-}
 
-export type Platform = 'twitch' | 'youtube';
+export type Platform = (typeof SUPPORTED_PLATFORMS)[number];
+
 export type ConnectionStatus =
 	| 'disconnected'
 	| 'connecting'
@@ -23,6 +19,14 @@ export type ConnectionStatus =
 	| 'error_auth'
 	| 'error_no_live_chat'
 	| 'authenticated';
+
+export interface ChatMessage {
+	platform: Platform | 'system' | 'unknown';
+	channel: string;
+	author: string;
+	text: string;
+	timestamp: string;
+}
 
 // --- Constants ---
 const MAX_MESSAGES = 150;
@@ -52,6 +56,7 @@ function addMessage(message: ChatMessage) {
 		}
 		return newMessages;
 	});
+	serviceOutput.chat.push(message);
 }
 
 function addSystemMessage(text: string) {

@@ -8,7 +8,6 @@
 		receiveInput,
 		serviceOutput
 	} from '$lib/shared/shared.svelte';
-	import { onMount } from 'svelte';
 	import ContentPage from './ContentPage.svelte';
 	import { generateResponse } from './services/llm/llmService';
 	import ServicePage from './services/ServicePage.svelte';
@@ -17,10 +16,7 @@
 	import { asyncSleep } from '$lib/shared/utils';
 
 	const busy = $derived(
-		engineConfig.mode === 'PAUSED' ||
-			engineStates.thinking ||
-			engineStates.speaking ||
-			engineStates.waiting
+		engineStates.paused || engineStates.thinking || engineStates.speaking || engineStates.waiting
 	);
 	const shouldRespond = $derived(
 		(engineConfig.mode === 'AUTO' || engineStates.hasNewMessages) && !busy
@@ -38,6 +34,8 @@
 
 	async function respond() {
 		engineStates.thinking = true;
+		engineStates.hasNewMessages = false; // Responding to new messages
+
 		return generateResponse()
 			.then(() => {
 				return generateSpeech();
@@ -53,15 +51,14 @@
 			.then(() => {
 				engineStates.waiting = true;
 				engineStates.speaking = false;
-				engineStates.hasNewMessages = false; // Successfully responded to new messages
 				return asyncSleep(engineConfig.msMinAfterResponse);
 			})
 			.catch(async (error) => {
-				engineConfig.mode = 'PAUSED';
+				engineStates.paused = true;
 				engineStates.thinking = false;
 				engineStates.speaking = false;
 				engineStates.waiting = false;
-				console.error(`Engine ${engineConfig.mode} because of error: `, error);
+				console.error(`Engine paused because of error: `, error);
 			});
 	}
 
@@ -71,20 +68,6 @@
 				engineStates.waiting = false;
 			});
 		}
-	});
-
-	$effect(() => {
-		if (
-			receiveInput.prompt &&
-			(serviceOutput.stt.entries().some(([_, t]) => t !== '') || serviceOutput.chat)
-		) {
-			engineStates.hasNewMessages = true;
-		}
-	});
-
-	onMount(async () => {
-		asyncSleep(1000); // Wait 1 second just in case
-		engineStates.waiting = false;
 	});
 </script>
 
@@ -114,8 +97,8 @@
 					<div class="col-span-3 row-span-2">
 						<EngineCard title={page.name} bind:receiveInput={receiveInput.stt}>
 							<div class="whitespace-pre-wrap">
-								{#each serviceOutput.stt as [username, transcript]}
-									{username}: {transcript}
+								{#each serviceOutput.stt as entry}
+									{entry.username}: {entry.transcript}
 								{/each}
 							</div>
 						</EngineCard>
