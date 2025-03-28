@@ -3,45 +3,34 @@
 	import Spinner from '$lib/components/Spinner.svelte';
 	import ContentPage from '$lib/pages/ContentPage.svelte';
 	import { receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { serviceError } from '../docker/dockerService';
 	import ServicePage from '../ServicePage.svelte';
 	import { transcribeAudio, fetchSttModels, sttModels, loading } from './sttService';
 
+	let selectedModel = $state('whisper-large-v3-turbo');
+
 	let mediaRecorder: MediaRecorder | null = $state(null);
-	let audioChunks: Blob[] = $state([]);
-	let transcribedText: string | null = $state(null);
 	let isRecording = $state(false);
 	let recordingTime = $state(0);
 	let recordingTimer: number | null = $state(null);
 	let audioStream: MediaStream | null = $state(null);
-	let selectedModel = $state('whisper-large-v3-turbo');
 
-	let directInputPrefix = $state('TastiHam: ');
+	let directInputUsername = $state('TastiHam');
 	let directInputText = $state('');
 
-	async function handleTranscribeAudio(audioBlob: Blob, prefix?: string) {
-		let transcription = await transcribeAudio(audioBlob, selectedModel);
+	async function handleTranscribeAudio(audioBlob: Blob, username?: string) {
+		const transcript = await transcribeAudio(audioBlob, selectedModel);
 
-		if (transcription) {
-			transcribedText = prefix ? prefix + transcription.trim() : transcription.trim();
-		}
+		cleanupRecorder();
 
-		isRecording = false;
-
-		// Release media stream
-		if (audioStream) {
-			audioStream.getTracks().forEach((track) => track.stop());
-			audioStream = null;
-		}
-
-		if (transcribedText) {
-			serviceOutput.stt = transcribedText;
+		if (transcript) {
+			serviceOutput.stt.set(username ? username : 'Anonymous', transcript);
 		}
 	}
 
 	// Cleanup function to stop recording and release resources
-	function cleanup() {
+	function cleanupRecorder() {
 		if (mediaRecorder && mediaRecorder.state !== 'inactive') {
 			mediaRecorder.stop();
 		}
@@ -62,8 +51,7 @@
 	async function recordAudio() {
 		try {
 			// Reset state
-			transcribedText = null;
-			audioChunks = [];
+			let audioChunks: Blob[] = [];
 			recordingTime = 0;
 
 			// Get audio stream
@@ -132,14 +120,7 @@
 	}
 
 	function handleDirectTextInput() {
-		transcribedText = directInputPrefix
-			? directInputPrefix + directInputText.trim()
-			: directInputText.trim();
-
-		if (transcribedText) {
-			serviceOutput.stt = transcribedText;
-		}
-
+		serviceOutput.stt.set(directInputUsername, directInputText);
 		directInputText = '';
 	}
 
@@ -158,18 +139,20 @@
 
 	$effect(() => {
 		if (receiveInput.stt && serviceOutput.discord) {
-			const [username, audio] = [...serviceOutput.discord.entries()].pop() ?? [];
-			if (audio && audio.blob) {
-				handleTranscribeAudio(audio.blob, username + ': ');
+			for (const [username, audio] of serviceOutput.discord.entries()) {
+				if (audio && audio.blob) {
+					handleTranscribeAudio(audio.blob, username);
+				}
 			}
 		}
-		return () => {
-			cleanup();
-		};
 	});
 
 	onMount(async () => {
 		await loadModels();
+	});
+
+	onDestroy(() => {
+		cleanupRecorder();
 	});
 </script>
 
@@ -202,7 +185,7 @@
 							id="prefix"
 							class="form-control"
 							placeholder="e.g. UserName:"
-							bind:value={directInputPrefix}
+							bind:value={directInputUsername}
 						/>
 					</div>
 					<div class="w-full">
@@ -245,14 +228,14 @@
 				{/if}
 			</div>
 
-			{#if transcribedText}
-				<div class="mt-6">
-					<h3 class="text-text-muted mb-2 text-lg font-medium">Transcribed Text:</h3>
+			<div class="mt-6">
+				<h3 class="text-text-muted mb-2 text-lg font-medium">Transcribed Text:</h3>
+				{#each serviceOutput.stt as [username, transcript]}
 					<div class="form-control whitespace-pre-wrap p-4">
-						{transcribedText}
+						{username}: {receiveInput.prompt ? '<Consumed by Prompt>' : transcript}
 					</div>
-				</div>
-			{/if}
+				{/each}
+			</div>
 		</Card>
 	</ServicePage>
 </ContentPage>

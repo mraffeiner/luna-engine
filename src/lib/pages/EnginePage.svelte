@@ -74,7 +74,10 @@
 	});
 
 	$effect(() => {
-		if (receiveInput.prompt && (serviceOutput.stt || serviceOutput.chat)) {
+		if (
+			receiveInput.prompt &&
+			(serviceOutput.stt.entries().some(([_, t]) => t !== '') || serviceOutput.chat)
+		) {
 			engineStates.hasNewMessages = true;
 		}
 	});
@@ -113,9 +116,9 @@
 					<div class="col-span-3 row-span-2">
 						<EngineCard title={page.name} bind:receiveInput={receiveInput.stt}>
 							<div class="whitespace-pre-wrap">
-								{#if serviceOutput.stt}
-									{serviceOutput.stt}
-								{/if}
+								{#each serviceOutput.stt as [username, transcript]}
+									{username}: {transcript}
+								{/each}
 							</div>
 						</EngineCard>
 					</div>

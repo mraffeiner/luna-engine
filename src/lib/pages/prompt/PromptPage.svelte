@@ -123,7 +123,13 @@
 
 	$effect(() => {
 		if (receiveInput.prompt && serviceOutput.stt) {
-			updateUserPromptSection('conversation', null, `\n${serviceOutput.stt}`, null, true);
+			for (const [username, transcript] of serviceOutput.stt.entries()) {
+				if (transcript) {
+					updateUserPromptSection('conversation', null, `\n${username}: ${transcript}`, null, true);
+					//FIXME: This is a hack, but works for now
+					serviceOutput.stt.set(username, ''); // Clear transcript to prevent duplicate reactions
+				}
+			}
 		}
 	});
 </script>

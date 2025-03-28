@@ -47,14 +47,14 @@ export const serviceOutput: {
 	llm: string;
 	tts: { blob: Blob | undefined; url: string };
 	discord: SvelteMap<string, { blob: Blob; url: string }>;
-	stt: string;
+	stt: SvelteMap<string, string>;
 	chat: string;
 } = $state({
 	prompt: { system: '', user: '' },
 	llm: '',
 	tts: { blob: undefined, url: '' },
 	discord: new SvelteMap(),
-	stt: '',
+	stt: new SvelteMap(),
 	chat: ''
 });
 
