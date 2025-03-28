@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
@@ -32,8 +33,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # --- Initialize Core Components ---
     # These instances will be shared via app.state and accessed via dependencies
-    status_manager = StatusManager()
+    main_loop = asyncio.get_running_loop()
     ws_manager = ConnectionManager()
+    status_manager = StatusManager(
+        ws_manager=ws_manager, main_loop=main_loop
+    )  # Pass ws_manager and loop
     google_auth_manager = GoogleAuthManager(status_manager)
     youtube_listener = YouTubeListener(google_auth_manager, status_manager, ws_manager)
     twitch_client = TwitchClient(status_manager, ws_manager)  # Assuming constructor
