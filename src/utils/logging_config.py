@@ -19,7 +19,7 @@ def configure_uvicorn_logger():
         handler.setFormatter(
             logging.Formatter(
                 "[%(asctime)s] - %(levelname)s: [%(name)s] %(message)s",
-                datefmt="%Y-%m-%dT%H:%M:%SZ",
+                datefmt="%Y/%m/%d %H:%M:%S",
             )
         )
         uvicorn_access_logger.addHandler(handler)
@@ -41,7 +41,7 @@ def setup_logging():
     logging.basicConfig(
         level=log_level_int,
         format="[%(asctime)s] - %(levelname)s: [%(name)s] %(message)s",
-        datefmt="%Y-%m-%dT%H:%M:%SZ",
+        datefmt="%Y/%m/%d %H:%M:%S",
         stream=sys.stdout,  # Explicitly use stdout
         force=True,  # Override any existing root logger config
     )
