@@ -20,7 +20,7 @@
 	let directInputText = $state('');
 
 	async function handleTranscribeAudio(audioBlob: Blob, username?: string) {
-		const transcript = (await transcribeAudio(audioBlob, selectedModel))?.trim();
+		const transcript = await transcribeAudio(audioBlob, selectedModel);
 
 		cleanupRecorder();
 

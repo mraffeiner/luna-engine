@@ -75,7 +75,7 @@ export async function transcribeAudio(
 		// Handle the response
 		if (response.ok) {
 			const data: SttResponse = await response.json();
-			return data.text;
+			return data.text.trim();
 		} else {
 			// Try to get more detailed error information
 			let errorDetail = '';
