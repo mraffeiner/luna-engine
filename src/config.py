@@ -25,6 +25,7 @@ class ConnectionStatus(str, Enum):
     ERROR_AUTH = "error_auth"
     ERROR_QUOTA = "error_quota"  # YouTube specific
     ERROR_CHAT_ENDED = "error_chat_ended"  # YouTube specific
+    ERROR_NO_LIVE_CHAT = "error_no_live_chat"  # YouTube specific - Added
 
 
 # --- Twitch Configuration ---

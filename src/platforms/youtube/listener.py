@@ -67,9 +67,9 @@ class YouTubeListener:
                 logger.info(
                     f"No active ('live' lifeCycleStatus) broadcasts found for channel {YOUTUBE_CHANNEL_ID}."
                 )
-                # If no stream is active, it's not an error, just disconnected.
+                # If no stream is active, update status to indicate this.
                 self.status_manager.update(
-                    Platform.YOUTUBE, ConnectionStatus.DISCONNECTED
+                    Platform.YOUTUBE, ConnectionStatus.ERROR_NO_LIVE_CHAT
                 )
                 return None
 
