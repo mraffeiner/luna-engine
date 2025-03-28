@@ -25,7 +25,8 @@ export type ConnectionStatus =
 
 // --- Constants ---
 const MAX_MESSAGES = 150;
-const API_BASE_URL = '/api/chat';
+const API_BASE_URL = '/api/chat/api/v1';
+const WS_URL = '/api/chat/ws';
 
 // --- Stores ---
 export const chatMessages: Writable<ChatMessage[]> = writable([]);
@@ -73,19 +74,23 @@ function connectWebSocket() {
 	}
 
 	webSocketStatus.set('connecting');
-	console.log(`Attempting to connect WebSocket: ${API_BASE_URL}/ws`);
-	socket = new WebSocket(`${API_BASE_URL}/ws`);
+	console.log(`Attempting to connect WebSocket: ${WS_URL}`);
+	socket = new WebSocket(WS_URL);
 
 	socket.onopen = () => {
 		console.log('WebSocket connection established.');
 		webSocketStatus.set('connected');
 		reconnectAttempts = 0;
 		addSystemMessage('Connected to chat message feed.');
+		// Fetch initial status upon successful connection
+		fetchPlatformStatus();
 	};
 
 	socket.onmessage = (event) => {
 		try {
 			const messageData = JSON.parse(event.data);
+
+			// Check if it's a chat message
 			if (
 				messageData?.platform &&
 				messageData?.author &&
@@ -100,8 +105,25 @@ function connectWebSocket() {
 					timestamp: messageData.timestamp
 				};
 				addMessage(newMessage);
+			}
+			// Check if it's a status update message
+			else if (
+				messageData?.type === 'status_update' &&
+				messageData?.platform &&
+				messageData?.status
+			) {
+				const platform = messageData.platform as Platform;
+				const status = messageData.status as ConnectionStatus;
+				// Update the specific platform's status in the store
+				platformStatus.update((current) => {
+					if (current[platform] !== status) {
+						console.log(`WebSocket status update: ${platform} -> ${status}`);
+						return { ...current, [platform]: status };
+					}
+					return current; // No change needed
+				});
 			} else {
-				console.warn('Received malformed message via WebSocket:', messageData);
+				console.warn('Received unknown or malformed message via WebSocket:', messageData);
 			}
 		} catch (error) {
 			console.error('Failed to parse WebSocket message:', error, 'Data:', event.data);
@@ -161,13 +183,6 @@ async function controlPlatform(
 	platform: Platform,
 	action: 'connect' | 'disconnect'
 ): Promise<void> {
-	platformStatus.update((current): Record<Platform, ConnectionStatus> => {
-		return {
-			...current,
-			[platform]: action === 'connect' ? 'connecting' : 'disconnected'
-		};
-	});
-
 	try {
 		const response = await fetch(`${API_BASE_URL}/${action}/${platform}`, { method: 'POST' }); // Uses relative path
 		if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
