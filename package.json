@@ -11,7 +11,14 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
-		"lint": "prettier --check . && eslint ."
+		"lint": "prettier --check . && eslint .",
+		"compose:start": "docker compose start",
+		"compose:restart": "docker compose restart",
+		"compose:stop": "docker compose stop",
+		"compose:up": "docker compose up -d --build",
+		"compose:recreate": "docker compose up -d --build --force-recreate",
+		"compose:down": "docker compose down",
+		"prune:image": "docker image prune -f"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
