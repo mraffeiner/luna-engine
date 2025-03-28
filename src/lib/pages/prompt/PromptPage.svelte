@@ -129,7 +129,7 @@
 				updateUserPromptSection(
 					'conversation',
 					null,
-					`\n[${newMessage.platform}] ${newMessage.author}: ${newMessage.text}`,
+					`\n[${newMessage.platform.charAt(0).toUpperCase() + newMessage.platform.slice(1)}] ${newMessage.author}: ${newMessage.text}`,
 					null,
 					true
 				);
@@ -145,7 +145,7 @@
 				updateUserPromptSection(
 					'conversation',
 					null,
-					`\n[discord] ${newTranscript.username}: ${newTranscript.transcript}`,
+					`\n[Discord] ${newTranscript.username}: ${newTranscript.transcript}`,
 					null,
 					true
 				);
