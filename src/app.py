@@ -102,6 +102,12 @@ GROQ_MODELS = [
         "name": "Qwen QwQ 32B",
         "isReasoning": True,
     },
+    {
+        "provider": "groq",
+        "id": "llama-3.3-70b-specdec",
+        "name": "Llama 3.3 70B SpecDec",
+        "isReasoning": True,
+    },
 ]
 
 # Google models
