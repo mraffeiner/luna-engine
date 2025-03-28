@@ -192,7 +192,7 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
       const wavChunks: Buffer[] = [];
       ffmpeg.stdout.on("data", (chunk) => {
         wavChunks.push(chunk);
-        logger.info(
+        logger.debug(
           `ffmpeg out chunk size: ${chunk.length} total chunks: ${wavChunks.length}`
         );
       });
