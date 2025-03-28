@@ -78,7 +78,9 @@ export async function fetchTtsOptions(): Promise<void> {
 /**
  * Generates speech using the TTS API
  */
-export async function generateSpeech() {
+export async function generateSpeech(
+	params: TtsParams
+): Promise<{ blob: Blob; url: string } | undefined> {
 	loading.set(true);
 	try {
 		if (get(ttsAudioUrl)) {
@@ -89,14 +91,17 @@ export async function generateSpeech() {
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify(get(selectedTts).requestParams)
+			body: JSON.stringify(params.requestParams)
 		});
 
 		if (response.ok) {
 			const audioBlob = await response.blob();
 			if (audioBlob) {
 				ttsAudioUrl.set(URL.createObjectURL(audioBlob));
-				serviceOutput.tts = { blob: audioBlob, url: get(ttsAudioUrl) };
+
+				const ttsOutput = { blob: audioBlob, url: get(ttsAudioUrl) };
+				serviceOutput.tts = ttsOutput;
+				return ttsOutput;
 			}
 		} else {
 			serviceError.set(`Error generating speech: ${response.status} ${response.statusText}`);

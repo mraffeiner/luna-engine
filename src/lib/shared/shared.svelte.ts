@@ -15,12 +15,12 @@ export type EngineMode = 'AUTO' | 'REACT';
 
 export const engineConfig: {
 	mode: EngineMode;
+	llmPrepass: boolean;
 	msMinAfterResponse: number;
-	msMinAfterError: number;
 } = $state({
 	mode: 'REACT',
-	msMinAfterResponse: 1000,
-	msMinAfterError: 5000
+	llmPrepass: true,
+	msMinAfterResponse: 1000
 });
 
 export const engineStates: {
@@ -47,14 +47,14 @@ export const receiveInput = $state({
 
 export const serviceOutput: {
 	prompt: { system: string; user: string };
-	llm: string;
+	llm: { raw: string; prepass: string };
 	tts: { blob: Blob | undefined; url: string };
 	discord: SvelteMap<string, { blob: Blob; url: string }>;
 	stt: { username: string; transcript: string }[];
 	chat: ChatMessage[];
 } = $state({
 	prompt: { system: '', user: '' },
-	llm: '',
+	llm: { raw: '', prepass: '' },
 	tts: { blob: undefined, url: '' },
 	discord: new SvelteMap(),
 	stt: [],

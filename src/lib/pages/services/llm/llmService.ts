@@ -1,6 +1,5 @@
-import { serviceOutput } from '$lib/shared/shared.svelte';
 import { normalizeLlmResponse } from '$lib/shared/utils';
-import { get, writable } from 'svelte/store';
+import { writable } from 'svelte/store';
 import { serviceError } from '../docker/dockerService';
 
 export interface LlmParams {
@@ -17,7 +16,7 @@ export const models = writable<
 	{ provider: string; id: string; name: string; isReasoning: boolean }[]
 >([]);
 
-export const selectedLlm = writable<LlmParams>({
+export const selectedResponseLlm = writable<LlmParams>({
 	requestParams: {
 		provider: '',
 		model: '',
@@ -27,8 +26,18 @@ export const selectedLlm = writable<LlmParams>({
 	isReasoning: false
 });
 
+export const selectedPrepassLlm = writable<LlmParams>({
+	requestParams: {
+		provider: 'groq',
+		model: 'llama-3.3-70b-specdec',
+		system_prompt:
+			'You are a text processing tool to prepare llm responses for text-to-speech. Take the text and clean it up. Remove stutters with short repititions. Replace stage directions with compatible utterances or em dashes. Replace descriptions with logical verbal reactions or follow-up explanations of what happened. Replace code blocks or markdown with verbally communicated information. Ensure that the final response retains the character and meaning of the original. Respond with just the cleaned up text and nothing else',
+		prompt: ''
+	},
+	isReasoning: false
+});
+
 export const loading = writable(false);
-export const responseText = writable('');
 
 export async function fetchModels() {
 	try {
@@ -46,36 +55,33 @@ export async function fetchModels() {
 	}
 }
 
-export async function generateResponse() {
+export async function generateResponse(params: LlmParams): Promise<string | undefined> {
 	loading.set(true);
 	try {
-		responseText.set('');
 		const response = await fetch('/api/llm/generate', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify(get(selectedLlm).requestParams)
+			body: JSON.stringify(params.requestParams)
 		});
 
 		if (response.ok && response.body) {
 			const reader = response.body.getReader();
 			const decoder = new TextDecoder();
 
+			let responseText = '';
 			while (true) {
 				const { done, value } = await reader.read();
 				if (done) {
 					break;
 				} else {
-					responseText.update((text) => text + decoder.decode(value, { stream: true }));
+					responseText += decoder.decode(value, { stream: true });
 				}
 			}
 			// Clean response when done
-			serviceOutput.llm = normalizeLlmResponse(
-				get(responseText),
-				get(selectedLlm).isReasoning,
-				'Luna:'
-			);
+			const llmOutput = normalizeLlmResponse(responseText, params.isReasoning, 'Luna:');
+			return llmOutput;
 		} else {
 			serviceError.set(`Error generating response: ${response.status} ${response.statusText}`);
 		}

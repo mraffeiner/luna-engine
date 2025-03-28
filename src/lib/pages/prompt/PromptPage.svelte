@@ -117,8 +117,14 @@
 	});
 
 	$effect(() => {
-		if (receiveInput.prompt && serviceOutput.llm) {
-			updateUserPromptSection('conversation', null, `\nLuna: ${serviceOutput.llm}`, null, true);
+		if (receiveInput.prompt && serviceOutput.llm.prepass) {
+			updateUserPromptSection(
+				'conversation',
+				null,
+				`\nLuna: ${serviceOutput.llm.prepass}`,
+				null,
+				true
+			);
 		}
 	});
 

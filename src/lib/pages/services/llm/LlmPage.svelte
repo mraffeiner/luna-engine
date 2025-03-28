@@ -2,17 +2,16 @@
 	import Card from '$lib/components/Card.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
 	import ContentPage from '$lib/pages/ContentPage.svelte';
-	import { receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
+	import { engineConfig, receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
 	import { onMount } from 'svelte';
 	import ServicePage from '../ServicePage.svelte';
-	import type { LlmParams } from './llmService';
+	import { type LlmParams } from './llmService';
 	import {
 		fetchModels,
 		generateResponse,
 		loading,
 		models,
-		responseText,
-		selectedLlm
+		selectedResponseLlm
 	} from './llmService';
 
 	let currentModelOption = $state('groq|qwen-qwq-32b|true');
@@ -26,7 +25,7 @@
 
 	$effect(() => {
 		if (currentModelOption) {
-			selectedLlm.update((current: LlmParams) => ({
+			selectedResponseLlm.update((current: LlmParams) => ({
 				...current,
 				requestParams: {
 					provider: selectedProvider,
@@ -46,8 +45,8 @@
 		}
 	});
 
-	onMount(async () => {
-		await fetchModels();
+	onMount(() => {
+		fetchModels();
 	});
 </script>
 
@@ -58,6 +57,13 @@
 				<label>
 					<input type="checkbox" bind:checked={receiveInput.llm} />
 					<span>Receive Input</span>
+				</label>
+			</div>
+
+			<div class="flex-start">
+				<label>
+					<input type="checkbox" bind:checked={engineConfig.llmPrepass} />
+					<span>Prepass</span>
 				</label>
 			</div>
 
@@ -88,18 +94,21 @@
 			{:else}
 				<div class="form-group">
 					<label for="systemPrompt">System Prompt</label>
-					<textarea id="systemPrompt" bind:value={systemPrompt} rows="3" class="form-control"
+					<textarea id="systemPrompt" bind:value={systemPrompt} rows="4" class="form-control"
 					></textarea>
 				</div>
 				<div class="form-group">
 					<label for="userPrompt">User Prompt</label>
-					<textarea id="userPrompt" bind:value={userPrompt} rows="4" class="form-control"
+					<textarea id="userPrompt" bind:value={userPrompt} rows="8" class="form-control"
 					></textarea>
 				</div>
 			{/if}
-
 			<div>
-				<button onclick={generateResponse} disabled={$loading} class="btn-primary">
+				<button
+					onclick={() => generateResponse($selectedResponseLlm)}
+					disabled={$loading}
+					class="btn-primary"
+				>
 					{#if $loading}
 						<Spinner class="icon-lg text-text-base mr-2" />
 					{/if}
@@ -107,11 +116,20 @@
 				</button>
 			</div>
 
-			{#if $responseText}
+			{#if serviceOutput.llm.raw}
 				<div class="form-group">
-					<h3 class="text-text-subtle mb-2 text-lg font-medium">Response</h3>
+					<h3 class="text-text-subtle mb-2 text-lg font-medium">Initial Response</h3>
 					<div class="form-control whitespace-pre-wrap p-4">
-						{$responseText}
+						{serviceOutput.llm.raw}
+					</div>
+				</div>
+			{/if}
+
+			{#if serviceOutput.llm.prepass}
+				<div class="form-group">
+					<h3 class="text-text-subtle mb-2 text-lg font-medium">Prepass Response</h3>
+					<div class="form-control whitespace-pre-wrap p-4">
+						{serviceOutput.llm.prepass}
 					</div>
 				</div>
 			{/if}

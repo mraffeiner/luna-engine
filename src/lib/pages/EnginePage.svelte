@@ -9,9 +9,13 @@
 		serviceOutput
 	} from '$lib/shared/shared.svelte';
 	import ContentPage from './ContentPage.svelte';
-	import { generateResponse } from './services/llm/llmService';
+	import {
+		generateResponse,
+		selectedPrepassLlm,
+		selectedResponseLlm
+	} from './services/llm/llmService';
 	import ServicePage from './services/ServicePage.svelte';
-	import { generateSpeech } from './services/tts/ttsService';
+	import { generateSpeech, selectedTts } from './services/tts/ttsService';
 	import { discordService } from './services/discord/discordService';
 	import { asyncSleep } from '$lib/shared/utils';
 
@@ -36,30 +40,58 @@
 		engineStates.thinking = true;
 		engineStates.hasNewMessages = false; // Responding to new messages
 
-		return generateResponse()
-			.then(() => {
-				return generateSpeech();
-			})
-			.then(() => {
-				engineStates.speaking = true;
-				engineStates.thinking = false;
+		return (
+			// Main Response
+			generateResponse($selectedResponseLlm)
+				// Response prepass
+				.then((llmResponse) => {
+					if (!llmResponse) return;
+					serviceOutput.llm.raw = llmResponse;
 
-				if (receiveInput.discord && serviceOutput.tts?.blob) {
-					return discordService.playAudio(serviceOutput.tts?.blob);
-				}
-			})
-			.then(() => {
-				engineStates.waiting = true;
-				engineStates.speaking = false;
-				return asyncSleep(engineConfig.msMinAfterResponse);
-			})
-			.catch(async (error) => {
-				engineStates.paused = true;
-				engineStates.thinking = false;
-				engineStates.speaking = false;
-				engineStates.waiting = false;
-				console.error(`Engine paused because of error: `, error);
-			});
+					if (!engineConfig.llmPrepass) return llmResponse;
+
+					const prepassParams = $selectedPrepassLlm;
+					prepassParams.requestParams.prompt = llmResponse;
+
+					return generateResponse(prepassParams);
+				})
+				// TTS
+				.then((prepassResponse) => {
+					if (!prepassResponse) return;
+					serviceOutput.llm.prepass = prepassResponse;
+
+					const ttsParams = $selectedTts;
+					ttsParams.requestParams.text = prepassResponse;
+
+					return generateSpeech(ttsParams);
+				})
+				// Play Audio
+				.then((ttsResponse) => {
+					engineStates.speaking = true;
+					engineStates.thinking = false;
+
+					if (!ttsResponse) return;
+
+					if (receiveInput.discord && ttsResponse.blob) {
+						return discordService.playAudio(ttsResponse.blob);
+					} else {
+						console.warn('Not receiving discord input or no audio data');
+						return asyncSleep(5000); // Prevent rapid responses without speech
+					}
+				})
+				.then(() => {
+					engineStates.waiting = true;
+					engineStates.speaking = false;
+					return asyncSleep(engineConfig.msMinAfterResponse);
+				})
+				.catch(async (error) => {
+					engineStates.paused = true;
+					engineStates.thinking = false;
+					engineStates.speaking = false;
+					engineStates.waiting = false;
+					console.error(`Engine paused because of error: `, error);
+				})
+		);
 	}
 
 	$effect(() => {
@@ -87,8 +119,8 @@
 					<div class="col-span-3 row-span-3">
 						<EngineCard title={page.name} bind:receiveInput={receiveInput.llm}>
 							<div class="whitespace-pre-wrap">
-								{#if serviceOutput.llm}
-									{serviceOutput.llm}
+								{#if serviceOutput.llm.raw}
+									{serviceOutput.llm.raw}
 								{/if}
 							</div>
 						</EngineCard>

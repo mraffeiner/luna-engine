@@ -147,8 +147,8 @@
 		}
 	});
 
-	onMount(async () => {
-		await loadModels();
+	onMount(() => {
+		loadModels();
 	});
 
 	onDestroy(() => {

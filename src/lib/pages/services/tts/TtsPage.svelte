@@ -15,18 +15,16 @@
 	let text = $state('Hey there, hello!');
 
 	$effect(() => {
-		if (receiveInput.tts && serviceOutput.llm) {
+		if (receiveInput.tts && serviceOutput.llm.prepass) {
 			text = normalizeTtsInput(
-				serviceOutput.llm,
+				serviceOutput.llm.prepass,
 				selectedEngine === 'kokoro' ? '\u2014' : '. ' // em dash (—) : period (. )
 			);
 		}
 	});
 
 	onMount(() => {
-		(async () => {
-			await fetchTtsOptions();
-		})();
+		fetchTtsOptions();
 	});
 </script>
 
