@@ -9,4 +9,4 @@ COPY src ./src
 
 EXPOSE 8005
 
-CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8005"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8005", "--ws-ping-interval", "20", "--ws-ping-timeout", "20"]
