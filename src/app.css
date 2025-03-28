@@ -202,7 +202,7 @@ input[type='radio']:focus {
 
 /* ===== Alert/Error Styles ===== */
 @utility alert {
-	@apply ml-0.5 border p-4;
+	@apply border p-4;
 }
 
 .alert-error {

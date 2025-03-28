@@ -4,7 +4,7 @@
 	const { errorMessage } = $props();
 </script>
 
-<div class="alert-error animate-in">
+<div class="alert-error animate-in px-12 py-5">
 	<div class="flex-between">
 		<div class="flex-start">
 			<Icon
