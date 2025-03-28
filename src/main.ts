@@ -1,4 +1,5 @@
 import * as log from "https://deno.land/std@0.224.0/log/mod.ts";
+import { format } from "https://deno.land/std@0.224.0/datetime/format.ts";
 import {
   Client,
   GatewayIntentBits,
@@ -33,9 +34,9 @@ log.setup({
           record.args && record.args.length > 0
             ? " " + record.args.map(String).join(" ")
             : "";
-        return `[${record.datetime.toISOString()}] - ${record.levelName}: ${
-          record.msg
-        }${extra}`;
+        return `[${format(record.datetime, "yyyy-MM-dd HH:mm:ss")}] - ${
+          record.levelName
+        }: ${record.msg}${extra}`;
       },
     }),
   },
