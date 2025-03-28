@@ -84,6 +84,65 @@ class TwitchClient(commands.Bot):
         logger.info("Twitch client connection closed.")
         self.status_manager.update(Platform.TWITCH, ConnectionStatus.DISCONNECTED)
 
+    async def close(self):
+        """Overrides twitchio's close to prevent AttributeError on _keeper."""
+        logger.debug("Custom TwitchClient close() method called.")
+        connection = getattr(self, "_connection", None)
+        keeper = getattr(connection, "_keeper", None) if connection else None
+
+        if connection and keeper:
+            logger.debug("Connection and keeper seem valid, calling super().close().")
+            try:
+                await super().close()
+            except AttributeError as e:
+                # Defensive catch for race conditions
+                if "'NoneType' object has no attribute 'cancel'" in str(e):
+                    logger.warning(
+                        f"Caught expected AttributeError in super().close(): {e}. Likely race condition during cancellation."
+                    )
+                    # Ensure status is updated if super().close() failed midway
+                    if (
+                        self.status_manager.get(Platform.TWITCH)
+                        != ConnectionStatus.DISCONNECTED
+                    ):
+                        self.status_manager.update(
+                            Platform.TWITCH, ConnectionStatus.DISCONNECTED
+                        )
+                else:
+                    logger.error(
+                        "Caught unexpected AttributeError during super().close()",
+                        exc_info=True,
+                    )
+                    raise  # Re-raise other AttributeErrors
+            except Exception:
+                logger.exception("Unexpected error during super().close()")
+                # Ensure status is updated even if super().close() fails unexpectedly
+                if (
+                    self.status_manager.get(Platform.TWITCH)
+                    != ConnectionStatus.DISCONNECTED
+                ):
+                    self.status_manager.update(
+                        Platform.TWITCH, ConnectionStatus.DISCONNECTED
+                    )
+        else:
+            logger.warning(
+                f"Skipping super().close() call. Connection valid: {bool(connection)}, Keeper valid: {bool(keeper)}"
+            )
+            # Manually ensure the status is DISCONNECTED if we skip the normal close path
+            # which might not trigger event_close correctly.
+            if (
+                self.status_manager.get(Platform.TWITCH)
+                != ConnectionStatus.DISCONNECTED
+            ):
+                logger.info(
+                    "Forcing status to DISCONNECTED after skipping super().close()."
+                )
+                self.status_manager.update(
+                    Platform.TWITCH, ConnectionStatus.DISCONNECTED
+                )
+
+        logger.debug("Custom TwitchClient close() method finished.")
+
     async def run(self):
         """
         Connects and runs the Twitch client's internal loop.
