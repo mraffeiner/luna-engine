@@ -12,7 +12,8 @@ from ..services.status_manager import StatusManager
 # Import platform modules from new locations
 from ..platforms.youtube.auth import GoogleAuthManager
 from ..platforms.youtube.listener import YouTubeListener
-from ..platforms.twitch.client import TwitchClient  # Assuming TwitchClient class exists
+
+# from ..platforms.twitch.client import TwitchClient # Removed singleton import
 
 # Import the orchestrator
 from ..services.chat_orchestrator import ChatOrchestrator
@@ -40,7 +41,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     )  # Pass ws_manager and loop
     google_auth_manager = GoogleAuthManager(status_manager)
     youtube_listener = YouTubeListener(google_auth_manager, status_manager, ws_manager)
-    twitch_client = TwitchClient(status_manager, ws_manager)  # Assuming constructor
+    # twitch_client = TwitchClient(status_manager, ws_manager) # Removed singleton creation
 
     # Initialize the orchestrator, passing necessary components
     chat_orchestrator = ChatOrchestrator(
@@ -48,7 +49,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         ws_manager=ws_manager,
         google_auth_manager=google_auth_manager,
         youtube_listener=youtube_listener,
-        twitch_client=twitch_client,
+        # twitch_client=twitch_client, # Removed twitch_client argument
     )
 
     # Store instances in app.state using the defined constant keys for dependency injection
@@ -60,10 +61,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.status_manager = status_manager
     app.state.google_auth_manager = google_auth_manager
     app.state.youtube_listener = youtube_listener
-    app.state.twitch_client = twitch_client
+    # app.state.twitch_client = twitch_client # Removed storing singleton
 
-    # Store the asyncio task reference dict in state for orchestrator use
-    app.state.platform_tasks = {}  # e.g., {"twitch": task_ref, "youtube": thread_ref}
+    # Store the asyncio task and instance reference dicts in state for orchestrator use
+    app.state.platform_tasks = {}
+    app.state.platform_instances = {}  # Added for consistency
 
     logger.info("Core components initialized. Ready for connections.")
 

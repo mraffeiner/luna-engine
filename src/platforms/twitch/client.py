@@ -100,40 +100,54 @@ class TwitchClient(commands.Bot):
 
         self.status_manager.update(Platform.TWITCH, ConnectionStatus.CONNECTING)
         logger.info("Starting Twitch Client task...")
-
+        logger.debug(
+            f"Attempting to call self.start() on TwitchClient instance {id(self)}"
+        )  # Add logging
+        was_cancelled = False  # Flag to track cancellation
         try:
             # self.start() runs the bot's internal loop until closed or cancelled
             await self.start()
         except asyncio.CancelledError:
-            logger.info("Twitch Client task cancelled.")
-            # Ensure connection is closed gracefully on cancellation
-            if getattr(self, "is_connected", False):
-                await self.close()
+            was_cancelled = True  # Set flag on cancellation
+            logger.info(
+                "Twitch Client task cancelled. Relying on twitchio internal cleanup."
+            )
+            # Removed explicit self.close() call on cancellation.
+            # twitchio might handle this internally when the task is cancelled.
+            # The event_close handler should still set the status correctly.
+            pass  # Explicitly do nothing here now
         except Exception as e:
             # Catch potential exceptions during startup or runtime
             logger.exception(f"Fatal error running Twitch Client task: {e}")
             self.status_manager.update(Platform.TWITCH, ConnectionStatus.ERROR)
         finally:
-            # Ensure the status is correctly set after the task finishes
+            # Ensure the status is correctly set after the task finishes.
+            # event_close might have already set it, but this is a safeguard.
+            final_status_to_set = None
             current_status = self.status_manager.get(Platform.TWITCH)
+
+            # Check if the status needs to be forced to DISCONNECTED
             if current_status not in [
-                ConnectionStatus.DISCONNECTED,  # Already set by event_close
-                ConnectionStatus.ERROR,
+                ConnectionStatus.DISCONNECTED,  # Already correctly set
+                ConnectionStatus.ERROR,  # Preserve specific error states
                 ConnectionStatus.ERROR_CONFIG,
+                ConnectionStatus.ERROR_API,
+                ConnectionStatus.ERROR_AUTH,
             ]:
-                logger.warning(
-                    f"Twitch client task finished unexpectedly (status: {current_status.value}). Forcing status to disconnected."
-                )
-                self.status_manager.update(
-                    Platform.TWITCH, ConnectionStatus.DISCONNECTED
-                )
-            logger.info("Twitch Client task finished.")
-            # Ensure bot is closed if not already handled by cancellation or event_close
-            if getattr(self, "is_connected", False):
-                try:
-                    await self.close()
-                    logger.info("Twitch Client connection closed during final cleanup.")
-                except Exception:
-                    logger.exception(
-                        "Error closing Twitch Client during final cleanup."
+                final_status_to_set = ConnectionStatus.DISCONNECTED
+                # Log differently based on whether cancellation was expected
+                if not was_cancelled:
+                    logger.warning(
+                        f"Twitch client task finished unexpectedly (status: {current_status.value}). Forcing status to disconnected."
                     )
+                else:
+                    logger.info(
+                        f"Twitch client task finished (cancelled). Ensuring status is disconnected (was {current_status.value})."
+                    )
+            # Apply the final status if needed
+            if final_status_to_set:
+                self.status_manager.update(Platform.TWITCH, final_status_to_set)
+
+            logger.info("Twitch Client task finished.")
+            # Removed redundant close() call from finally block.
+            # The CancelledError handler or event_close should handle closing.

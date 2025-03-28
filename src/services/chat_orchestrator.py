@@ -9,7 +9,9 @@ from .status_manager import StatusManager
 from ..core.websocket_manager import ConnectionManager
 from ..platforms.youtube.auth import GoogleAuthManager
 from ..platforms.youtube.listener import YouTubeListener
-from ..platforms.twitch.client import TwitchClient  # Assuming class name
+
+# TwitchClient is now imported directly where needed, not injected into orchestrator init
+# from ..platforms.twitch.client import TwitchClient
 from ..config import (
     Platform,
     ConnectionStatus,
@@ -27,15 +29,14 @@ class ChatOrchestrator:
         ws_manager: ConnectionManager,
         google_auth_manager: GoogleAuthManager,
         youtube_listener: YouTubeListener,
-        twitch_client: TwitchClient,
+        # twitch_client: TwitchClient, # Removed from init
     ):
         self.status_manager = status_manager
         self.ws_manager = ws_manager
         self.google_auth_manager = google_auth_manager
         self.youtube_listener = youtube_listener
-        self.twitch_client = twitch_client
-        # Store task/thread references - managed via app.state in lifespan for now
-        # self.platform_tasks: Dict[Platform, asyncio.Task | threading.Thread] = {}
+        # self.twitch_client = twitch_client # Removed instance variable
+        # Store task/thread references and client instances in app.state
         logger.info("ChatOrchestrator initialized.")
 
     # --- Status ---
@@ -134,15 +135,12 @@ class ChatOrchestrator:
     # --- Twitch Methods ---
     async def connect_twitch(
         self, app_state: dict
-    ):  # Pass app_state to manage task ref
-        """Starts the Twitch client connection task."""
+    ):  # Pass app_state to manage task and instance refs
+        """Creates a new TwitchClient instance and starts its connection task."""
         logger.info("Orchestrator: Twitch connect requested.")
-        platform_tasks = getattr(
-            app_state, "platform_tasks", {}
-        )  # Safely get the dict, default to {} if attr missing
-        current_task = platform_tasks.get(
-            Platform.TWITCH
-        )  # Now use .get() on the dictionary
+
+        # Access state dictionaries directly (initialized in lifespan.py)
+        current_task = app_state.platform_tasks.get(Platform.TWITCH)
         current_status = self.status_manager.get(Platform.TWITCH)
 
         if current_task and not current_task.done():
@@ -156,31 +154,42 @@ class ChatOrchestrator:
             )
             return
 
-        logger.info("Orchestrator: Creating and scheduling Twitch client task.")
-        # Create the task and store reference in app.state via passed dict
+        logger.info("Orchestrator: Creating new TwitchClient instance and task.")
+        # Import here to avoid circular dependency issues if TwitchClient needs orchestrator
+        from ..platforms.twitch.client import TwitchClient
+
+        # Create a NEW instance
+        new_twitch_client = TwitchClient(self.status_manager, self.ws_manager)
+
+        # Create the task using the new instance's run method
         task = asyncio.create_task(
-            self.twitch_client.run()  # Assuming run() method starts the client loop
+            new_twitch_client.run(), name=f"TwitchClientTask-{id(new_twitch_client)}"
         )
-        # Ensure platform_tasks attribute exists and is a dict
-        if not hasattr(app_state, "platform_tasks"):
-            app_state.platform_tasks = {}
-        # Now assign the task
+
+        # Store references in app.state using attribute access
         app_state.platform_tasks[Platform.TWITCH] = task
+        app_state.platform_instances[Platform.TWITCH] = new_twitch_client
+
         # Status will be updated by the client task itself
-        await asyncio.sleep(0.05)
+        await asyncio.sleep(0.05)  # Allow task to start and potentially update status
 
     async def disconnect_twitch(
         self, app_state: dict, background_tasks: BackgroundTasks
     ):
-        """Stops the Twitch client connection task."""
+        """Stops the running Twitch client connection task."""
         logger.info("Orchestrator: Twitch disconnect requested.")
-        platform_tasks = getattr(app_state, "platform_tasks", {})
-        current_task = platform_tasks.get(Platform.TWITCH)
+
+        # Access state dictionaries directly (initialized in lifespan.py)
+        current_task = app_state.platform_tasks.get(Platform.TWITCH)
 
         if current_task and not current_task.done():
-            logger.info("Orchestrator: Cancelling Twitch client task...")
+            logger.info(
+                f"Orchestrator: Cancelling Twitch client task {current_task.get_name()}..."
+            )
             current_task.cancel()
-            platform_tasks[Platform.TWITCH] = None  # Clear the reference
+            # Clear references from app.state using attribute access
+            app_state.platform_tasks.pop(Platform.TWITCH, None)
+            app_state.platform_instances.pop(Platform.TWITCH, None)
 
             # Optional: Wait for cancellation in background for logging
             async def wait_for_cancel(task):
@@ -198,13 +207,19 @@ class ChatOrchestrator:
                     )
 
             background_tasks.add_task(wait_for_cancel, current_task)
-            await asyncio.sleep(0.05)  # Allow cancellation to start
+            await asyncio.sleep(0.05)  # Allow cancellation to start and status updates
         else:
             logger.info("Orchestrator: Twitch task not running or already finished.")
+            # Clear any potentially stale references using attribute access
+            app_state.platform_tasks.pop(Platform.TWITCH, None)
+            app_state.platform_instances.pop(Platform.TWITCH, None)
             # Ensure status is correct
             if self.status_manager.get(Platform.TWITCH) not in [
                 ConnectionStatus.DISCONNECTED,
-                ConnectionStatus.ERROR_CONFIG,
+                ConnectionStatus.ERROR_CONFIG,  # Keep error status if it was set
+                ConnectionStatus.ERROR,
+                ConnectionStatus.ERROR_API,
+                ConnectionStatus.ERROR_AUTH,
             ]:
                 self.status_manager.update(
                     Platform.TWITCH, ConnectionStatus.DISCONNECTED
@@ -214,16 +229,18 @@ class ChatOrchestrator:
     async def disconnect_all(self, app_state: dict, timeout: float = 10.0):
         """Disconnects all active platform connections gracefully."""
         logger.info("Orchestrator: Disconnecting all platforms...")
-        platform_tasks = app_state.setdefault("platform_tasks", {})
+        # Access state dictionaries directly (initialized in lifespan.py)
         tasks_to_wait_for = []
 
         # Stop Twitch Task
-        twitch_task = platform_tasks.get(Platform.TWITCH)
+        twitch_task = app_state.platform_tasks.get(Platform.TWITCH)
         if twitch_task and not twitch_task.done():
-            logger.info("Orchestrator: Cancelling Twitch task during shutdown...")
+            logger.info(
+                f"Orchestrator: Cancelling Twitch task {twitch_task.get_name()} during shutdown..."
+            )
             twitch_task.cancel()
             tasks_to_wait_for.append(twitch_task)
-            platform_tasks[Platform.TWITCH] = None
+            # References will be cleared after waiting
 
         # Stop YouTube Thread (using its own stop method)
         if self.youtube_listener.thread and self.youtube_listener.thread.is_alive():
@@ -265,5 +282,8 @@ class ChatOrchestrator:
                         f"Orchestrator: Task {task_name} finished during shutdown wait."
                     )
             logger.info("Orchestrator: Finished waiting for task cancellations.")
+            # Clear instance references after tasks are handled using attribute access
+            app_state.platform_tasks.pop(Platform.TWITCH, None)
+            app_state.platform_instances.pop(Platform.TWITCH, None)
 
         logger.info("Orchestrator: All platforms disconnected.")
