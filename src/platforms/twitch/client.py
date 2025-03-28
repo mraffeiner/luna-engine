@@ -65,7 +65,7 @@ class TwitchClient(commands.Bot):
         broadcast_message = {
             "platform": Platform.TWITCH.value,
             "channel": message.channel.name,
-            "author": message.author.name,
+            "author": message.author.display_name,
             "text": message.content,
             "timestamp": (message.timestamp.isoformat() if message.timestamp else None),
         }
