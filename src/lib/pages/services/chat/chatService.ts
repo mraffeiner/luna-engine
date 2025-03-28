@@ -26,7 +26,7 @@ export type ConnectionStatus =
 
 // --- Constants ---
 const MAX_MESSAGES = 150;
-const API_BASE_URL = '/api/chat/api/v1';
+const API_BASE_URL = '/api/chat';
 const WS_URL = '/api/chat/ws';
 
 // --- Stores ---
@@ -235,6 +235,3 @@ export const chatService = {
 	fetchStatus: fetchPlatformStatus,
 	fetchAndCopyAuthUrl: fetchAndCopyAuthUrl
 };
-
-// --- Initialization ---
-connectWebSocket();

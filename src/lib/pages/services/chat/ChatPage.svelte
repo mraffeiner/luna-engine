@@ -11,7 +11,7 @@
 	import ServicePage from '../ServicePage.svelte';
 	import Card from '$lib/components/Card.svelte';
 	import Icon from '$lib/components/Icon.svelte'; // Import Icon component
-	import { tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 
 	let chatContainer: HTMLElement | undefined = $state();
 	let shouldScroll = $derived(
@@ -78,6 +78,10 @@
 		tick().then(() => {
 			chatContainer!.scrollTop = chatContainer!.scrollHeight;
 		});
+	});
+
+	onMount(() => {
+		chatService.connectWebSocket();
 	});
 </script>
 
