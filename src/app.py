@@ -11,7 +11,7 @@ import tempfile
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] - %(levelname)s: %(message)s",
-    datefmt="%Y-%m-%dT%H:%M:%SZ",
+    datefmt="%Y/%m/%d %H:%M:%S",
 )
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI):
     handler.setFormatter(
         logging.Formatter(
             "[%(asctime)s] - %(levelname)s: %(message)s",
-            datefmt="%Y-%m-%dT%H:%M:%SZ",
+            datefmt="%Y/%m/%d %H:%M:%S",
         )
     )
     uvicorn_access_logger.handlers.clear()
