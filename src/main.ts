@@ -127,6 +127,7 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
       const user = await client.users.fetch(userId);
       const username = user.displayName;
       logger.info(`${username} started speaking`);
+      audioWebSocket?.send(JSON.stringify({ type: "started_speaking" }));
 
       // Clear any existing timeout for this user
       if (!connection) {
