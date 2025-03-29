@@ -121,7 +121,7 @@
 			const newMessage = serviceOutput.chat.shift();
 			if (newMessage && SUPPORTED_PLATFORMS.includes(newMessage.platform as any)) {
 				updateUserPromptSection(
-					'new-chat-messages',
+					'new-messages',
 					null,
 					`[${newMessage.platform.charAt(0).toUpperCase() + newMessage.platform.slice(1)}] ${newMessage.author}: ${newMessage.text}`,
 					null,
@@ -137,7 +137,7 @@
 			const newTranscript = serviceOutput.stt.shift();
 			if (newTranscript) {
 				updateUserPromptSection(
-					'new-chat-messages',
+					'new-messages',
 					null,
 					`[Discord] ${newTranscript.username}: ${newTranscript.transcript}`,
 					null,

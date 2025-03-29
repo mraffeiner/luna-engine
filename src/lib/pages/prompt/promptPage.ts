@@ -108,7 +108,7 @@ export function clearDynamicPromptContent(id?: string): void {
 export function consumeNewMessages(): void {
 	userPromptSections.update((prompts) => {
 		const updatedPrompts = prompts.map((prompt) => {
-			if (prompt.id !== 'new-chat-messages') return prompt;
+			if (prompt.id !== 'new-messages') return prompt;
 
 			const [headline, ...lines] = prompt.content.split('\n');
 			prompt.content = headline;

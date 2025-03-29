@@ -77,12 +77,12 @@
 		const normalizedText = normalizeTtsInput(text, ttsParams.requestParams.engine);
 		const textParts: string[] = normalizedText.split(/(?<=[\.\!\?—])\s+/);
 
+		// OPTIMIZE: Pause audio instead of splitting and somehow figure out where it paused for conversation log
 		// Generate and play each part
 		let accumulatedText: string = ''; // For unfragmented conversation prompt
 		for (const textPart of textParts) {
-			accumulatedText += textPart;
-
-			ttsParams.requestParams.text = textPart;
+			accumulatedText = `${accumulatedText} ${textPart}`.trim();
+			ttsParams.requestParams.text = textPart.trim();
 
 			// OPTIMIZE: Use map with await Promise.all if latency between parts is too high
 			const speechPart = await generateSpeech(ttsParams);
