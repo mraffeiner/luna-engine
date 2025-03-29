@@ -21,13 +21,8 @@
 
 	async function handleTranscribeAudio(audioBlob: Blob, username?: string) {
 		// OPTIMIZE: Trigger intermediate response when transcription starts to give Luna time to think
-		const transcript = await transcribeAudio(audioBlob, selectedModel);
-
+		await transcribeAudio(audioBlob, selectedModel, username);
 		cleanupRecorder();
-
-		if (transcript) {
-			serviceOutput.stt.push({ username: username ? username : 'Anonymous', transcript });
-		}
 	}
 
 	// Cleanup function to stop recording and release resources

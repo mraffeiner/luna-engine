@@ -1,5 +1,6 @@
-import { writable } from 'svelte/store';
+import { writable, derived } from 'svelte/store'; // Import derived
 import { serviceError } from '../docker/dockerService';
+import { serviceOutput } from '$lib/shared/shared.svelte';
 
 export interface SttResponse {
 	text: string;
@@ -11,7 +12,8 @@ export interface SttModel {
 }
 
 // Shared stores
-export const loading = writable(false);
+export const activeTranscriptions = writable(0); // Counter store
+export const loading = derived(activeTranscriptions, ($count) => $count > 0); // Derived loading state
 export const sttModels = writable<SttModel[]>([]);
 
 /**
@@ -56,11 +58,11 @@ export async function fetchSttModels(): Promise<SttModel[]> {
  */
 export async function transcribeAudio(
 	audioBlob: Blob,
-	model: string = 'whisper-large-v3'
+	model: string = 'whisper-large-v3',
+	username?: string
 ): Promise<string | null> {
 	try {
-		loading.set(true);
-
+		activeTranscriptions.update((n) => n + 1); // Increment counter
 		// Create a FormData object and append the audio blob and model
 		const formData = new FormData();
 		formData.append('audio', audioBlob, 'recording.mp3');
@@ -75,7 +77,9 @@ export async function transcribeAudio(
 		// Handle the response
 		if (response.ok) {
 			const data: SttResponse = await response.json();
-			return data.text.trim();
+			const transcript = data.text.trim();
+			serviceOutput.stt.push({ username: username ? username : 'Anonymous', transcript });
+			return transcript;
 		} else {
 			// Try to get more detailed error information
 			let errorDetail = '';
@@ -95,6 +99,6 @@ export async function transcribeAudio(
 		serviceError.set(errorMsg);
 		return null;
 	} finally {
-		loading.set(false);
+		activeTranscriptions.update((n) => n - 1); // Decrement counter
 	}
 }
