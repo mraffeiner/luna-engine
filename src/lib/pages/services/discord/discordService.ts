@@ -2,8 +2,12 @@ import { serviceError } from '$lib/pages/services/docker/dockerService';
 import { engineStates } from '$lib/shared/shared.svelte';
 
 const API_BASE_URL = '/api/discord';
+const MAX_RECONNECT_ATTEMPTS = 5;
+const RECONNECT_DELAY_MS = 3000;
 
 let audioWebSocket: WebSocket | null = null;
+let reconnectAttempts = 0;
+
 let resolvePlaybackComplete: () => void = () => {};
 
 export const discordService = {
@@ -37,6 +41,10 @@ export const discordService = {
 		audioWebSocket = new WebSocket(`${API_BASE_URL}/`);
 		audioWebSocket.binaryType = 'arraybuffer';
 
+		audioWebSocket.onopen = () => {
+			reconnectAttempts = 0;
+		};
+
 		audioWebSocket.onmessage = (event: MessageEvent) => {
 			if (event.data instanceof ArrayBuffer) {
 				// Extract username and audio blob
@@ -58,8 +66,18 @@ export const discordService = {
 			}
 		};
 
-		audioWebSocket.onclose = () => {
+		audioWebSocket.onclose = (event) => {
 			audioWebSocket = null;
+
+			if (!event.wasClean && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+				reconnectAttempts++;
+				setTimeout(
+					discordService.connectWebSocket,
+					RECONNECT_DELAY_MS * Math.pow(2, reconnectAttempts - 1)
+				);
+			} else if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+				console.error('Max WebSocket reconnect attempts reached.');
+			}
 		};
 
 		audioWebSocket.onerror = (event: Event) => {
