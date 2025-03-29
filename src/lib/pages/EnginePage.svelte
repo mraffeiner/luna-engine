@@ -17,7 +17,12 @@
 	import ServicePage from './services/ServicePage.svelte';
 	import { generateSpeech, selectedTts, type TtsParams } from './services/tts/ttsService';
 	import { discordService } from './services/discord/discordService';
-	import { asyncSleep, normalizeLlmResponse, normalizeTtsInput } from '$lib/shared/utils';
+	import {
+		asyncSleep,
+		normalizeLlmResponse,
+		normalizeTtsInput,
+		splitByPunctuation
+	} from '$lib/shared/utils';
 	import { consumeNewMessages, updateUserPromptSection } from './prompt/promptPage';
 
 	const shouldRespond = $derived(
@@ -73,9 +78,10 @@
 	async function handleSpeaking(text: string) {
 		const ttsParams: TtsParams = $selectedTts;
 
-		// Normalize and split tts by punctuation
 		const normalizedText = normalizeTtsInput(text, ttsParams.requestParams.engine);
-		const textParts: string[] = normalizedText.split(/(?<=[\.\!\?—])\s+/);
+
+		// Split by punctuation
+		const textParts = splitByPunctuation(normalizedText, 5);
 
 		// OPTIMIZE: Pause audio instead of splitting and somehow figure out where it paused for conversation log
 		// Generate and play each part

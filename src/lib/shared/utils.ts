@@ -97,6 +97,65 @@ export function normalizeTtsInput(text: string, ttsEngine: TtsEngine) {
 	return text;
 }
 
+export function splitByPunctuation(text: string, minWords: number = 1): string[] {
+	// Helper to count words reliably (handles multiple spaces)
+	const countWords = (str: string): number => {
+		// Split by any whitespace and filter out empty strings
+		return str.split(/\s+/).filter(Boolean).length;
+	};
+
+	// Ensure minWords is at least 1
+	const effectiveMinWords = Math.max(1, minWords);
+
+	// Split by punctuation followed by whitespace, keeping punctuation.
+	// Trim resulting parts and filter out any empty strings.
+	const punctuationSplitParts = text
+		.split(/(?<=[,.!?—])\s+/) // Positive lookbehind keeps punctuation
+		.map((p) => p.trim())
+		.filter((p) => p.length > 0);
+
+	// If splitting resulted in nothing (e.g., empty input or just punctuation/space),
+	// return based on whether the original trimmed text had content.
+	if (punctuationSplitParts.length === 0) {
+		const trimmedText = text.trim();
+		return trimmedText.length > 0 ? [trimmedText] : [];
+	}
+
+	const finalParts: string[] = [];
+	let currentChunk = '';
+
+	for (const part of punctuationSplitParts) {
+		// Determine the separator (space) needed if currentChunk isn't empty
+		const separator = currentChunk ? ' ' : '';
+		// Add the new part to the current chunk
+		currentChunk = `${currentChunk}${separator}${part}`;
+
+		// Check if the current chunk now meets the minimum word count
+		if (countWords(currentChunk) >= effectiveMinWords) {
+			finalParts.push(currentChunk);
+			currentChunk = ''; // Reset for the next chunk
+		}
+		// If not long enough, loop continues, accumulating the next part
+	}
+
+	// After the loop, if there's anything left in currentChunk,
+	// add it as the last part (it might be shorter than minWords).
+	if (currentChunk) {
+		finalParts.push(currentChunk);
+	}
+
+	// Edge case: If the entire text processed resulted in no final parts
+	// (e.g., text was shorter than minWords and had no punctuation to force a push),
+	// return the original text as a single item if it wasn't empty.
+	// This is mostly covered by the `if (currentChunk)` check above,
+	// but ensures non-empty short inputs return themselves.
+	if (finalParts.length === 0 && text.trim().length > 0) {
+		return [text.trim()];
+	}
+
+	return finalParts;
+}
+
 function escapeRegex(string: string) {
 	return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
