@@ -12,6 +12,9 @@
 
 	async function connect() {
 		await discordService.connect(guildId, channelId);
+		discordService.connectWebSocket(async (username, audioBlob) =>
+			handleOnAudioReceived(username, audioBlob)
+		);
 	}
 
 	async function disconnect() {
@@ -26,12 +29,6 @@
 		speakerAudio.set(username, audioUrl);
 		serviceOutput.discord.set(username, { blob: audioBlob, url: audioUrl });
 	}
-
-	onMount(() => {
-		discordService.connectWebSocket(async (username, audioBlob) =>
-			handleOnAudioReceived(username, audioBlob)
-		);
-	});
 
 	onDestroy(async () => {
 		await disconnect();
