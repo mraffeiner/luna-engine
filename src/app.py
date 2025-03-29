@@ -106,7 +106,7 @@ GROQ_MODELS = [
         "provider": "groq",
         "id": "llama-3.3-70b-specdec",
         "name": "Llama 3.3 70B SpecDec",
-        "isReasoning": True,
+        "isReasoning": False,
     },
 ]
 
@@ -117,7 +117,13 @@ GOOGLE_MODELS = [
         "id": "gemini-2.0-flash",
         "name": "Gemini 2.0 Flash",
         "isReasoning": False,
-    }
+    },
+    {
+        "provider": "google",
+        "id": "gemini-2.5-pro-exp-03-25",
+        "name": "Gemini 2.5 Pro Exp",
+        "isReasoning": False,
+    },
 ]
 
 
