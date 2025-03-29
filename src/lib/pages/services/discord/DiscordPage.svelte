@@ -28,11 +28,6 @@
 		await discordService.disconnect();
 	}
 
-	$effect(() => {
-		if (receiveInput.discord && serviceOutput.tts) {
-		}
-	});
-
 	onDestroy(async () => {
 		await disconnect();
 	});
