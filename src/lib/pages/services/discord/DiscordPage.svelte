@@ -5,28 +5,33 @@
 	import ServicePage from '../ServicePage.svelte';
 	import { discordService } from './discordService';
 	import { receiveInput, serviceOutput, speakerAudio } from '$lib/shared/shared.svelte';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 
 	let guildId: string = $state('1194692480805904384');
 	let channelId: string = $state('1349007184406642798');
 
 	async function connect() {
-		const success = await discordService.connect(guildId, channelId);
-		if (success) {
-			discordService.connectWebSocket(async (username, audioBlob) => {
-				let audioUrl = speakerAudio.get(username);
-				if (audioUrl) URL.revokeObjectURL(audioUrl);
-
-				audioUrl = URL.createObjectURL(audioBlob);
-				speakerAudio.set(username, audioUrl);
-				serviceOutput.discord.set(username, { blob: audioBlob, url: audioUrl });
-			});
-		}
+		await discordService.connect(guildId, channelId);
 	}
 
 	async function disconnect() {
 		await discordService.disconnect();
 	}
+
+	function handleOnAudioReceived(username: string, audioBlob: Blob) {
+		let audioUrl = speakerAudio.get(username);
+		if (audioUrl) URL.revokeObjectURL(audioUrl);
+
+		audioUrl = URL.createObjectURL(audioBlob);
+		speakerAudio.set(username, audioUrl);
+		serviceOutput.discord.set(username, { blob: audioBlob, url: audioUrl });
+	}
+
+	onMount(() => {
+		discordService.connectWebSocket(async (username, audioBlob) =>
+			handleOnAudioReceived(username, audioBlob)
+		);
+	});
 
 	onDestroy(async () => {
 		await disconnect();

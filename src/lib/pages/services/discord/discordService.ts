@@ -1,4 +1,5 @@
 import { serviceError } from '$lib/pages/services/docker/dockerService';
+import { engineStates } from '$lib/shared/shared.svelte';
 
 const API_BASE_URL = '/api/discord';
 
@@ -49,7 +50,9 @@ export const discordService = {
 				onAudioReceived(username, audioBlob);
 			} else if (typeof event.data === 'string') {
 				const message = JSON.parse(event.data);
-				if (message.type === 'playback_complete') {
+				if (message.type === 'started_speaking') {
+					engineStates.listening = true;
+				} else if (message.type === 'playback_complete') {
 					resolvePlaybackComplete();
 				}
 			}

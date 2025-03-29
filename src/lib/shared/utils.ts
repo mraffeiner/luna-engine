@@ -1,3 +1,5 @@
+import type { TtsEngine } from '$lib/pages/services/tts/ttsService';
+
 export function asyncSleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -54,8 +56,10 @@ export function normalizeLlmResponse(text: string, isReasoning: boolean, removeP
 	return normalizeText(text);
 }
 
-export function normalizeTtsInput(text: string, pauseChar: string = '—') {
+export function normalizeTtsInput(text: string, ttsEngine: TtsEngine) {
 	if (!text) return text;
+
+	const pauseChar = ttsEngine === 'kokoro' ? '\u2014' : '. '; // em dash (—) : period (. )
 
 	// Define a regex that matches all known pause indicators:
 	//  • Asterisk: *

@@ -15,16 +15,13 @@
 		selectedResponseLlm
 	} from './services/llm/llmService';
 	import ServicePage from './services/ServicePage.svelte';
-	import { generateSpeech, selectedTts } from './services/tts/ttsService';
+	import { generateSpeech, selectedTts, type TtsParams } from './services/tts/ttsService';
 	import { discordService } from './services/discord/discordService';
-	import { asyncSleep } from '$lib/shared/utils';
-	import { consumeNewMessages } from './prompt/promptPage';
+	import { asyncSleep, normalizeLlmResponse, normalizeTtsInput } from '$lib/shared/utils';
+	import { consumeNewMessages, updateUserPromptSection } from './prompt/promptPage';
 
-	const busy = $derived(
-		engineStates.paused || engineStates.thinking || engineStates.speaking || engineStates.waiting
-	);
 	const shouldRespond = $derived(
-		(engineConfig.mode === 'AUTO' || engineStates.hasNewMessages) && !busy
+		!engineStates.paused && !engineStates.busy && !engineStates.waiting && !engineStates.listening
 	);
 
 	let combinedPrompt = $derived.by(() => {
@@ -37,69 +34,127 @@
 		return combined;
 	});
 
-	async function respond() {
+	async function handleThinking() {
 		engineStates.thinking = true;
+		const llmResponse = await generateResponse($selectedResponseLlm);
+		engineStates.thinking = false;
+		if (!llmResponse) return;
+
+		serviceOutput.llm.raw = llmResponse;
+
+		const llmNormalizedResponse = normalizeLlmResponse(
+			llmResponse,
+			$selectedResponseLlm.isReasoning,
+			'Luna:'
+		);
+		serviceOutput.llm.normalized = llmNormalizedResponse;
+
+		if (!engineConfig.llmPrepass) return llmNormalizedResponse;
+
+		const prepassParams = $selectedPrepassLlm;
+		prepassParams.requestParams.prompt = llmResponse;
+
+		engineStates.thinking = true;
+		const llmPrepassResponse = await generateResponse(prepassParams);
+		engineStates.thinking = false;
+
+		if (!llmPrepassResponse) return; // NOTE: Unlikely to happen, potentially add fallback
+
+		const llmFinalResponse = normalizeLlmResponse(
+			llmPrepassResponse,
+			$selectedPrepassLlm.isReasoning,
+			'Luna:'
+		);
+
+		serviceOutput.llm.final = llmFinalResponse;
+		return llmFinalResponse;
+	}
+
+	async function handleSpeaking(text: string) {
+		const ttsParams: TtsParams = $selectedTts;
+
+		// Normalize and split tts by punctuation
+		const normalizedText = normalizeTtsInput(text, ttsParams.requestParams.engine);
+		const textParts: string[] = normalizedText.split(/(?<=[\.\!\?—])\s+/);
+
+		// Generate and play each part
+		let accumulatedText: string = ''; // For unfragmented conversation prompt
+		for (const textPart of textParts) {
+			accumulatedText += textPart;
+
+			ttsParams.requestParams.text = textPart;
+
+			// OPTIMIZE: Use map with await Promise.all if latency between parts is too high
+			const speechPart = await generateSpeech(ttsParams);
+
+			if (!speechPart || !speechPart.blob) continue;
+
+			if (receiveInput.discord) {
+				engineStates.speaking = true;
+				await discordService.playAudio(speechPart.blob);
+				engineStates.speaking = false;
+			} else {
+				console.warn('Not receiving discord input');
+				// OPTIMIZE: Fallback await audio element play
+				return;
+			}
+
+			// OPTIMIZE: Pause and resume depending on listening result (Advanced interruption using small llm decision)
+			if (engineStates.listening || engineStates.paused) {
+				break;
+			}
+		}
+
+		// Handle prompt update here to ensure conversation only receives uninterrupted parts
+		consumeNewMessages(); // Consume new messages before update so Luna's response comes afterwards
+		if (receiveInput.prompt && accumulatedText) {
+			updateUserPromptSection('conversation', null, `Luna: ${accumulatedText}`, null, true);
+		}
+	}
+
+	// OPTIMIZE: Parallel thinking -> Query small model for instant generic response and start talking while thinking
+	async function respond() {
+		engineStates.busy = true;
+		engineStates.waiting = false;
 		engineStates.hasNewMessages = false; // Responding to new messages
 
-		return (
-			// Main Response
-			generateResponse($selectedResponseLlm)
-				// Response prepass
-				.then((llmResponse) => {
-					if (!llmResponse) return;
-					consumeNewMessages(); // Before update to ensure Luna's response comes after
-					serviceOutput.llm.raw = llmResponse;
+		try {
+			const response = await handleThinking();
 
-					if (!engineConfig.llmPrepass) return llmResponse;
+			if (response) {
+				await handleSpeaking(response);
+			}
 
-					const prepassParams = $selectedPrepassLlm;
-					prepassParams.requestParams.prompt = llmResponse;
-
-					return generateResponse(prepassParams);
-				})
-				// TTS
-				.then((prepassResponse) => {
-					if (!prepassResponse) return;
-					serviceOutput.llm.prepass = prepassResponse;
-
-					const ttsParams = $selectedTts;
-					ttsParams.requestParams.text = prepassResponse;
-
-					return generateSpeech(ttsParams);
-				})
-				// Play Audio
-				.then((ttsResponse) => {
-					engineStates.speaking = true;
-					engineStates.thinking = false;
-
-					if (!ttsResponse) return;
-
-					if (receiveInput.discord && ttsResponse.blob) {
-						return discordService.playAudio(ttsResponse.blob);
-					} else {
-						console.warn('Not receiving discord input or no audio data');
-						return asyncSleep(5000); // Prevent rapid responses without speech
-					}
-				})
-				.then(() => {
-					engineStates.waiting = true;
-					engineStates.speaking = false;
-					return asyncSleep(engineConfig.msMinAfterResponse);
-				})
-				.catch(async (error) => {
-					engineStates.paused = true;
-					engineStates.thinking = false;
-					engineStates.speaking = false;
-					engineStates.waiting = false;
-					console.error(`Engine paused because of error: `, error);
-				})
-		);
+			engineStates.waiting = true;
+			await asyncSleep(engineConfig.msMinAfterResponse);
+			engineStates.waiting = engineConfig.mode !== 'AUTO' && !engineStates.hasNewMessages;
+		} catch (error) {
+			engineStates.paused = true;
+			engineStates.thinking = false;
+			engineStates.speaking = false;
+			engineStates.waiting = false;
+			engineStates.busy = false;
+			console.error(`Engine paused because of error: `, error);
+		}
 	}
+
+	// Stop listening when all transcriptions are done and luna was successfully interrupted
+	$effect(() => {
+		if (serviceOutput.stt.length === 0 && !engineStates.speaking) {
+			engineStates.listening = false;
+		}
+	});
+
+	$effect(() => {
+		if (engineStates.hasNewMessages) {
+			engineStates.waiting = false;
+		}
+	});
 
 	$effect(() => {
 		if (shouldRespond) {
 			respond().then(() => {
-				engineStates.waiting = false;
+				engineStates.busy = false;
 			});
 		}
 	});
@@ -121,8 +176,8 @@
 					<div class="col-span-3 row-span-3">
 						<EngineCard title={page.name} bind:receiveInput={receiveInput.llm}>
 							<div class="whitespace-pre-wrap">
-								{#if serviceOutput.llm.raw}
-									{serviceOutput.llm.raw}
+								{#if serviceOutput.llm.normalized}
+									{serviceOutput.llm.normalized}
 								{/if}
 							</div>
 						</EngineCard>

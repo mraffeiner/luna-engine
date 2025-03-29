@@ -1,21 +1,21 @@
 export type PageConfig = {
-	id: string;
-	name: string;
-	icon: string;
-	serviceId?: string;
+	readonly id: string;
+	readonly name: string;
+	readonly icon: string;
+	readonly serviceId?: string;
 };
 
 export type ContentPageConfig = {
-	id: string;
-	name: string;
-	icon: string;
+	readonly id: string;
+	readonly name: string;
+	readonly icon: string;
 };
 
 export type ServicePageConfig = {
-	id: string;
-	name: string;
-	icon: string;
-	serviceId: string;
+	readonly id: string;
+	readonly name: string;
+	readonly icon: string;
+	readonly serviceId: string;
 };
 
 export const PAGES: PageConfig[] = [
@@ -66,9 +66,10 @@ export const PAGES: PageConfig[] = [
 		icon: 'M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z', // Chat bubble icon
 		serviceId: 'chat-service'
 	}
-];
+] as const;
 
 export const SUPPORTED_PLATFORMS = ['twitch', 'youtube'] as const;
+export const TTS_ENGINES = ['kokoro', 'azure', 'sesame'] as const;
 
 export const SERVICE_PAGES = PAGES.filter((page) => page.serviceId) as ServicePageConfig[];
 export const CONTENT_PAGES = PAGES.filter((page) => !page.serviceId) as ContentPageConfig[];

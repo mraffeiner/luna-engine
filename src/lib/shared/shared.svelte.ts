@@ -26,14 +26,18 @@ export const engineConfig: {
 export const engineStates: {
 	thinking: boolean;
 	speaking: boolean;
-	hasNewMessages: boolean;
+	listening: boolean;
 	waiting: boolean;
+	hasNewMessages: boolean;
+	busy: boolean;
 	paused: boolean;
 } = $state({
 	thinking: false,
 	speaking: false,
+	listening: false,
+	waiting: true,
 	hasNewMessages: false,
-	waiting: false,
+	busy: false,
 	paused: true
 });
 
@@ -47,14 +51,14 @@ export const receiveInput = $state({
 
 export const serviceOutput: {
 	prompt: { system: string; user: string };
-	llm: { raw: string; prepass: string };
+	llm: { raw: string; normalized: string; final: string };
 	tts: { blob: Blob | undefined; url: string };
 	discord: SvelteMap<string, { blob: Blob; url: string }>;
 	stt: { username: string; transcript: string }[];
 	chat: ChatMessage[];
 } = $state({
 	prompt: { system: '', user: '' },
-	llm: { raw: '', prepass: '' },
+	llm: { raw: '', normalized: '', final: '' },
 	tts: { blob: undefined, url: '' },
 	discord: new SvelteMap(),
 	stt: [],

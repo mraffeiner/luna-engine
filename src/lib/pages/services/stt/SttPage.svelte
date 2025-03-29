@@ -20,6 +20,7 @@
 	let directInputText = $state('');
 
 	async function handleTranscribeAudio(audioBlob: Blob, username?: string) {
+		// OPTIMIZE: Trigger intermediate response when transcription starts to give Luna time to think
 		const transcript = await transcribeAudio(audioBlob, selectedModel);
 
 		cleanupRecorder();

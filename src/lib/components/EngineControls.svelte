@@ -9,7 +9,12 @@
 		<button
 			id="modeSwitch"
 			onclick={() => {
-				engineConfig.mode = engineConfig.mode !== 'AUTO' ? 'AUTO' : 'REACT';
+				if (engineConfig.mode !== 'AUTO') {
+					engineConfig.mode = 'AUTO';
+					engineStates.waiting = false;
+				} else {
+					engineConfig.mode = 'REACT';
+				}
 			}}
 			class="relative cursor-pointer"
 			aria-label="Engine Mode Switch"
@@ -29,9 +34,9 @@
 			{engineConfig.mode.toLowerCase()}
 		</label>
 	</div>
-	<div class="flex-center grow gap-2 text-lg">
+	<div class="flex-center grow gap-4 text-xl">
 		{#if engineStates.paused}
-			<span class="text-danger-light animate-pulse font-semibold transition-colors"> PAUSED </span>
+			<span class="text-danger-light animate-pulse font-semibold transition-colors">PAUSED</span>
 		{:else}
 			<span
 				class="font-semibold transition-colors {engineStates.thinking
@@ -46,6 +51,13 @@
 					: 'text-text-disabled'}"
 			>
 				Speaking
+			</span>
+			<span
+				class="font-semibold transition-colors {engineStates.listening
+					? 'text-primary-light animate-pulse'
+					: 'text-text-disabled'}"
+			>
+				Listening
 			</span>
 			<span
 				class="font-semibold transition-colors {engineStates.waiting

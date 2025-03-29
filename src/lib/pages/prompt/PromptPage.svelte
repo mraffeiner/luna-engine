@@ -117,18 +117,6 @@
 	});
 
 	$effect(() => {
-		if (receiveInput.prompt && serviceOutput.llm.prepass) {
-			updateUserPromptSection(
-				'conversation',
-				null,
-				`Luna: ${serviceOutput.llm.prepass}`,
-				null,
-				true
-			);
-		}
-	});
-
-	$effect(() => {
 		if (receiveInput.prompt && serviceOutput.chat) {
 			const newMessage = serviceOutput.chat.shift();
 			if (newMessage && SUPPORTED_PLATFORMS.includes(newMessage.platform as any)) {

@@ -8,18 +8,15 @@
 	import AzureTtsForm from './AzureTtsForm.svelte';
 	import KokoroTtsForm from './KokoroTtsForm.svelte';
 	import SesameTtsForm from './SesameTtsForm.svelte';
-	import { fetchTtsOptions, ttsAudioUrl, ttsOptions } from './ttsService';
+	import { fetchTtsOptions, ttsAudioUrl, ttsOptions, type TtsEngine } from './ttsService';
 	import { normalizeTtsInput } from '$lib/shared/utils';
 
-	let selectedEngine = $state('kokoro');
+	let selectedEngine: TtsEngine = $state('kokoro');
 	let text = $state('Hey there, hello!');
 
 	$effect(() => {
-		if (receiveInput.tts && serviceOutput.llm.prepass) {
-			text = normalizeTtsInput(
-				serviceOutput.llm.prepass,
-				selectedEngine === 'kokoro' ? '\u2014' : '. ' // em dash (—) : period (. )
-			);
+		if (receiveInput.tts && serviceOutput.llm.final) {
+			text = normalizeTtsInput(serviceOutput.llm.final, selectedEngine);
 		}
 	});
 

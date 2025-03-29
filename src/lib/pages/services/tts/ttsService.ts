@@ -1,6 +1,9 @@
 import { get, writable } from 'svelte/store';
 import { serviceError } from '../docker/dockerService';
 import { serviceOutput } from '$lib/shared/shared.svelte';
+import type { TTS_ENGINES } from '$lib/shared/constants';
+
+export type TtsEngine = (typeof TTS_ENGINES)[number];
 
 export interface EngineOptions {
 	label: string;
@@ -15,6 +18,7 @@ export interface TtsOptions {
 
 // Request interfaces matching backend models
 export interface BaseTtsRequestParams {
+	engine: TtsEngine;
 	voice: string;
 	text: string;
 }
@@ -86,6 +90,7 @@ export async function generateSpeech(
 		if (get(ttsAudioUrl)) {
 			URL.revokeObjectURL(get(ttsAudioUrl));
 		}
+
 		const response = await fetch('/api/tts/generate', {
 			method: 'POST',
 			headers: {

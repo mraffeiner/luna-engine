@@ -5,7 +5,7 @@
 	import { engineConfig, receiveInput, serviceOutput } from '$lib/shared/shared.svelte';
 	import { onMount } from 'svelte';
 	import ServicePage from '../ServicePage.svelte';
-	import { type LlmParams } from './llmService';
+	import { selectedPrepassLlm, type LlmParams } from './llmService';
 	import {
 		fetchModels,
 		generateResponse,
@@ -23,6 +23,16 @@
 	let systemPrompt = $state('You are Luna, a young AI woman an space elf Vtuber');
 	let userPrompt = $state('Hey there, hello!');
 
+	let prepassSystemPrompt = $state(
+		`You are a text processing tool to prepare llm responses for text-to-speech.` +
+			` Take the text and clean it up. Remove stutters with short repetitions.` +
+			` Replace stage directions with compatible utterances or em dashes.` +
+			` Replace descriptions with logical verbal reactions or follow-up explanations of what happened.` +
+			` Replace code blocks or markdown with verbally communicated information.` +
+			` Ensure that the final response retains the character and meaning of the original.` +
+			` Respond with just the cleaned up text and nothing else:`
+	);
+
 	$effect(() => {
 		if (currentModelOption) {
 			selectedResponseLlm.update((current: LlmParams) => ({
@@ -35,6 +45,15 @@
 				},
 				isReasoning
 			}));
+		}
+	});
+
+	$effect(() => {
+		if (prepassSystemPrompt) {
+			selectedPrepassLlm.update((current: LlmParams) => {
+				current.requestParams.system_prompt = prepassSystemPrompt;
+				return current;
+			});
 		}
 	});
 
@@ -94,7 +113,7 @@
 			{:else}
 				<div class="form-group">
 					<label for="systemPrompt">System Prompt</label>
-					<textarea id="systemPrompt" bind:value={systemPrompt} rows="4" class="form-control"
+					<textarea id="systemPrompt" bind:value={systemPrompt} rows="8" class="form-control"
 					></textarea>
 				</div>
 				<div class="form-group">
@@ -103,6 +122,19 @@
 					></textarea>
 				</div>
 			{/if}
+
+			{#if engineConfig.llmPrepass}
+				<div class="form-group">
+					<label for="prepassSystemPrompt">Prepass System Prompt</label>
+					<textarea
+						id="prepassSystemPrompt"
+						bind:value={prepassSystemPrompt}
+						rows="4"
+						class="form-control"
+					></textarea>
+				</div>
+			{/if}
+
 			<div>
 				<button
 					onclick={() => generateResponse($selectedResponseLlm)}
@@ -118,18 +150,27 @@
 
 			{#if serviceOutput.llm.raw}
 				<div class="form-group">
-					<h3 class="text-text-subtle mb-2 text-lg font-medium">Initial Response</h3>
+					<h3 class="text-text-subtle mb-2 text-lg font-medium">Raw Response</h3>
 					<div class="form-control whitespace-pre-wrap p-4">
 						{serviceOutput.llm.raw}
 					</div>
 				</div>
 			{/if}
 
-			{#if serviceOutput.llm.prepass}
+			{#if serviceOutput.llm.normalized}
+				<div class="form-group">
+					<h3 class="text-text-subtle mb-2 text-lg font-medium">Normalized Response</h3>
+					<div class="form-control whitespace-pre-wrap p-4">
+						{serviceOutput.llm.normalized}
+					</div>
+				</div>
+			{/if}
+
+			{#if engineConfig.llmPrepass && serviceOutput.llm.final}
 				<div class="form-group">
 					<h3 class="text-text-subtle mb-2 text-lg font-medium">Prepass Response</h3>
 					<div class="form-control whitespace-pre-wrap p-4">
-						{serviceOutput.llm.prepass}
+						{serviceOutput.llm.final}
 					</div>
 				</div>
 			{/if}
