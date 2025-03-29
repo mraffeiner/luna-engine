@@ -27,6 +27,7 @@ export const engineStates: {
 	thinking: boolean;
 	speaking: boolean;
 	listening: boolean;
+	reading: boolean;
 	waiting: boolean;
 	hasNewMessages: boolean;
 	busy: boolean;
@@ -34,6 +35,7 @@ export const engineStates: {
 } = $state({
 	thinking: false,
 	speaking: false,
+	reading: false,
 	listening: false,
 	waiting: true,
 	hasNewMessages: false,

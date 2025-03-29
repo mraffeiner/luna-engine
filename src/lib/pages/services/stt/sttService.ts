@@ -78,6 +78,15 @@ export async function transcribeAudio(
 		if (response.ok) {
 			const data: SttResponse = await response.json();
 			const transcript = data.text.trim();
+
+			if (
+				!transcript ||
+				transcript === 'You' ||
+				transcript === 'Thank you.' ||
+				transcript === 'Thank you!'
+			)
+				return null;
+
 			serviceOutput.stt.push({ username: username ? username : 'Anonymous', transcript });
 			return transcript;
 		} else {

@@ -25,6 +25,7 @@
 	} from '$lib/shared/utils';
 	import { consumeNewMessages, updateUserPromptSection } from './prompt/promptPage';
 	import { loading as sttLoading } from './services/stt/sttService';
+	import { tick } from 'svelte';
 
 	const shouldRespond = $derived(
 		!engineStates.paused && !engineStates.busy && !engineStates.waiting && !engineStates.listening
@@ -45,6 +46,7 @@
 		const llmResponse = await generateResponse($selectedResponseLlm);
 		consumeNewMessages(); // Consume new messages and push them to the conversation
 		engineStates.hasNewMessages = false; // No new messages since Luna responded to them
+		engineStates.reading = false; // Just read all messages
 		engineStates.thinking = false;
 
 		if (!llmResponse) return;
@@ -85,7 +87,7 @@
 		const normalizedText = normalizeTtsInput(text, ttsParams.requestParams.engine);
 
 		// Split by punctuation
-		const textParts = splitByPunctuation(normalizedText, 5);
+		const textParts = splitByPunctuation(normalizedText, 7);
 
 		// OPTIMIZE: Pause audio instead of splitting and somehow figure out where it paused for conversation log
 		// Generate and play each part
@@ -109,8 +111,8 @@
 				return;
 			}
 
-			// OPTIMIZE: Pause and resume depending on listening result (Advanced interruption using small llm decision)
-			if (engineStates.listening || engineStates.paused) {
+			// OPTIMIZE: Pause and resume depending on interrupt reason (Advanced interruption using small llm decision)
+			if (engineStates.listening || engineStates.paused || engineStates.reading) {
 				break;
 			}
 		}
@@ -135,7 +137,8 @@
 
 			engineStates.waiting = true;
 			await asyncSleep(engineConfig.msMinAfterResponse);
-			engineStates.waiting = engineConfig.mode !== 'AUTO' && !engineStates.hasNewMessages;
+			engineStates.waiting =
+				engineConfig.mode !== 'AUTO' && !engineStates.hasNewMessages && !engineStates.listening;
 		} catch (error) {
 			engineStates.paused = true;
 			engineStates.thinking = false;
@@ -149,21 +152,24 @@
 	$effect(() => {
 		// Stop listening when successfully interrupted and transcriptions are complete
 		if (!$sttLoading && !engineStates.speaking) {
-			engineStates.listening = false;
+			// Tick to ensure the new-message prompt is up to date
+			tick().then(() => (engineStates.listening = false));
 		}
 	});
 
 	$effect(() => {
 		if (engineStates.hasNewMessages) {
 			engineStates.waiting = false;
+			asyncSleep(5000).then(() => {
+				// Interrupt speech after 5 seconds to acknowledge new messages
+				if (engineStates.speaking) engineStates.reading = true;
+			});
 		}
 	});
 
 	$effect(() => {
 		if (shouldRespond) {
-			respond().then(() => {
-				engineStates.busy = false;
-			});
+			respond().then(() => (engineStates.busy = false));
 		}
 	});
 </script>

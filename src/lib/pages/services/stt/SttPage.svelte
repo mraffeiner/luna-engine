@@ -137,7 +137,9 @@
 		if (receiveInput.stt && serviceOutput.discord) {
 			for (const [username, audio] of serviceOutput.discord.entries()) {
 				if (audio && audio.blob) {
-					handleTranscribeAudio(audio.blob, username);
+					handleTranscribeAudio(audio.blob, username).then(() =>
+						serviceOutput.discord.delete(username)
+					);
 				}
 			}
 		}
