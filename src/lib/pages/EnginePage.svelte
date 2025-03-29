@@ -43,7 +43,10 @@
 	async function handleThinking() {
 		engineStates.thinking = true;
 		const llmResponse = await generateResponse($selectedResponseLlm);
+		consumeNewMessages(); // Consume new messages and push them to the conversation
+		engineStates.hasNewMessages = false; // No new messages since Luna responded to them
 		engineStates.thinking = false;
+
 		if (!llmResponse) return;
 
 		serviceOutput.llm.raw = llmResponse;
@@ -113,7 +116,6 @@
 		}
 
 		// Handle prompt update here to ensure conversation only receives uninterrupted parts
-		consumeNewMessages(); // Consume new messages before update so Luna's response comes afterwards
 		if (receiveInput.prompt && accumulatedText) {
 			updateUserPromptSection('conversation', null, `Luna: ${accumulatedText}`, null, true);
 		}
@@ -123,7 +125,6 @@
 	async function respond() {
 		engineStates.busy = true;
 		engineStates.waiting = false;
-		engineStates.hasNewMessages = false; // Responding to new messages
 
 		try {
 			const response = await handleThinking();
