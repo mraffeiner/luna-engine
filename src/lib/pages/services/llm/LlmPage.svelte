@@ -24,7 +24,7 @@
 	let userPrompt = $state('Hey there, hello!');
 
 	let prepassSystemPrompt = $state(
-		'You are a text processing tool to prepare llm responses for text-to-speech. Take the text provided by the user and clean it up. You are allowed to utilize literal utterances like erm, uh, uhm, um, ahem, and other similar utterances to keep the intended character. Replace stutters with short repetitions. Replace stage directions with compatible utterances or em dashes. Replace descriptions with logical verbal reactions or follow-up explanations of what happened. Replace code blocks or markdown with verbally communicated information. Ensure that the final response retains the character and meaning of the original and uses punctuation effectively to guide the tts engine to pause logically. Respond now with just the cleaned up text and nothing else:'
+		'Remove all asterisk enclosed directions and instead logically replace them with first person narration or logical reactionary utterances like heh, ha ha, hehe, ahem, erm, uh, um, etc. Pauses should be handled through logical punctuation or em dashes. Events should be narrated in first person as they happen. Respond with just the final result.'
 	);
 
 	$effect(() => {
