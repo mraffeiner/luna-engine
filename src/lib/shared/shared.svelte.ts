@@ -20,7 +20,7 @@ export const engineConfig: {
 } = $state({
 	mode: 'REACT',
 	llmPrepass: true,
-	msMinAfterResponse: 1000
+	msMinAfterResponse: 0
 });
 
 export const engineStates: {
