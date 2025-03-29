@@ -24,6 +24,7 @@
 		splitByPunctuation
 	} from '$lib/shared/utils';
 	import { consumeNewMessages, updateUserPromptSection } from './prompt/promptPage';
+	import { loading as sttLoading } from './services/stt/sttService';
 
 	const shouldRespond = $derived(
 		!engineStates.paused && !engineStates.busy && !engineStates.waiting && !engineStates.listening
@@ -144,9 +145,9 @@
 		}
 	}
 
-	// Stop listening when all transcriptions are done and luna was successfully interrupted
 	$effect(() => {
-		if (serviceOutput.stt.length === 0 && !engineStates.speaking) {
+		// Stop listening when successfully interrupted and transcriptions are complete
+		if (!$sttLoading && !engineStates.speaking) {
 			engineStates.listening = false;
 		}
 	});
