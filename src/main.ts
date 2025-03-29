@@ -78,9 +78,7 @@ client.login(token);
 
 async function connectToVoiceChannel(guildId: string, channelId: string) {
   logger.info(
-    "connectToVoiceChannel called with guildId: %s, channelId: %s",
-    guildId,
-    channelId
+    `connectToVoiceChannel called with guildId: ${guildId}, channelId: ${channelId}`
   ); // Log
   if (connection) {
     return;
