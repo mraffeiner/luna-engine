@@ -27,8 +27,8 @@ export const selectedResponseLlm = writable<LlmParams>({
 
 export const selectedPrepassLlm = writable<LlmParams>({
 	requestParams: {
-		provider: 'google',
-		model: 'gemini-2.0-flash',
+		provider: 'groq',
+		model: 'llama-3.3-70b-specdec',
 		system_prompt: '',
 		prompt: ''
 	},
