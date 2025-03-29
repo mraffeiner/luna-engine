@@ -121,7 +121,7 @@
 			updateUserPromptSection(
 				'conversation',
 				null,
-				`\nLuna: ${serviceOutput.llm.prepass}`,
+				`Luna: ${serviceOutput.llm.prepass}`,
 				null,
 				true
 			);
@@ -133,9 +133,9 @@
 			const newMessage = serviceOutput.chat.shift();
 			if (newMessage && SUPPORTED_PLATFORMS.includes(newMessage.platform as any)) {
 				updateUserPromptSection(
-					'conversation',
+					'new-chat-messages',
 					null,
-					`\n[${newMessage.platform.charAt(0).toUpperCase() + newMessage.platform.slice(1)}] ${newMessage.author}: ${newMessage.text}`,
+					`[${newMessage.platform.charAt(0).toUpperCase() + newMessage.platform.slice(1)}] ${newMessage.author}: ${newMessage.text}`,
 					null,
 					true
 				);
@@ -149,9 +149,9 @@
 			const newTranscript = serviceOutput.stt.shift();
 			if (newTranscript) {
 				updateUserPromptSection(
-					'conversation',
+					'new-chat-messages',
 					null,
-					`\n[Discord] ${newTranscript.username}: ${newTranscript.transcript}`,
+					`[Discord] ${newTranscript.username}: ${newTranscript.transcript}`,
 					null,
 					true
 				);

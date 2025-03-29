@@ -127,7 +127,7 @@
 </div>
 
 <div class="mt-6">
-	<button onclick={generateSpeech} disabled={$loading} class="btn-primary">
+	<button onclick={() => generateSpeech($selectedTts)} disabled={$loading} class="btn-primary">
 		{#if $loading}
 			<Spinner class="text-text-base icon-lg mr-2" />
 			<span>Generating...</span>

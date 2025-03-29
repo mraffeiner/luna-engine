@@ -18,6 +18,7 @@
 	import { generateSpeech, selectedTts } from './services/tts/ttsService';
 	import { discordService } from './services/discord/discordService';
 	import { asyncSleep } from '$lib/shared/utils';
+	import { consumeNewMessages } from './prompt/promptPage';
 
 	const busy = $derived(
 		engineStates.paused || engineStates.thinking || engineStates.speaking || engineStates.waiting
@@ -46,6 +47,7 @@
 				// Response prepass
 				.then((llmResponse) => {
 					if (!llmResponse) return;
+					consumeNewMessages(); // Before update to ensure Luna's response comes after
 					serviceOutput.llm.raw = llmResponse;
 
 					if (!engineConfig.llmPrepass) return llmResponse;

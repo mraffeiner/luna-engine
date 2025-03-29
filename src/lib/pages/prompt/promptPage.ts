@@ -62,21 +62,24 @@ export function updateUserPromptSection(
 				if (limit && limit >= 0) {
 					prompt.limit = limit;
 				}
-				if (append) {
-					// Remove oldest lines when limit is exceeded
-					if (prompt.limit > 0 && prompt.content.split('\n').length > 2) {
+				if (content) {
+					if (append) {
 						const [headline, ...lines] = prompt.content.split('\n');
-						let characters = lines.join('\n').length;
-						while (characters > prompt.limit) {
-							lines.shift();
-							characters = lines.join('\n').length;
+
+						// Remove oldest lines when limit is exceeded
+						if (prompt.limit > 0 && lines.length > 1) {
+							let characters = lines.join('\n').length;
+							while (characters > prompt.limit) {
+								lines.shift();
+								characters = lines.join('\n').length;
+							}
 						}
-						prompt.content = headline + '\n\n' + lines.join('\n').trim() + content;
+
+						lines.push(content);
+						prompt.content = `${headline}\n${lines.join('\n')}`;
 					} else {
-						prompt.content += content;
+						prompt.content = content.trim();
 					}
-				} else if (content) {
-					prompt.content = content;
 				}
 			}
 			return prompt;
@@ -89,11 +92,30 @@ export function deleteUserPromptSection(id: string): void {
 	userPromptSections.update((prompts) => prompts.filter((p) => p.id !== id));
 }
 
-export function clearDynamicPromptContent(): void {
+export function clearDynamicPromptContent(id?: string): void {
 	userPromptSections.update((prompts) => {
 		const updatedPrompts = prompts.map((prompt) => {
-			if (prompt.content.split('\n').length > 2) {
-				prompt.content = prompt.content.split('\n')[0] + '\n\n';
+			if (id && id !== prompt.id) return prompt;
+
+			const headline = prompt.content.split('\n')[0];
+			prompt.content = headline;
+			return prompt;
+		});
+		return updatedPrompts;
+	});
+}
+
+export function consumeNewMessages(): void {
+	userPromptSections.update((prompts) => {
+		const updatedPrompts = prompts.map((prompt) => {
+			if (prompt.id !== 'new-chat-messages') return prompt;
+
+			const [headline, ...lines] = prompt.content.split('\n');
+			prompt.content = headline;
+			if (lines.length > 1) {
+				updateUserPromptSection('conversation', null, lines.join('\n'), null, true);
+			} else if (lines.length > 0) {
+				updateUserPromptSection('conversation', null, lines[0], null, true);
 			}
 			return prompt;
 		});
