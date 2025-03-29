@@ -122,7 +122,7 @@ async def transcribe_with_openai(audio_path: str, model: str = "whisper-1") -> s
             result = openai.audio.transcriptions.create(
                 model=model,
                 file=audio_file,
-                language=DEFAULT_LANGUAGE,
+                # language=DEFAULT_LANGUAGE,
                 response_format=DEFAULT_FORMAT,
                 prompt=DEFAULT_PROMPT,
             )
@@ -143,7 +143,7 @@ async def transcribe_with_groq(audio_path: str, model: str = "whisper-large-v3")
             result = groq_client.audio.transcriptions.create(
                 model=model,
                 file=audio_file,
-                language=DEFAULT_LANGUAGE,
+                # language=DEFAULT_LANGUAGE,
                 response_format=DEFAULT_FORMAT,
                 prompt=DEFAULT_PROMPT,
             )
