@@ -310,7 +310,7 @@ async def stt_endpoint(
             logger.warning(
                 f"No speech detected in {temp_filename}. Skipping transcription."
             )
-            return SttResponse(text="")
+            return SttResponse(text="*noises*")
 
         if model in OPENAI_MODELS:
             result = await transcribe_with_openai(vad_processed_path, model)
