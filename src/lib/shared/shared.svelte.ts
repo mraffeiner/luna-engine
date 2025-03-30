@@ -15,11 +15,13 @@ export type EngineMode = 'AUTO' | 'REACT';
 
 export const engineConfig: {
 	mode: EngineMode;
+	interruptable: boolean;
 	llmPrepass: boolean;
 	msMinAfterResponse: number;
 } = $state({
 	mode: 'REACT',
 	llmPrepass: true,
+	interruptable: false,
 	msMinAfterResponse: 0
 });
 
@@ -29,9 +31,10 @@ export const engineStates: {
 	listening: boolean;
 	reading: boolean;
 	waiting: boolean;
-	hasNewMessages: boolean;
+	hasNewMessages: boolean; // REVIEW: Should probably be handled differently
 	busy: boolean;
 	paused: boolean;
+	reset: () => void;
 } = $state({
 	thinking: false,
 	speaking: false,
@@ -40,7 +43,16 @@ export const engineStates: {
 	waiting: true,
 	hasNewMessages: false,
 	busy: false,
-	paused: true
+	paused: true,
+	reset: () => {
+		engineStates.paused = true;
+		engineStates.waiting = false;
+		engineStates.thinking = false;
+		engineStates.speaking = false;
+		engineStates.reading = false;
+		engineStates.listening = false;
+		engineStates.busy = false;
+	}
 });
 
 export const receiveInput = $state({

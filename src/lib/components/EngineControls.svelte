@@ -33,11 +33,39 @@
 		>
 			{engineConfig.mode.toLowerCase()}
 		</label>
+
+		<label class="cursor-pointer! mb-0! relative ml-4">
+			<input
+				id="interruptableSwitch"
+				type="checkbox"
+				bind:checked={engineConfig.interruptable}
+				class="peer sr-only"
+			/>
+			<div
+				class="peer-checked:bg-primary-light bg-bgbg-elevated
+								h-5 w-10 rounded-full after:absolute after:left-[4px] after:top-[2px] after:h-4 after:w-4
+								after:rounded-full after:bg-white after:shadow-md after:transition-all after:content-['']
+								peer-checked:after:translate-x-full"
+			></div>
+		</label>
+		<label
+			for="modeSwitch"
+			class="text-text-subtle mb-0! text-lg! cursor-pointer font-bold capitalize"
+		>
+			{engineConfig.interruptable ? 'Interruptable' : 'Uninterruptable'}
+		</label>
 	</div>
 	<div class="flex-center grow gap-4 text-xl">
 		{#if engineStates.paused}
 			<span class="text-danger-light animate-pulse font-semibold transition-colors">PAUSED</span>
 		{:else}
+			<span
+				class="font-semibold transition-colors {engineStates.waiting
+					? 'text-primary-light animate-pulse'
+					: 'text-text-disabled'}"
+			>
+				Waiting
+			</span>
 			<span
 				class="font-semibold transition-colors {engineStates.thinking
 					? 'text-primary-light animate-pulse'
@@ -53,18 +81,18 @@
 				Speaking
 			</span>
 			<span
+				class="font-semibold transition-colors {engineStates.reading
+					? 'text-primary-light animate-pulse'
+					: 'text-text-disabled'}"
+			>
+				Reading
+			</span>
+			<span
 				class="font-semibold transition-colors {engineStates.listening
 					? 'text-primary-light animate-pulse'
 					: 'text-text-disabled'}"
 			>
 				Listening
-			</span>
-			<span
-				class="font-semibold transition-colors {engineStates.waiting
-					? 'text-primary-light animate-pulse'
-					: 'text-text-disabled'}"
-			>
-				Waiting
 			</span>
 		{/if}
 	</div>

@@ -86,8 +86,10 @@
 
 		const normalizedText = normalizeTtsInput(text, ttsParams.requestParams.engine);
 
-		// Split by punctuation
-		const textParts = splitByPunctuation(normalizedText, 7);
+		let textParts: string[] = [normalizedText];
+		if (engineConfig.interruptable)
+			// Split by punctuation
+			textParts = splitByPunctuation(normalizedText, 7);
 
 		// OPTIMIZE: Pause audio instead of splitting and somehow figure out where it paused for conversation log
 		// Generate and play each part
@@ -140,11 +142,7 @@
 			engineStates.waiting =
 				engineConfig.mode !== 'AUTO' && !engineStates.hasNewMessages && !engineStates.listening;
 		} catch (error) {
-			engineStates.paused = true;
-			engineStates.thinking = false;
-			engineStates.speaking = false;
-			engineStates.waiting = false;
-			engineStates.busy = false;
+			engineStates.reset();
 			console.error(`Engine paused because of error: `, error);
 		}
 	}
@@ -162,7 +160,7 @@
 			engineStates.waiting = false;
 			asyncSleep(5000).then(() => {
 				// Interrupt speech after 5 seconds to acknowledge new messages
-				if (engineStates.speaking) engineStates.reading = true;
+				if (engineStates.speaking && engineStates.hasNewMessages) engineStates.reading = true;
 			});
 		}
 	});
