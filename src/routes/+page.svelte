@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AlertsPage from '$lib/pages/services/alerts/AlertsPage.svelte';
 	import EnginePage from '$lib/pages/EnginePage.svelte';
 	import PromptPage from '$lib/pages/prompt/PromptPage.svelte';
 	import ChatPage from '$lib/pages/services/chat/ChatPage.svelte';
@@ -39,5 +40,6 @@
 <TtsPage />
 <DiscordPage />
 <ChatPage />
+<AlertsPage />
 <!-- Load last to ensure all other pages are fully loaded before engine starts -->
 <EnginePage />

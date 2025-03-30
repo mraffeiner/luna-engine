@@ -31,7 +31,6 @@ export interface ChatMessage {
 // --- Constants ---
 const MAX_MESSAGES = 150;
 const API_BASE_URL = '/api/chat';
-const WS_URL = '/api/chat/ws';
 
 // --- Stores ---
 export const chatMessages: Writable<ChatMessage[]> = writable([]);
@@ -78,7 +77,7 @@ function connectWebSocket() {
 		return;
 
 	webSocketStatus.set('connecting');
-	socket = new WebSocket(WS_URL);
+	socket = new WebSocket(`${API_BASE_URL}/ws`);
 
 	socket.onopen = () => {
 		webSocketStatus.set('connected');
@@ -188,7 +187,7 @@ async function controlPlatform(
 			await fetchAndCopyAuthUrl();
 		} else {
 			addSystemMessage(
-				`${platform.charAt(0).toUpperCase() + platform.slice(1)} ${action} request processed. New status: ${statusData[platform]}`
+				`${platform.toUpperCase()} ${action} request processed. New status: ${statusData[platform]}`
 			);
 		}
 		platformStatus.set(statusData);

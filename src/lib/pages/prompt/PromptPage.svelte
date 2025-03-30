@@ -133,6 +133,16 @@
 	});
 
 	$effect(() => {
+		if (receiveInput.prompt && serviceOutput.alerts) {
+			const newAlert = serviceOutput.alerts.shift();
+			if (newAlert) {
+				updateUserPromptSection('new-alerts', null, `${newAlert}`, null, true);
+				engineStates.hasNewMessages = true;
+			}
+		}
+	});
+
+	$effect(() => {
 		if (receiveInput.prompt && serviceOutput.stt) {
 			const newTranscript = serviceOutput.stt.shift();
 			if (newTranscript) {

@@ -87,7 +87,7 @@
 
 <ContentPage name="chat-page">
 	<ServicePage serviceName="chat-service">
-		<Card title="Stream Chat Settings">
+		<Card title="Stream Chat">
 			<!-- Platform Connection Controls -->
 			<div class="border-border-base mb-4 grid grid-cols-1 gap-4 border-b pb-4 md:grid-cols-2">
 				<!-- Twitch Controls -->

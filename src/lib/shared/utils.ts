@@ -110,7 +110,7 @@ export function splitByPunctuation(text: string, minWords: number = 1): string[]
 	// Split by punctuation followed by whitespace, keeping punctuation.
 	// Trim resulting parts and filter out any empty strings.
 	const punctuationSplitParts = text
-		.split(/(?<=[,.!?—])\s+/) // Positive lookbehind keeps punctuation
+		.split(/(?<=[.!?—])\s+/) // Positive lookbehind keeps punctuation
 		.map((p) => p.trim())
 		.filter((p) => p.length > 0);
 

@@ -43,10 +43,10 @@
 
 	async function handleThinking() {
 		engineStates.thinking = true;
-		const llmResponse = await generateResponse($selectedResponseLlm);
 		consumeNewMessages(); // Consume new messages and push them to the conversation
-		engineStates.hasNewMessages = false; // No new messages since Luna responded to them
 		engineStates.reading = false; // Just read all messages
+		engineStates.hasNewMessages = false; // No new messages since Luna started responding to them
+		const llmResponse = await generateResponse($selectedResponseLlm);
 		engineStates.thinking = false;
 
 		if (!llmResponse) return;

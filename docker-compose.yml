@@ -9,6 +9,7 @@ services:
       - tts-service
       - discord-service
       - chat-service
+      - alerts-service
     build: .
     ports:
       - "8080:80"
@@ -71,6 +72,15 @@ services:
     volumes:
       # Mount the secrets file (read-only)
       - ../chat-service/youtube_secret.json:/app/youtube_secret.json:ro
+
+  alerts-service:
+    image: alerts-service
+    container_name: alerts-service
+    build: ../alerts-service
+    ports:
+      - "5005:5005"
+    env_file:
+      - ../alerts-service/.env
 
   kokoro-tts:
     image: kokoro-tts

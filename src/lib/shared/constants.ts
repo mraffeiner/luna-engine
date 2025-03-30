@@ -65,6 +65,12 @@ export const PAGES: PageConfig[] = [
 		name: 'Chat Service',
 		icon: 'M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z', // Chat bubble icon
 		serviceId: 'chat-service'
+	},
+	{
+		id: 'alerts-page',
+		name: 'Alerts Service',
+		icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341A6.002 6.002 0 006 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', // Bell icon
+		serviceId: 'alerts-service'
 	}
 ] as const;
 

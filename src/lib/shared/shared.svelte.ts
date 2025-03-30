@@ -70,13 +70,15 @@ export const serviceOutput: {
 	discord: SvelteMap<string, { blob: Blob; url: string }>;
 	stt: { username: string; transcript: string }[];
 	chat: ChatMessage[];
+	alerts: string[];
 } = $state({
 	prompt: { system: '', user: '' },
 	llm: { raw: '', normalized: '', final: '' },
 	tts: { blob: undefined, url: '' },
 	discord: new SvelteMap(),
 	stt: [],
-	chat: []
+	chat: [],
+	alerts: []
 });
 
 export const speakerAudio: SvelteMap<string, string> = $state(new SvelteMap());
