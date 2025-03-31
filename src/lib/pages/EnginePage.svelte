@@ -63,7 +63,7 @@
 		if (!engineConfig.llmPrepass) return llmNormalizedResponse;
 
 		const prepassParams = $selectedPrepassLlm;
-		prepassParams.requestParams.prompt = llmResponse;
+		prepassParams.requestParams.prompt = llmNormalizedResponse;
 
 		engineStates.thinking = true;
 		const llmPrepassResponse = await generateResponse(prepassParams);
