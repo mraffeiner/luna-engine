@@ -56,7 +56,7 @@
 		const llmNormalizedResponse = normalizeLlmResponse(
 			llmResponse,
 			$selectedResponseLlm.isReasoning,
-			'Luna:'
+			'You:'
 		);
 		serviceOutput.llm.normalized = llmNormalizedResponse;
 
@@ -74,7 +74,7 @@
 		const llmFinalResponse = normalizeLlmResponse(
 			llmPrepassResponse,
 			$selectedPrepassLlm.isReasoning,
-			'Luna:'
+			'You:'
 		);
 
 		serviceOutput.llm.final = llmFinalResponse;
@@ -121,7 +121,7 @@
 
 		// Handle prompt update here to ensure conversation only receives uninterrupted parts
 		if (receiveInput.prompt && accumulatedText) {
-			updateUserPromptSection('conversation', null, `Luna: ${accumulatedText}`, null, true);
+			updateUserPromptSection('conversation', null, `You: ${accumulatedText}`, null, true);
 		}
 	}
 
