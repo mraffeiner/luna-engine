@@ -24,7 +24,7 @@
 	let userPrompt = $state('Hey there, hello!');
 
 	let prepassSystemPrompt = $state(
-		'Remove all asterisk enclosed directions and instead replace them with first person reactions or after-the-fact explanations like in a live stream that naturally indicate what happened or or utterances like heh, ha ha, hehe, ahem, erm, uh, um, etc. Pauses should be handled through logical punctuation or em dashes. Stutters should be short word repititions instead of single letters. Fix non-english and uppercase parts. Respond with just the final result.'
+		'Remove all asterisk enclosed directions or similar out of character descriptions and instead replace them with first person live reactions or after-the-fact explanations like in a live stream that naturally indicate what happened. Replace laughs, giggles or similar with fitting utterances like heh, ha ha, hehe, ahem, erm, uh, um, etc. Pauses should be handled through logical punctuation or em dashes. Stutters should be short word repetitions instead of single letters. Fix non-English and uppercase occurrences. Do not alter the actual content or intended character. Respond with just the final result.'
 	);
 
 	$effect(() => {
