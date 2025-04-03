@@ -42,7 +42,7 @@
 				class="peer sr-only"
 			/>
 			<div
-				class="peer-checked:bg-primary-light bg-bgbg-elevated
+				class="peer-checked:bg-primary-light bg-bg-elevated
 								h-5 w-10 rounded-full after:absolute after:left-[4px] after:top-[2px] after:h-4 after:w-4
 								after:rounded-full after:bg-white after:shadow-md after:transition-all after:content-['']
 								peer-checked:after:translate-x-full"
