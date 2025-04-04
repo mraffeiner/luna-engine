@@ -10,6 +10,8 @@ let reconnectAttempts = 0;
 
 let resolvePlaybackComplete: () => void = () => {};
 
+export const activeSpeakers: string[] = [];
+
 export const discordService = {
 	async connect(guildId: string, channelId: string): Promise<boolean> {
 		try {
@@ -60,6 +62,10 @@ export const discordService = {
 				const message = JSON.parse(event.data);
 				if (message.type === 'started_speaking') {
 					engineStates.listening = true;
+					if (!activeSpeakers.includes(message.user)) activeSpeakers.push(message.user);
+				} else if (message.type === 'stopped_speaking') {
+					if (activeSpeakers.includes(message.user))
+						activeSpeakers.splice(activeSpeakers.indexOf(message.user), 1);
 				} else if (message.type === 'playback_complete') {
 					resolvePlaybackComplete();
 				}

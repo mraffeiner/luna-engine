@@ -25,7 +25,6 @@
 	} from '$lib/shared/utils';
 	import { consumeNewMessages, updateUserPromptSection } from './prompt/promptPage';
 	import { loading as sttLoading } from './services/stt/sttService';
-	import { tick } from 'svelte';
 
 	const shouldRespond = $derived(
 		!engineStates.paused && !engineStates.busy && !engineStates.waiting && !engineStates.listening
@@ -89,7 +88,7 @@
 		let textParts: string[] = [normalizedText];
 		if (engineConfig.interruptable)
 			// Split by punctuation
-			textParts = splitByPunctuation(normalizedText, 7);
+			textParts = splitByPunctuation(normalizedText, 5);
 
 		// OPTIMIZE: Pause audio instead of splitting and somehow figure out where it paused for conversation log
 		// Generate and play each part
@@ -114,7 +113,7 @@
 			}
 
 			// OPTIMIZE: Pause and resume depending on interrupt reason (Advanced interruption using small llm decision)
-			if (engineStates.listening || engineStates.paused || engineStates.reading) {
+			if (engineStates.paused || engineStates.listening || $sttLoading || engineStates.reading) {
 				break;
 			}
 		}
@@ -146,14 +145,6 @@
 			console.error(`Engine paused because of error: `, error);
 		}
 	}
-
-	$effect(() => {
-		// Stop listening when successfully interrupted and transcriptions are complete
-		if (!$sttLoading && !engineStates.speaking) {
-			// Tick to ensure the new-message prompt is up to date
-			tick().then(() => (engineStates.listening = false));
-		}
-	});
 
 	$effect(() => {
 		if (engineStates.hasNewMessages) {

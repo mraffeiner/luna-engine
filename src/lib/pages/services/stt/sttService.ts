@@ -1,6 +1,8 @@
-import { writable, derived } from 'svelte/store'; // Import derived
+import { writable, derived, get } from 'svelte/store'; // Import derived
 import { serviceError } from '../docker/dockerService';
-import { serviceOutput } from '$lib/shared/shared.svelte';
+import { engineStates, serviceOutput } from '$lib/shared/shared.svelte';
+import { activeSpeakers } from '../discord/discordService';
+import { tick } from 'svelte';
 
 export interface SttResponse {
 	text: string;
@@ -100,5 +102,8 @@ export async function transcribeAudio(
 		return null;
 	} finally {
 		activeTranscriptions.update((n) => n - 1); // Decrement counter
+		if (!get(loading) && activeSpeakers.length === 0) {
+			tick().then(() => (engineStates.listening = false)); // Tick to ensure prompt is updated
+		}
 	}
 }
