@@ -97,60 +97,80 @@ export function normalizeTtsInput(text: string, ttsEngine: TtsEngine) {
 	return text;
 }
 
+/**
+ * Splits a string into sentences based on punctuation (. ! ? —), ensuring each resulting sentence
+ * has at least a minimum number of words. Shorter sentences are merged with the preceding one.
+ *
+ * @param text The input text to split.
+ * @param minWords The minimum number of words required for a sentence part. Defaults to 1.
+ * @returns An array of strings, where each string is a sentence meeting the minimum word count,
+ *          or the original text trimmed if it couldn't be split meaningfully.
+ */
 export function splitByPunctuation(text: string, minWords: number = 1): string[] {
+	const trimmedText = text.trim();
+	if (!trimmedText) {
+		return [];
+	}
+
 	// Helper to count words reliably (handles multiple spaces)
-	const countWords = (str: string): number => {
-		// Split by any whitespace and filter out empty strings
-		return str.split(/\s+/).filter(Boolean).length;
-	};
+	const countWords = (str: string): number => str.split(/\s+/).filter(Boolean).length;
 
 	// Ensure minWords is at least 1
 	const effectiveMinWords = Math.max(1, minWords);
 
-	// Split by punctuation followed by whitespace, keeping punctuation.
-	// Trim resulting parts and filter out any empty strings.
-	const punctuationSplitParts = text
+	// Split by sentence-ending punctuation followed by whitespace, keeping punctuation.
+	const initialParts = trimmedText
 		.split(/(?<=[.!?—])\s+/) // Positive lookbehind keeps punctuation
-		.map((p) => p.trim())
-		.filter((p) => p.length > 0);
+		.filter((p) => p.length > 0); // Filter out empty strings
 
-	// If splitting resulted in nothing (e.g., empty input or just punctuation/space),
-	// return based on whether the original trimmed text had content.
-	if (punctuationSplitParts.length === 0) {
-		const trimmedText = text.trim();
-		return trimmedText.length > 0 ? [trimmedText] : [];
+	// If no meaningful split occurred, return the original trimmed text
+	if (initialParts.length <= 1) {
+		// Check if the single part meets the word count, otherwise return original if it had words
+		if (initialParts.length === 1 && countWords(initialParts[0]) >= effectiveMinWords) {
+			return initialParts;
+		}
+		// If the original text had words but didn't meet minWords after split (or wasn't split)
+		if (countWords(trimmedText) > 0) {
+			return [trimmedText];
+		}
+		// If original text was effectively empty or just punctuation/space
+		return [];
 	}
 
 	const finalParts: string[] = [];
 	let currentChunk = '';
 
-	for (const part of punctuationSplitParts) {
-		// Determine the separator (space) needed if currentChunk isn't empty
-		const separator = currentChunk ? ' ' : '';
-		// Add the new part to the current chunk
-		currentChunk = `${currentChunk}${separator}${part}`;
+	for (const part of initialParts) {
+		// Append the next part to the current chunk
+		const potentialChunk = currentChunk ? `${currentChunk} ${part}` : part;
 
-		// Check if the current chunk now meets the minimum word count
-		if (countWords(currentChunk) >= effectiveMinWords) {
-			finalParts.push(currentChunk);
-			currentChunk = ''; // Reset for the next chunk
+		// If the chunk is now long enough, or if it's the *very first* part
+		// and already long enough, add it to finalParts.
+		if (countWords(potentialChunk) >= effectiveMinWords) {
+			finalParts.push(potentialChunk);
+			currentChunk = ''; // Reset for the next potential chunk
+		} else {
+			// Otherwise, keep accumulating
+			currentChunk = potentialChunk;
 		}
-		// If not long enough, loop continues, accumulating the next part
 	}
 
-	// After the loop, if there's anything left in currentChunk,
-	// add it as the last part (it might be shorter than minWords).
+	// If there's a leftover chunk (the last part(s) were too short)
 	if (currentChunk) {
-		finalParts.push(currentChunk);
+		if (finalParts.length > 0) {
+			// Append the short remainder to the last valid part
+			finalParts[finalParts.length - 1] += ` ${currentChunk}`;
+		} else {
+			// If *no* parts met the minWords requirement, return the whole text as one part
+			// This covers the case where the entire input text is non-empty but shorter than minWords.
+			return [trimmedText];
+		}
 	}
 
-	// Edge case: If the entire text processed resulted in no final parts
-	// (e.g., text was shorter than minWords and had no punctuation to force a push),
-	// return the original text as a single item if it wasn't empty.
-	// This is mostly covered by the `if (currentChunk)` check above,
-	// but ensures non-empty short inputs return themselves.
-	if (finalParts.length === 0 && text.trim().length > 0) {
-		return [text.trim()];
+	// Final check: If somehow finalParts ended up empty despite non-empty input, return original.
+	// This is a safeguard, potentially redundant with the logic above, but ensures non-empty input yields non-empty output.
+	if (finalParts.length === 0 && countWords(trimmedText) > 0) {
+		return [trimmedText];
 	}
 
 	return finalParts;
