@@ -125,7 +125,9 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
       const user = await client.users.fetch(userId);
       const username = user.displayName;
       logger.info(`${username} started speaking`);
-      audioWebSocket?.send(JSON.stringify({ type: "started_speaking" }));
+      audioWebSocket?.send(
+        JSON.stringify({ type: "started_speaking", user: username })
+      );
 
       // Clear any existing timeout for this user
       if (!connection) {
@@ -205,6 +207,9 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
       // When the session is complete, end the ffmpeg input to finalize the WAV file.
       opusStream.on("end", () => {
         logger.info(`Opus stream for ${username} ended, closing ffmpeg`);
+        audioWebSocket?.send(
+          JSON.stringify({ type: "stopped_speaking", user: username })
+        );
         ffmpeg.stdin.end();
       });
 
