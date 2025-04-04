@@ -24,7 +24,7 @@
 	let userPrompt = $state('Hey there, hello!');
 
 	let prepassSystemPrompt = $state(
-		"Take the users input verbatim and only replace any out of character descriptions or stage directions (like asterisk enclosed annotations) with in character reactions as if on a live stream. Replace laughs, giggles or similar with fitting utterances like heh, ha ha, hehe, ahem, erm, uh, um, etc. Pauses should be handled through logical punctuation or em dashes. Stutters should be short word repetitions instead of single letters. Fix non-English and uppercase occurrences. Do NOT change or add anything to the content and use what's being said verbatim. If there is nothing to replace, respond with the original text. Respond with just the final result."
+		"Take the users input verbatim and only replace any out of character descriptions or stage directions (like asterisk enclosed annotations) with in character reactions or after-the-fact explanations. Replace laughs, giggles or similar with fitting utterances like heh, ha ha, hehe, ahem, erm, uh, um, etc. Pauses should be handled through logical punctuation or em dashes. Stutters should be short word repetitions instead of single letters. Fix non-English and uppercase occurrences. Do NOT change or add anything to the content and use what's being said verbatim. If there is nothing to replace, respond with the original text. Respond with just the final result."
 	);
 
 	$effect(() => {
