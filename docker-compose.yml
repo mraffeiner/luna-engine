@@ -10,6 +10,7 @@ services:
       - discord-service
       - chat-service
       - alerts-service
+      - kokoro-tts
     build: .
     ports:
       - "8080:80"
