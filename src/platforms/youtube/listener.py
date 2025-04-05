@@ -117,6 +117,7 @@ class YouTubeListener:
 
         # --- Wait for prerequisites ---
         while not self.stop_event.is_set():
+            logger.warning("Entering polling loop.")
             # 1. Check Credentials & Service
             if not self.auth_manager.youtube_service:
                 # Attempt to get credentials without initiating flow (it might have been fixed)
@@ -155,6 +156,7 @@ class YouTubeListener:
 
             # 2. Find Chat ID (only if service is available)
             if not self.live_chat_id:
+                logger.warning("No live chat ID found.")
                 self.live_chat_id = self._find_active_live_chat_id()
                 if not self.live_chat_id:
                     # Status (DISCONNECTED or ERROR_*) already set by _find_active_live_chat_id
@@ -180,6 +182,7 @@ class YouTubeListener:
         polling_interval_ms = 5000  # Default, will be updated by API response
 
         while not self.stop_event.is_set():
+            logger.warning("Started polling.")
             try:
                 request = self.auth_manager.youtube_service.liveChatMessages().list(
                     liveChatId=self.live_chat_id,
@@ -216,6 +219,12 @@ class YouTubeListener:
                 )
                 # Wait for the specified interval, checking stop_event periodically
                 wait_time_secs = polling_interval_ms / 1000.0
+                logger.warning(f"Wait time: {wait_time_secs}s.")
+
+                # Safeguard
+                if wait_time_secs < 1:
+                    wait_time_secs = 1
+
                 if self.stop_event.wait(wait_time_secs):
                     break  # Stop requested during wait
 
