@@ -1,0 +1,13 @@
+FROM denoland/deno:ubuntu-2.2.5
+
+USER deno
+WORKDIR /home/deno
+
+COPY deno.json .
+RUN deno cache src/main.ts --config deno.json
+
+COPY src ./src
+
+EXPOSE 5006
+
+CMD ["deno", "run", "--allow-net", "--allow-read", "--allow-env", "src/main.ts"]

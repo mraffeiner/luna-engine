@@ -1,0 +1,9 @@
+services:
+  obs-service:
+    image: obs-service
+    container_name: obs-service
+    build: .
+    ports:
+      - "5006:5006"
+    env_file:
+      - .env
