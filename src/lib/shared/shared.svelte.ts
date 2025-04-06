@@ -82,3 +82,9 @@ export const serviceOutput: {
 });
 
 export const speakerAudio: SvelteMap<string, string> = $state(new SvelteMap());
+
+export const subtitles: {
+	text: string;
+} = $state({
+	text: ''
+});

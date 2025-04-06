@@ -6,7 +6,8 @@
 		engineConfig,
 		engineStates,
 		receiveInput,
-		serviceOutput
+		serviceOutput,
+		subtitles
 	} from '$lib/shared/shared.svelte';
 	import ContentPage from './ContentPage.svelte';
 	import {
@@ -104,7 +105,9 @@
 
 			if (receiveInput.discord) {
 				engineStates.speaking = true;
+				subtitles.text = ttsParams.requestParams.text;
 				await discordService.playAudio(speechPart.blob);
+				subtitles.text = '';
 				engineStates.speaking = false;
 			} else {
 				console.warn('Not receiving discord input');
