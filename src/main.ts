@@ -178,7 +178,7 @@ router.post("/subtitle", async (ctx) => {
       return;
     }
 
-    logger.info(
+    logger.debug(
       `Setting subtitle source "${obsSubtitleSourceName}" text to: "${text}"`
     );
 
