@@ -1,14 +1,13 @@
-from contextlib import asynccontextmanager
-from fastapi import FastAPI, Body
-from fastapi.responses import StreamingResponse, JSONResponse
-from pydantic import BaseModel
-import openai
-from openai import OpenAI
+import asyncio
 import os
 import httpx
-from dotenv import load_dotenv
 import logging
-from fastapi import HTTPException
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Body, HTTPException
+from fastapi.responses import StreamingResponse, JSONResponse
+from pydantic import BaseModel
+from openai import AsyncOpenAI, OpenAIError, APIConnectionError, AuthenticationError
+from dotenv import load_dotenv
 
 # Configure logging
 logging.basicConfig(
@@ -21,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Configure uvicorn access logger to match our format
     uvicorn_access_logger = logging.getLogger("uvicorn.access")
     handler = logging.StreamHandler()
     handler.setFormatter(
@@ -37,121 +37,79 @@ async def lifespan(app: FastAPI):
 # Initialize FastAPI app
 app = FastAPI(
     title="LLM Service API",
-    description="LLM service using OpenAI, Groq, and local models to generate responses",
+    description="LLM service using OpenAI, Groq, Google, and local models to generate responses",
     lifespan=lifespan,
 )
 
 load_dotenv()
 
-# OpenAI configuration
-openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-# Groq configuration
-groq_client = OpenAI(
+# --- Client Configurations ---
+# Use AsyncOpenAI for non-blocking API calls
+openai_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+groq_client = AsyncOpenAI(
     api_key=os.getenv("GROQ_API_KEY"),
     base_url=os.getenv("GROQ_BASE_URL"),
 )
-
-# Google configuration
-google_client = OpenAI(
+google_client = AsyncOpenAI(
     api_key=os.getenv("GEMINI_API_KEY"),
     base_url=os.getenv("GOOGLE_BASE_URL"),
 )
-
-# Local LLM configuration
-local_client = OpenAI(base_url=os.getenv("LOCAL_BASE_URL"))
-
-# Local models
-LOCAL_MODELS = [
-    {
-        "provider": "local",
-        "id": "llama-3.2-3b-instruct-uncensored",
-        "name": "Llama 3.2 3B Instruct Uncensored",
-        "isReasoning": False,
-    },
-    {
-        "provider": "local",
-        "id": "llama-exaone-deep-7.8b",
-        "name": "EXAONE Deep 7.8B",
-        "isReasoning": True,
-    },
-]
-
-
-# OpenAI models
-OPENAI_MODELS = [
-    {
-        "provider": "openai",
-        "id": "gpt-4o-mini",
-        "name": "GPT-4o Mini",
-        "isReasoning": False,
-    }
-]
-
-# Groq models
-GROQ_MODELS = [
-    {
-        "provider": "groq",
-        "id": "deepseek-r1-distill-llama-70b",
-        "name": "DeepSeek R1 Llama 70B",
-        "isReasoning": True,
-    },
-    {
-        "provider": "groq",
-        "id": "qwen-qwq-32b",
-        "name": "Qwen QwQ 32B",
-        "isReasoning": True,
-    },
-    {
-        "provider": "groq",
-        "id": "llama-3.3-70b-specdec",
-        "name": "Llama 3.3 70B SpecDec",
-        "isReasoning": False,
-    },
-]
-
-# Google models
-GOOGLE_MODELS = [
-    {
-        "provider": "google",
-        "id": "gemini-2.0-flash",
-        "name": "Gemini 2.0 Flash",
-        "isReasoning": False,
-    },
-    {
-        "provider": "google",
-        "id": "gemini-2.5-pro-exp-03-25",
-        "name": "Gemini 2.5 Pro Exp",
-        "isReasoning": False,
-    },
-]
+local_client = AsyncOpenAI(
+    base_url=os.getenv("LOCAL_BASE_URL", "http://host.docker.internal:1234/v1")
+)  # Default added
 
 
 async def is_local_llm_available():
-    """Check if the local LLM endpoint is available."""
+    """Check if the local LLM endpoint is available using a quick HEAD request."""
+    local_base_url = str(local_client.base_url)  # Ensure it's a string
+    if not local_base_url:
+        logger.warning("Local LLM base URL is not configured.")
+        return False
     try:
-        logger.info(
-            f"Checking local LLM availability at {local_client.base_url}/models"
-        )
+        logger.info(f"Checking local LLM availability at {local_base_url}")
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"{local_client.base_url}/models", timeout=3.0)
-            if response.status_code == 200:
-                logger.info("Local LLM is available")
+            # Use HEAD request for efficiency, target base URL or /health if available
+            response = await client.head(local_base_url, timeout=3.0)
+            # Consider status code 405 (Method Not Allowed) as OK if HEAD isn't supported
+            if 200 <= response.status_code < 300 or response.status_code == 405:
+                logger.info(f"Local LLM is available (Status: {response.status_code})")
                 return True
             else:
                 logger.warning(
-                    f"Local LLM returned non-200 status: {response.status_code}"
+                    f"Local LLM check returned non-success status: {response.status_code}"
                 )
                 return False
-    except httpx.TimeoutException:
-        logger.warning("Local LLM connection timed out")
-        return False
-    except httpx.ConnectError:
-        logger.warning("Could not connect to Local LLM")
+    except (httpx.TimeoutException, httpx.ConnectError):
+        logger.warning(f"Could not connect to Local LLM at {local_base_url}")
         return False
     except Exception:
-        logger.exception("Unexpected error when checking for local LLM")
+        logger.exception(f"Unexpected error checking local LLM at {local_base_url}")
         return False
+
+
+async def fetch_models_from_provider(client: AsyncOpenAI, provider_name: str):
+    """Fetches models from an OpenAI-compatible API and adds provider info."""
+    models = []
+    try:
+        logger.info(f"Fetching models from {provider_name}...")
+        model_list_response = await client.models.list()
+        for model in model_list_response.data:
+            # Add provider information required by the frontend
+            models.append(
+                {"provider": provider_name, "id": model.id, "name": model.id}
+            )  # Use ID as name for now
+        logger.info(f"Successfully fetched {len(models)} models from {provider_name}")
+    except AuthenticationError:
+        logger.warning(f"Authentication error with {provider_name} API. Check API key.")
+    except APIConnectionError:
+        logger.warning(
+            f"Could not connect to {provider_name} API at {client.base_url}."
+        )
+    except OpenAIError as e:
+        logger.warning(f"API error fetching models from {provider_name}: {e}")
+    except Exception as e:
+        logger.exception(f"Unexpected error fetching models from {provider_name}")
+    return models
 
 
 class LLMRequest(BaseModel):
@@ -168,119 +126,145 @@ async def health_check():
 
 @app.get("/models")
 async def get_models():
-    available_models = []
+    """Dynamically fetches available models from all configured providers."""
+    tasks = []
+    provider_clients = {
+        "openai": openai_client,
+        "groq": groq_client,
+        "google": google_client,
+    }
 
-    # Add OpenAI models if API key is available
-    if openai_client.api_key:
-        logger.info("OpenAI API key is available, adding OpenAI models")
-        for model in OPENAI_MODELS:
-            available_models.append(model)
-            logger.info(f"Added {model['id']} by {model['provider']}")
+    for provider, client in provider_clients.items():
+        # Check if API key exists (for hosted providers) or base_url is set
+        if client.api_key or (
+            provider == "google" and client.base_url
+        ):  # Google uses base_url + key
+            logger.info(
+                f"{provider.capitalize()} client configured, scheduling model fetch."
+            )
+            tasks.append(fetch_models_from_provider(client, provider))
+        else:
+            logger.warning(f"{provider.capitalize()} client not configured, skipping.")
+
+    # Fetch models from cloud providers concurrently
+    results = await asyncio.gather(*tasks)
+    available_models = [
+        model for sublist in results for model in sublist
+    ]  # Flatten list
+
+    # Check and fetch local models separately
+    if await is_local_llm_available():
+        logger.info("Local LLM available, fetching models.")
+        local_models = await fetch_models_from_provider(local_client, "local")
+        available_models.extend(local_models)
     else:
-        logger.warning("OpenAI API key is not available, skipping OpenAI models")
+        logger.warning("Local LLM not available, skipping local models.")
 
-    # Add Groq models if API key is available
-    if groq_client.api_key:
-        logger.info("Groq API key is available, adding Groq models")
-        for model in GROQ_MODELS:
-            available_models.append(model)
-            logger.info(f"Added {model['id']} by {model['provider']}")
-    else:
-        logger.warning("Groq API key is not available, skipping Groq models")
+    logger.info(f"Returning {len(available_models)} available models.")
 
-    # Add Google models if API key is available
-    if google_client.api_key:
-        logger.info("Google API key is available, adding Google models")
-        for model in GOOGLE_MODELS:
-            available_models.append(model)
-            logger.info(f"Added {model['id']} by {model['provider']}")
-    else:
-        logger.warning("Google API key is not available, skipping Google models")
-
-    # Add local models if endpoint is available
-    local_available = await is_local_llm_available()
-    if local_available:
-        logger.info("Local LLM is available, adding local models")
-        for model in LOCAL_MODELS:
-            available_models.append(model)
-            logger.info(f"Added {model['id']} by {model['provider']}")
-    else:
-        logger.warning("Local LLM is not available, skipping local models")
-
-    logger.info(f"Returning {len(available_models)} available models")
     return JSONResponse(content=available_models)
 
 
 async def stream_from_openai_compatible(
     provider: str, model: str, system_prompt: str = "", prompt: str = ""
 ):
-    """Stream response from OpenAI API compatible LLM."""
+    """Stream response from an OpenAI API compatible LLM using AsyncClient."""
     try:
-        if provider == "openai":
-            client = openai_client
-            logger.info(f"Using OpenAI API with model {model}")
-        elif provider == "groq":
-            client = groq_client
-            logger.info(f"Using Groq API with model {model}")
-        elif provider == "google":
-            client = google_client
-            logger.info(f"Using Google API with model {model}")
-        elif provider == "local":
-            client = local_client
-            logger.info(f"Using Local LLM API with model {model}")
-        else:
-            logger.error(f"Incompatible provider [{provider}] for model [{model}]")
-            raise HTTPException(
-                status_code=400,
-                detail=f"Incompatible provider [{provider}] for model [{model}]",
-            )
+        client_map = {
+            "openai": openai_client,
+            "groq": groq_client,
+            "google": google_client,
+            "local": local_client,
+        }
+        client = client_map.get(provider)
 
+        if not client:
+            logger.error(f"Invalid provider specified: {provider}")
+            raise HTTPException(status_code=400, detail=f"Invalid provider: {provider}")
+
+        # Check configuration again before making the call
+        if provider != "local" and not client.api_key:
+            logger.error(f"API key for provider {provider} is missing.")
+            raise HTTPException(
+                status_code=500, detail=f"API key for {provider} not configured."
+            )
+        if provider == "local" and not str(client.base_url):
+            logger.error("Local LLM base URL is not configured.")
+            raise HTTPException(status_code=500, detail="Local LLM URL not configured.")
+
+        logger.info(f"Streaming from {provider} using model {model}")
         messages = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
 
-        stream = client.chat.completions.create(
+        stream = await client.chat.completions.create(
             model=model,
             messages=messages,
             stream=True,
         )
-        for chunk in stream:
+        # Use async for to iterate over the async stream
+        async for chunk in stream:
             content = chunk.choices[0].delta.content
             if content:
                 yield content
-        logger.info("Stream finished")
-    except openai.APIError:
-        logger.exception("OpenAI API error")
+        logger.info(f"Stream finished for {provider} model {model}")
+
+    except AuthenticationError:
+        logger.error(f"Authentication failed for {provider}. Check API Key.")
         raise HTTPException(
-            status_code=500, detail="Failed to get response from OpenAI API"
+            status_code=401, detail=f"Authentication failed for {provider}."
+        )
+    except APIConnectionError:
+        logger.error(f"Could not connect to {provider} API at {client.base_url}.")
+        raise HTTPException(status_code=503, detail=f"Service unavailable: {provider}.")
+    except OpenAIError as e:
+        logger.exception(f"{provider} API error")
+        raise HTTPException(
+            status_code=getattr(e, "status_code", 500),
+            detail=(
+                f"Failed to get response from {provider} API: {e.message}"
+                if hasattr(e, "message")
+                else str(e)
+            ),
         )
     except Exception:
-        logger.exception("Unexpected error during LLM response generation")
+        logger.exception(f"Unexpected error during {provider} stream")
         raise HTTPException(
             status_code=500,
-            detail="Unexpected error during LLM response generation",
+            detail=f"Unexpected error during {provider} response generation",
         )
 
 
 @app.post("/generate")
 async def generate_endpoint(request: LLMRequest = Body()):
+    """Endpoint to generate text based on provider, model, and prompts."""
+    logger.info(
+        f"Received generation request for model {request.model} via {request.provider}"
+    )
+
     async def stream_response():
-        if request.provider in ["openai", "groq", "google", "local"]:
-            logger.info(
-                f"Generating response for model {request.model} by {request.provider} using OpenAI API client"
-            )
-            fullContent = ""
+        full_content = ""
+        try:
             async for content in stream_from_openai_compatible(
                 request.provider, request.model, request.system_prompt, request.prompt
             ):
-                fullContent += content
+                full_content += content
                 yield content
-            logger.info(f"Finished response: {fullContent}")
-        else:
-            logger.error(f"Unknown provider: {request.provider}")
-            raise HTTPException(
-                status_code=400, detail=f"Unknown provider: {request.provider}"
+            logger.info(
+                f"Finished streaming response for {request.provider}/{request.model}. Total length: {len(full_content)}"
             )
+        except HTTPException as http_exc:
+            # Log the error but let FastAPI handle the response based on the raised HTTPException
+            logger.error(
+                f"HTTPException during streaming for {request.provider}/{request.model}: {http_exc.detail}"
+            )
+            raise http_exc
+        except Exception:
+            logger.exception(
+                f"Unhandled exception during streaming for {request.provider}/{request.model}"
+            )
+            # Yielding an error message might be better for streaming UX
+            yield f"Error: An unexpected error occurred."
 
     return StreamingResponse(stream_response(), media_type="text/event-stream")
