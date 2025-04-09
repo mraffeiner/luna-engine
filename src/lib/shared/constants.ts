@@ -71,6 +71,12 @@ export const PAGES: PageConfig[] = [
 		name: 'Alerts Service',
 		icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341A6.002 6.002 0 006 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', // Bell icon
 		serviceId: 'alerts-service'
+	},
+	{
+		id: 'obs-page',
+		name: 'OBS Service',
+		icon: 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z',
+		serviceId: 'obs-service'
 	}
 ] as const;
 

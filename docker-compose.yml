@@ -10,6 +10,7 @@ services:
       - discord-service
       - chat-service
       - alerts-service
+      - obs-service
       - kokoro-tts
     build: .
     ports:
@@ -82,6 +83,15 @@ services:
       - "5005:5005"
     env_file:
       - ../alerts-service/.env
+
+  obs-service:
+    image: obs-service
+    container_name: obs-service
+    build: ../obs-service
+    ports:
+      - "5006:5006"
+    env_file:
+      - ../obs-service/.env
 
   kokoro-tts:
     image: kokoro-tts

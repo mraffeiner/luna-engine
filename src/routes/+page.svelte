@@ -9,6 +9,7 @@
 	import LlmPage from '$lib/pages/services/llm/LlmPage.svelte';
 	import SttPage from '$lib/pages/services/stt/SttPage.svelte';
 	import TtsPage from '$lib/pages/services/tts/TtsPage.svelte';
+	import ObsPage from '$lib/pages/services/obs/ObsPage.svelte';
 	import { SERVICE_PAGES } from '$lib/shared/constants';
 	import { onMount } from 'svelte';
 
@@ -41,5 +42,6 @@
 <DiscordPage />
 <ChatPage />
 <AlertsPage />
+<ObsPage />
 <!-- Load last to ensure all other pages are fully loaded before engine starts -->
 <EnginePage />
