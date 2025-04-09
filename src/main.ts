@@ -3,9 +3,10 @@ import { loadSync } from "dotenv";
 import OBSWebSocket from "obs-websocket-js";
 
 // Load environment variables from .env file
-loadSync({ export: true, allowEmptyValues: true }); // Loads into Deno.env, removed 'safe' option
+loadSync({ export: true, allowEmptyValues: true });
 const obsPassword = Deno.env.get("OBS_WEBSOCKET_PASSWORD");
-const obsAddress = Deno.env.get("OBS_WEBSOCKET_ADDRESS") || "localhost:4455";
+const obsAddress = Deno.env.get("OBS_WEBSOCKET_ADDRESS");
+const obsSubtitleSourceName = Deno.env.get("OBS_SUBTITLE_SOURCE_NAME");
 const port = parseInt(Deno.env.get("PORT") || "5006");
 
 const obs = new OBSWebSocket();
@@ -33,27 +34,20 @@ async function connectToObs() {
     } else {
       console.error("Failed to connect to OBS with unknown error:", error);
     }
-    // Optional: Implement retry logic here
     isObsConnected = false;
-    // Example: Retry after 5 seconds
-    // setTimeout(connectToObs, 5000);
   }
 }
 
 obs.on("ConnectionClosed", () => {
-  // Cast to any to bypass type error
-  console.warn("OBS connection closed. Attempting to reconnect...");
+  console.warn("OBS connection closed.");
   isObsConnected = false;
-  // Optional: Implement retry logic here
-  setTimeout(connectToObs, 5000); // Retry after 5 seconds
 });
 
 obs.on("ConnectionError", (err: Error) => {
   // Cast to any to bypass type error
   // Explicitly type err
-  console.error("OBS connection error:", err.message); // Access message property
+  console.error("OBS connection error:", err.message);
   isObsConnected = false;
-  // Optional: Implement retry logic here
 });
 
 // Initial connection attempt
@@ -83,7 +77,64 @@ router.get("/scenes", async (ctx) => {
   }
 });
 
-// Add more endpoints as needed (e.g., set scene, get sources, toggle mute, start/stop stream/record)
+// Endpoint to update subtitle text source
+router.post("/subtitle", async (ctx) => {
+  if (!isObsConnected) {
+    ctx.response.status = 503; // Service Unavailable
+    ctx.response.body = { error: "OBS not connected" };
+    return;
+  }
+  if (!obsSubtitleSourceName) {
+    ctx.response.status = 500;
+    ctx.response.body = {
+      error: "OBS_SUBTITLE_SOURCE_NAME environment variable not set",
+    };
+    return;
+  }
+
+  try {
+    const body = ctx.request.body(); // Content type based body resolution
+    if (body.type !== "json") {
+      ctx.response.status = 400; // Bad Request
+      ctx.response.body = { error: "Request body must be JSON" };
+      return;
+    }
+    const { text } = await body.value; // Read JSON body content
+
+    if (typeof text !== "string") {
+      ctx.response.status = 400; // Bad Request
+      ctx.response.body = {
+        error: "JSON body must contain a 'text' property of type string",
+      };
+      return;
+    }
+
+    console.log(
+      `Setting subtitle source "${obsSubtitleSourceName}" text to: "${text}"`
+    );
+
+    // Use SetInputSettings to change the text of the source
+    await obs.call("SetInputSettings", {
+      inputName: obsSubtitleSourceName,
+      inputSettings: {
+        text: text, // Assuming the source uses a 'text' property
+      },
+      // overlay: true // Might be needed depending on source type/OBS version? Test this.
+    });
+
+    ctx.response.status = 200;
+    ctx.response.body = { success: true, textSet: text };
+  } catch (error: unknown) {
+    console.error("Error setting subtitle text:", error);
+    // Check for specific OBS errors if possible (e.g., source not found)
+    let errorMessage = "Failed to set subtitle text in OBS";
+    if (error instanceof Error) {
+      errorMessage = error.message; // More specific error from obs-websocket-js
+    }
+    ctx.response.status = 500;
+    ctx.response.body = { error: errorMessage };
+  }
+});
 
 // --- App Setup ---
 app.use(router.routes());
