@@ -26,10 +26,11 @@ export function normalizeText(text: string): string {
 	return text.trim();
 }
 
-export function normalizeLlmResponse(text: string, isReasoning: boolean, removePrefix: string) {
+export function normalizeLlmResponse(text: string, removePrefix: string) {
 	if (!text) return text;
 
-	if (isReasoning) {
+	const hasThinkTags = /<think\b[^>]*>|<\/think>/gi.test(text);
+	if (hasThinkTags) {
 		// Set of error messages to randomly choose from
 		const errorMessages = [
 			'Sorry, uh.. I think I spaced out for a moment.',
@@ -37,11 +38,10 @@ export function normalizeLlmResponse(text: string, isReasoning: boolean, removeP
 			"Hm.. I have no idea what just happened, but I'm Pretty sure Nova ate my last thought."
 		];
 
-		const hasThinkTags = /<think\b[^>]*>|<\/think>/gi.test(text);
 		const openingTagsCount = (text.match(/<think\b[^>]*>/gi) || []).length;
 		const closingTagsCount = (text.match(/<\/think>/gi) || []).length;
 
-		if (hasThinkTags && openingTagsCount === 1 && closingTagsCount === 1) {
+		if (openingTagsCount === 1 && closingTagsCount === 1) {
 			text = text.replace(/<think\b[^>]*>[\s\S]*?<\/think>/gi, '').trim();
 		} else {
 			return errorMessages[Math.floor(Math.random() * errorMessages.length)];

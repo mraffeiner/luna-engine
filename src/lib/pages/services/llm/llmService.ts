@@ -8,12 +8,9 @@ export interface LlmParams {
 		system_prompt: string;
 		prompt: string;
 	};
-	isReasoning: boolean;
 }
 
-export const models = writable<
-	{ provider: string; id: string; name: string; isReasoning: boolean }[]
->([]);
+export const models = writable<{ provider: string; id: string; name: string }[]>([]);
 
 export const selectedResponseLlm = writable<LlmParams>({
 	requestParams: {
@@ -21,8 +18,7 @@ export const selectedResponseLlm = writable<LlmParams>({
 		model: '',
 		system_prompt: '',
 		prompt: ''
-	},
-	isReasoning: false
+	}
 });
 
 export const selectedPrepassLlm = writable<LlmParams>({
@@ -31,8 +27,7 @@ export const selectedPrepassLlm = writable<LlmParams>({
 		model: 'llama-3.3-70b-specdec',
 		system_prompt: '',
 		prompt: ''
-	},
-	isReasoning: false
+	}
 });
 
 export const loading = writable(false);

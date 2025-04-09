@@ -53,11 +53,7 @@
 
 		serviceOutput.llm.raw = llmResponse;
 
-		const llmNormalizedResponse = normalizeLlmResponse(
-			llmResponse,
-			$selectedResponseLlm.isReasoning,
-			'You:'
-		);
+		const llmNormalizedResponse = normalizeLlmResponse(llmResponse, 'You:');
 		serviceOutput.llm.normalized = llmNormalizedResponse;
 
 		if (!engineConfig.llmPrepass) return llmNormalizedResponse;
@@ -71,11 +67,7 @@
 
 		if (!llmPrepassResponse) return; // NOTE: Unlikely to happen, potentially add fallback
 
-		const llmFinalResponse = normalizeLlmResponse(
-			llmPrepassResponse,
-			$selectedPrepassLlm.isReasoning,
-			'You:'
-		);
+		const llmFinalResponse = normalizeLlmResponse(llmPrepassResponse, 'You:');
 
 		serviceOutput.llm.final = llmFinalResponse;
 		return llmFinalResponse;

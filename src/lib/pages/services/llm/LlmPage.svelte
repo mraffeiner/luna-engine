@@ -14,11 +14,9 @@
 		selectedResponseLlm
 	} from './llmService';
 
-	let currentModelOption = $state('groq|qwen-qwq-32b|true');
-	let [selectedProvider, selectedModel, selectedIsReasoning] = $derived(
-		currentModelOption.split('|')
-	);
-	let isReasoning = $derived(selectedIsReasoning.toLocaleLowerCase() === 'true');
+	// Initialize with a default model, provider|model format
+	let currentModelOption = $state('groq|qwen-qwq-32b');
+	let [selectedProvider, selectedModel] = $derived(currentModelOption.split('|'));
 
 	let systemPrompt = $state('You are Luna, a young AI woman an space elf Vtuber');
 	let userPrompt = $state('Hey there, hello!');
@@ -36,8 +34,7 @@
 					model: selectedModel,
 					system_prompt: systemPrompt,
 					prompt: userPrompt
-				},
-				isReasoning
+				}
 			}));
 		}
 	});
@@ -84,8 +81,8 @@
 				<label for="model">Model</label>
 				<select id="model" bind:value={currentModelOption} class="form-control">
 					{#each $models as modelOption}
-						<option value={`${modelOption.provider}|${modelOption.id}|${modelOption.isReasoning}`}
-							>{modelOption.name}</option
+						<option value={`${modelOption.provider}|${modelOption.id}`}
+							>({modelOption.provider}) {modelOption.name}</option
 						>
 					{/each}
 				</select>
