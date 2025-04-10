@@ -177,7 +177,6 @@ export function connect() {
 			try {
 				const message: StandardizedAlert = JSON.parse(event.data);
 				alerts.update((current) => [...current, message]);
-				console.log(`Pushed: ${message}`);
 				serviceOutput.alerts.push(formatAlertMessage(message));
 			} catch (error) {
 				console.error('[AlertsService] Error parsing message:', error, 'Data:', event.data);
