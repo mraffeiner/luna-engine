@@ -1,0 +1,7 @@
+services:
+  vts-service:
+    image: vts-service
+    container_name: vts-service
+    build: .
+    ports:
+      - "5007:5007"
