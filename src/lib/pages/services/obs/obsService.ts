@@ -36,7 +36,6 @@ export async function sendSubtitle(text: string): Promise<{ success: boolean; er
 			throw new Error(errorMessage);
 		}
 
-		console.info('Subtitle sent successfully:', text);
 		// Clear specific error if send subtitle succeeds
 		serviceError.update((err) =>
 			err?.startsWith('Failed to send subtitle') ||
