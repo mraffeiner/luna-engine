@@ -12,6 +12,7 @@
 	import ObsPage from '$lib/pages/services/obs/ObsPage.svelte';
 	import { SERVICE_PAGES } from '$lib/shared/constants';
 	import { onMount } from 'svelte';
+	import VtsPage from '$lib/pages/services/vts/VtsPage.svelte';
 
 	const cleanup = () => {
 		dockerService.stopLogsStream();
@@ -43,5 +44,6 @@
 <ChatPage />
 <AlertsPage />
 <ObsPage />
+<VtsPage />
 <!-- Load last to ensure all other pages are fully loaded before engine starts -->
 <EnginePage />

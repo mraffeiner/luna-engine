@@ -11,6 +11,7 @@ services:
       - chat-service
       - alerts-service
       - obs-service
+      - vts-service
       - kokoro-tts
     build: .
     ports:
@@ -92,6 +93,15 @@ services:
       - "5006:5006"
     env_file:
       - ../obs-service/.env
+
+  vts-service:
+    image: vts-service
+    container_name: vts-service
+    build: ../vts-service
+    ports:
+      - "5007:5007"
+    env_file:
+      - ../vts-service/.env
 
   kokoro-tts:
     image: kokoro-tts
