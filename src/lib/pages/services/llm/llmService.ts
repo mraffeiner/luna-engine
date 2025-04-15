@@ -24,7 +24,7 @@ export const selectedResponseLlm = writable<LlmParams>({
 export const selectedPrepassLlm = writable<LlmParams>({
 	requestParams: {
 		provider: 'groq',
-		model: 'llama-3.3-70b-specdec',
+		model: 'meta-llama/llama-4-scout-17b-16e-instruct',
 		system_prompt: '',
 		prompt: ''
 	}
