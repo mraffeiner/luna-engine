@@ -18,21 +18,19 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class CreateParamRequest(BaseModel):
+class BaseParamRequest(BaseModel):
     name: str
+
+
+class CreateParamRequest(BaseParamRequest):
     min_val: float = Field(default=0.0, alias="min")
     max_val: float = Field(default=1.0, alias="max")
     default_value: float = 0.0
     info: str = "New Custom Parameter"
 
 
-class SetParamRequest(BaseModel):
-    name: str
+class SetParamRequest(BaseParamRequest):
     value: float = 0.0
-
-
-class DeleteParamRequest(BaseModel):
-    name: str
 
 
 class SetMultiParamRequest(BaseModel):
@@ -99,13 +97,14 @@ async def connect():
         await vts.connect()
         await vts.request_authenticate_token()
         await vts.request_authenticate()
+
+        logger.info("Successfully connected to VTS")
+        return Response(status_code=200, content="Successfully connected to VTS API")
     except Exception:
         logger.exception("Unexpected error trying to connect to VTS API")
         return HTTPException(
             status_code=500, detail=f"Unexpected error trying to connect to VTS API"
         )
-    logger.info("Successfully connected to VTS")
-    return Response(status_code=200, content="Successfully connected to VTS API")
 
 
 @app.get("/list_custom_params")
@@ -115,16 +114,18 @@ async def list_custom_params():
     logger.info("Listing tracking parameters..")
     try:
         response = await vts.request(vts.vts_request.requestTrackingParameterList())
+
+        logger.info("Successfully retrieved tracking parameters")
+        return JSONResponse(
+            status_code=200,
+            content=response.get("data", {}).get("customParameters", {}),
+        )
     except Exception:
         logger.exception("Unexpected error trying to list tracking parameters")
         return HTTPException(
             status_code=500,
             detail=f"Unexpected error trying to list tracking parameters",
         )
-    logger.info("Successfully retrieved tracking parameters")
-    return JSONResponse(
-        status_code=200, content=response.get("data", {}).get("customParameters", {})
-    )
 
 
 @app.post("/create_param")
@@ -142,6 +143,12 @@ async def create_param(request: CreateParamRequest):
                 request.info,
             )
         )
+
+        logger.info(f"Successfully created custom parameter {request.name}")
+        return Response(
+            status_code=201,
+            content=f"Successfully created custom parameter {request.name}",
+        )
     except Exception:
         logger.exception(
             f"Unexpected error trying to create custom parameter {request.name}"
@@ -150,10 +157,25 @@ async def create_param(request: CreateParamRequest):
             status_code=500,
             detail=f"Unexpected error trying to create custom parameter {request.name}",
         )
-    logger.info(f"Successfully created custom parameter {request.name}")
-    return Response(
-        status_code=201, content=f"Successfully created custom parameter {request.name}"
-    )
+
+
+@app.post("/get_param")
+async def get_param(request: BaseParamRequest):
+    global vts
+
+    logger.debug(f"Getting {request.name}..")
+    try:
+        response = await vts.request(
+            vts.vts_request.requestParameterValue(request.name)
+        )
+        logger.debug(f"Successfully got {request.name}")
+        return JSONResponse(status_code=200, content=response.get("data", {}))
+    except Exception:
+        logger.exception(f"Unexpected error trying to get {request.name}")
+        return HTTPException(
+            status_code=500,
+            detail=f"Unexpected error trying to get {request.name}",
+        )
 
 
 @app.post("/set_param")
@@ -167,6 +189,12 @@ async def set_param(request: SetParamRequest):
                 request.name, request.value, face_found=True
             )
         )
+
+        logger.debug(f"Successfully set {request.name} to {request.value}")
+        return Response(
+            status_code=200,
+            content=f"Successfully set {request.name} to {request.value}",
+        )
     except Exception:
         logger.exception(
             f"Unexpected error trying to set {request.name} to {request.value}"
@@ -175,10 +203,6 @@ async def set_param(request: SetParamRequest):
             status_code=500,
             detail=f"Unexpected error trying to set {request.name} to {request.value}",
         )
-    logger.debug(f"Successfully set {request.name} to {request.value}")
-    return Response(
-        status_code=200, content=f"Successfully set {request.name} to {request.value}"
-    )
 
 
 @app.post("/set_params")
@@ -194,6 +218,14 @@ async def set_params(request: SetMultiParamRequest):
                 request.names, request.values, face_found=True
             )
         )
+
+        logger.debug(
+            f"Successfully set multiple parameters {request.names} to {request.values}"
+        )
+        return Response(
+            status_code=200,
+            content=f"Successfully set multiple parameters {request.names} to {request.values}",
+        )
     except Exception:
         logger.exception(
             f"Unexpected error trying to set multiple parameters {request.names} to {request.values}"
@@ -202,22 +234,18 @@ async def set_params(request: SetMultiParamRequest):
             status_code=500,
             detail=f"Unexpected error trying to set multiple parameters {request.names} to {request.values}",
         )
-    logger.debug(
-        f"Successfully set multiple parameters {request.names} to {request.values}"
-    )
-    return Response(
-        status_code=200,
-        content=f"Successfully set multiple parameters {request.names} to {request.values}",
-    )
 
 
 @app.delete("/delete_param")
-async def delete_param(request: DeleteParamRequest):
+async def delete_param(request: BaseParamRequest):
     global vts
 
     logger.info(f"Deleting custom parameter {request.name}..")
     try:
         await vts.request(vts.vts_request.requestDeleteCustomParameter(request.name))
+
+        logger.info(f"Successfully deleted custom parameter {request.name}")
+        return Response(status_code=204)
     except Exception:
         logger.exception(
             f"Unexpected error trying to delete custom parameter {request.name}"
@@ -226,5 +254,3 @@ async def delete_param(request: DeleteParamRequest):
             status_code=500,
             detail=f"Unexpected error trying to delete custom parameter {request.name}",
         )
-    logger.info(f"Successfully deleted custom parameter {request.name}")
-    return Response(status_code=204)
