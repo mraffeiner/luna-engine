@@ -90,6 +90,18 @@ export async function createParam(
 			serviceError.set(
 				`Failed to create model param ${name}: ${response.status} ${response.statusText}`
 			);
+		} else {
+			modelParams.update((params) => {
+				params.push({
+					name: name,
+					value: default_value,
+					min: min,
+					max: max,
+					defaultValue: default_value,
+					info: info
+				});
+				return params;
+			});
 		}
 	} catch (error) {
 		if (error instanceof Error) {
@@ -177,6 +189,10 @@ export async function deleteParam(name: string) {
 			serviceError.set(
 				`Failed to delete model param ${name}: ${response.status} ${response.statusText}`
 			);
+		} else {
+			modelParams.update((params) => {
+				return params.filter((param) => param.name !== name);
+			});
 		}
 	} catch (error) {
 		if (error instanceof Error) {
