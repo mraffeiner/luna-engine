@@ -51,14 +51,13 @@ export async function getCustomParams() {
 			const data = await response.json();
 			modelParams.set(data);
 
-			// Start periodic updates
+			// Start/restart periodic updates
 			if (paramUpdateIntervalId) {
 				clearInterval(paramUpdateIntervalId);
-			} else {
-				paramUpdateIntervalId = setInterval(() => {
-					setParams(get(modelParams));
-				}, paramUpdateIntervalMS);
 			}
+			paramUpdateIntervalId = setInterval(() => {
+				setParams(get(modelParams));
+			}, paramUpdateIntervalMS);
 		}
 	} catch (error) {
 		if (error instanceof Error) {
