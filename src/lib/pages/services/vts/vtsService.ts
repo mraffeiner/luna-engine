@@ -17,6 +17,9 @@ export const modelParams = writable<ModelParam[]>([]);
 let paramUpdateIntervalId: number | undefined = undefined;
 const paramUpdateIntervalMS: number = 500;
 
+let voiceBasedMotionIntervalId: number | undefined = undefined;
+const voiceBasedMotionIntervalMS: number = 30;
+
 export async function connect() {
 	loading.set(true);
 	try {
@@ -58,6 +61,14 @@ export async function getCustomParams() {
 			paramUpdateIntervalId = setInterval(() => {
 				setParams(get(modelParams));
 			}, paramUpdateIntervalMS);
+
+			// Start/restart voice based motion
+			if (voiceBasedMotionIntervalId) {
+				clearInterval(voiceBasedMotionIntervalId);
+			}
+			voiceBasedMotionIntervalId = setInterval(() => {
+				moveModelByVoice();
+			}, voiceBasedMotionIntervalMS);
 		}
 	} catch (error) {
 		if (error instanceof Error) {
@@ -136,6 +147,32 @@ export async function setParam(name: string, value: number) {
 	}
 }
 
+export async function getParam(name: string): Promise<ModelParam | void> {
+	try {
+		const response = await fetch(`${API_BASE_URL}/get_param`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ name })
+		});
+
+		if (!response.ok) {
+			serviceError.set(
+				`Failed to get model param ${name}: ${response.status} ${response.statusText}`
+			);
+		} else {
+			return await response.json();
+		}
+	} catch (error) {
+		if (error instanceof Error) {
+			serviceError.set(`Failed to get model param ${name}: ${error.message}`);
+		} else {
+			serviceError.set(`Unkown error trying to get model param ${name}`);
+		}
+	}
+}
+
 export async function setParams(params: ModelParam[]): Promise<void>;
 
 export async function setParams(names: string[], values: number[]): Promise<void>;
@@ -201,4 +238,79 @@ export async function deleteParam(name: string) {
 			serviceError.set(`Unkown error trying to delete model param ${name}`);
 		}
 	}
+}
+
+/**
+ * Creates a slow “brownian” noise generator in [–1,1].
+ * @param freqHz  Update frequency in Hz
+ * @param frameRate  Frames per second
+ */
+function makeBrown(freqHz: number, frameRate: number = 60): () => number {
+	let z = 0;
+	const λ = Math.exp((-2 * Math.PI * freqHz) / frameRate);
+
+	return () => {
+		const ε = Math.random() * 2 - 1;
+		z = λ * z + Math.sqrt(1 - λ * λ) * ε;
+		return z;
+	};
+}
+
+// Tweak these to taste:
+const A_PITCH = 12; // ° swing on loudness
+const A_YAW = 8; // ° swing on frequency
+const J_P = 3; // ° idle noise pitch
+const J_Y = 3; // ° idle noise yaw
+const J_R = 5; // ° idle noise roll
+const ALPHA = 0.2; // smoothing factor [0..1]
+
+const noiseP = makeBrown(0.2);
+const noiseY = makeBrown(0.25);
+const noiseR = makeBrown(0.15);
+
+let facePitch = 0; // CustomFaceAngleY
+let faceYaw = 0; // CustomFaceAngleX
+let faceRoll = 0; // CustomFaceAngleZ
+
+async function moveModelByVoice() {
+	const volume = (await getParam('VoiceVolume'))?.value;
+	const frequency = (await getParam('VoiceFrequency'))?.value;
+	if (!volume || !frequency) return;
+
+	// 1) raw targets
+	const rawPitch = A_PITCH * (volume - 0.5) + J_P * noiseP();
+	const rawYaw = A_YAW * frequency + J_Y * noiseY();
+	const rawRoll = J_R * noiseR();
+
+	// 2) exponential smoothing
+	facePitch = ALPHA * rawPitch + (1 - ALPHA) * facePitch;
+	faceYaw = ALPHA * rawYaw + (1 - ALPHA) * faceYaw;
+	faceRoll = ALPHA * rawRoll + (1 - ALPHA) * faceRoll;
+
+	modelParams.update((params) => {
+		const updatedParams = params.map((param) => {
+			// 3) apply to face
+			if (param.name === 'CustomFaceAngleY') {
+				param.value = facePitch;
+			}
+			if (param.name === 'CustomFaceAngleX') {
+				param.value = faceYaw;
+			}
+			if (param.name === 'CustomFaceAngleZ') {
+				param.value = faceRoll;
+			}
+			// 4) apply scaled to body
+			if (param.name === 'CustomBodyAngleY') {
+				param.value = facePitch;
+			}
+			if (param.name === 'CustomBodyAngleX') {
+				param.value = faceYaw;
+			}
+			if (param.name === 'CustomBodyAngleZ') {
+				param.value = faceRoll;
+			}
+			return param;
+		});
+		return updatedParams;
+	});
 }
