@@ -11,6 +11,16 @@
 	let paramMax: number = $state(1.0);
 	let paramDefault: number = $state(0.0);
 
+	function resetParams() {
+		modelParams.update((current) => {
+			const updatedParams = current.map((param) => {
+				param.value = param.defaultValue || 0.0;
+				return param;
+			});
+			return updatedParams;
+		});
+	}
+
 	$effect(() => {
 		if ($modelParams) {
 			setParams($modelParams);
@@ -32,9 +42,12 @@
 
 			{#if $modelParams.length > 0}
 				<div class="form-control">
-					<h3>Available Custom Parameters</h3>
+					<div class="flex-between mb-4">
+						<h3>Available Custom Parameters</h3>
+						<button onclick={resetParams} class="btn-danger">Reset All</button>
+					</div>
 					<div class="grid grid-cols-4 gap-4">
-						{#each $modelParams as param}
+						{#each $modelParams as param, i}
 							<div class="flex-between text-text-muted text-lg font-medium">
 								<div class="mb-2">
 									<label for={param.name}>{param.name}</label>
@@ -60,7 +73,7 @@
 								<button type="button" onclick={() => deleteParam(param.name)} class="btn-danger">
 									<Icon
 										path="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-										class="icon-sm mr-2"
+										class="icon-sm"
 									/>
 								</button>
 							</div>
