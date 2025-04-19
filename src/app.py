@@ -35,6 +35,11 @@ class DeleteParamRequest(BaseModel):
     name: str
 
 
+class SetMultiParamRequest(BaseModel):
+    names: list[str]
+    values: list[float]
+
+
 vts = None
 
 
@@ -173,6 +178,36 @@ async def set_param(request: SetParamRequest):
     logger.debug(f"Successfully set {request.name} to {request.value}")
     return Response(
         status_code=200, content=f"Successfully set {request.name} to {request.value}"
+    )
+
+
+@app.post("/set_params")
+async def set_params(request: SetMultiParamRequest):
+    global vts
+
+    if len(request.names) != len(request.values):
+        raise HTTPException(status_code=400, detail="names and values length mismatch")
+    logger.debug(f"Setting multiple parameters {request.names} to {request.values}..")
+    try:
+        await vts.request(
+            vts.vts_request.requestSetMultiParameterValue(
+                request.names, request.values, face_found=True
+            )
+        )
+    except Exception:
+        logger.exception(
+            f"Unexpected error trying to set multiple parameters {request.names} to {request.values}"
+        )
+        return HTTPException(
+            status_code=500,
+            detail=f"Unexpected error trying to set multiple parameters {request.names} to {request.values}",
+        )
+    logger.debug(
+        f"Successfully set multiple parameters {request.names} to {request.values}"
+    )
+    return Response(
+        status_code=200,
+        content=f"Successfully set multiple parameters {request.names} to {request.values}",
     )
 
 
