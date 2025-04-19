@@ -12,13 +12,16 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
+		"compose:build": "docker compose build",
 		"compose:start": "docker compose start",
 		"compose:restart": "docker compose restart",
 		"compose:stop": "docker compose stop",
 		"compose:up": "docker compose up -d --build",
 		"compose:recreate": "docker compose up -d --build --force-recreate",
 		"compose:down": "docker compose down",
-		"prune:image": "docker image prune -f"
+		"prune:image": "docker image prune -f",
+		"tauri:build": "cd src-tauri && cargo build",
+		"build:all": "docker compose build && cd src-tauri && cargo build"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",

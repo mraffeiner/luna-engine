@@ -21,13 +21,17 @@
 	onMount(() => {
 		window.addEventListener('beforeunload', cleanup);
 
-		SERVICE_PAGES.forEach((page) => {
-			dockerService.checkContainerStatus(page.serviceId);
-		});
+		// Periodic health check
+		const healthCheckIntervalId = setInterval(() => {
+			SERVICE_PAGES.forEach((page) => {
+				dockerService.checkContainerStatus(page.serviceId);
+			});
+		}, 5000);
 
 		dockerService.startLogsStream();
 
 		return () => {
+			clearInterval(healthCheckIntervalId);
 			window.removeEventListener('beforeunload', cleanup);
 			cleanup();
 		};
