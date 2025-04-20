@@ -1,5 +1,5 @@
 import { serviceError } from '$lib/pages/services/docker/dockerService';
-import { engineStates } from '$lib/shared/shared.svelte';
+import { engineStates, receiveInput } from '$lib/shared/shared.svelte';
 
 const API_BASE_URL = '/api/discord';
 const MAX_RECONNECT_ATTEMPTS = 5;
@@ -45,6 +45,7 @@ export const discordService = {
 
 		audioWebSocket.onopen = () => {
 			reconnectAttempts = 0;
+			receiveInput.discord = true;
 		};
 
 		audioWebSocket.onmessage = (event: MessageEvent) => {
@@ -73,6 +74,7 @@ export const discordService = {
 		};
 
 		audioWebSocket.onclose = (event) => {
+			receiveInput.discord = false;
 			audioWebSocket = null;
 
 			if (!event.wasClean && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
@@ -103,7 +105,7 @@ export const discordService = {
 			resolvePlaybackComplete = resolve;
 			setTimeout(() => {
 				reject(new Error('Playback timeout'));
-			}, 300000); // 5 minutes
+			}, 30000); // 30 seconds
 		});
 	},
 

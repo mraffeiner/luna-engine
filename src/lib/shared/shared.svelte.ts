@@ -59,7 +59,7 @@ export const receiveInput = $state({
 	prompt: true,
 	llm: true,
 	tts: true,
-	discord: true,
+	discord: false,
 	stt: true
 });
 
