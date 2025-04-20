@@ -65,12 +65,7 @@
 							/>
 							Generated Audio
 						</h4>
-						<audio
-							controls
-							autoplay={!receiveInput.discord}
-							src={$ttsAudioUrl}
-							class="w-full rounded-md"
-						></audio>
+						<audio controls src={$ttsAudioUrl} class="w-full rounded-md"></audio>
 					</div>
 				{/if}
 			</div>

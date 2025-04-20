@@ -95,17 +95,24 @@
 
 			if (!speechPart || !speechPart.blob) continue;
 
+			engineStates.speaking = true;
+			subtitles.text = ttsParams.requestParams.text;
 			if (receiveInput.discord) {
-				engineStates.speaking = true;
-				subtitles.text = ttsParams.requestParams.text;
 				await discordService.playAudio(speechPart.blob);
-				subtitles.text = '';
-				engineStates.speaking = false;
 			} else {
-				console.warn('Not receiving discord input');
-				// OPTIMIZE: Fallback await audio element play
-				return;
+				const audioUrl = URL.createObjectURL(speechPart.blob);
+				const audioEl = new Audio(audioUrl);
+
+				await new Promise<void>((resolve) => {
+					audioEl.onended = () => {
+						URL.revokeObjectURL(audioUrl);
+						resolve();
+					};
+					audioEl.play();
+				});
 			}
+			subtitles.text = '';
+			engineStates.speaking = false;
 
 			// OPTIMIZE: Pause and resume depending on interrupt reason (Advanced interruption using small llm decision)
 			if (engineStates.paused || engineStates.listening || $sttLoading || engineStates.reading) {
