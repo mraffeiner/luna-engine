@@ -97,20 +97,24 @@
 
 			engineStates.speaking = true;
 			subtitles.text = ttsParams.requestParams.text;
-			if (receiveInput.discord) {
-				await discordService.playAudio(speechPart.blob);
-			} else {
-				const audioUrl = URL.createObjectURL(speechPart.blob);
-				const audioEl = new Audio(audioUrl);
 
-				await new Promise<void>((resolve) => {
-					audioEl.onended = () => {
-						URL.revokeObjectURL(audioUrl);
-						resolve();
-					};
-					audioEl.play();
-				});
-			}
+			await new Promise<void>((resolve) => {
+				const audioUrl = URL.createObjectURL(speechPart.blob);
+				const audioElement = new Audio(audioUrl);
+
+				audioElement.onended = () => {
+					URL.revokeObjectURL(audioUrl);
+					resolve();
+				};
+
+				audioElement.play();
+
+				// Start parallel discord playback
+				if (receiveInput.discord) {
+					discordService.playAudio(speechPart.blob);
+				}
+			});
+
 			subtitles.text = '';
 			engineStates.speaking = false;
 
