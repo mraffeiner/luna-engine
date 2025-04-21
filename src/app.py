@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import datetime
 from fastapi import FastAPI, HTTPException, Response
 import logging
 from dotenv import load_dotenv
@@ -86,6 +87,13 @@ app = FastAPI(
     description="Service for interacting with VTube Studio via pyvts.",
     lifespan=lifespan,
 )
+
+
+@app.get("/health")
+async def health_check():
+    """Basic health check endpoint."""
+    logger.info("Health check requested.")
+    return {"status": "OK", "timestamp": datetime.now().isoformat()}
 
 
 @app.get("/connect")
