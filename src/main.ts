@@ -305,8 +305,8 @@ function disconnectFromVoiceChannel() {
 }
 
 // Helper function for API responses
-function apiResponse(body: string, status = 200) {
-  return new Response(JSON.stringify({ message: body }), {
+function apiResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
     status,
     headers: { "Content-Type": "application/json" },
   });
@@ -315,9 +315,9 @@ function apiResponse(body: string, status = 200) {
 // Helper function to handle API errors
 function handleApiError(error: unknown) {
   if (error instanceof Error) {
-    return apiResponse(error.message, 500);
+    return apiResponse({ message: error.message }, 500);
   }
-  return apiResponse("An unknown error occurred", 500);
+  return apiResponse({ message: "An unknown error occurred" }, 500);
 }
 
 function handleWebSocket(request: Request) {
@@ -364,29 +364,29 @@ const handler = async (request: Request): Promise<Response> => {
     return handleWebSocket(request);
   }
 
-  if (url.pathname === "/join-voice") {
+  if (url.pathname === "/health") {
+    logger.info("Health check requested.");
+    return apiResponse({ status: "OK", timestamp: new Date() });
+  } else if (url.pathname === "/join-voice") {
     try {
       logger.info("Handling /join-voice request"); // Log
       const { guildId, channelId } = await request.json();
       logger.info("Parsed request body:", { guildId, channelId }); // Log parsed body
       if (!guildId || !channelId) {
-        return apiResponse("Missing guildId or channelId", 400);
+        return apiResponse({ message: "Missing guildId or channelId" }, 400);
       }
       await connectToVoiceChannel(guildId, channelId);
       logger.info("connectToVoiceChannel called"); // Log
-      return apiResponse("Connected to voice channel");
+      return apiResponse({ message: "Connected to voice channel" });
     } catch (error) {
       logger.error("Error in /join-voice handler:", error); // Log errors
       return handleApiError(error);
     }
   } else if (url.pathname === "/leave-voice") {
     disconnectFromVoiceChannel();
-    return apiResponse("Disconnected from voice channel");
-  } else if (url.pathname === "/health") {
-    return apiResponse("OK");
+    return apiResponse({ message: "Disconnected from voice channel" });
   }
-
-  return apiResponse("Not Found", 404);
+  return apiResponse({ message: "Not Found" }, 404);
 };
 
 Deno.serve({ port: 5004 }, handler);
