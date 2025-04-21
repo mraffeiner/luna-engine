@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from datetime import datetime
 from fastapi import FastAPI, Body, Response, HTTPException
 from pydantic import BaseModel, Field
 import azure.cognitiveservices.speech as speechsdk
@@ -122,10 +123,11 @@ class TTSEngineOptions(BaseModel):
 
 
 # API Endpoints
-@app.get("/health", summary="Health check endpoint")
+@app.get("/health")
 async def health_check():
-    """Check the health of the TTS service and available engines"""
-    status = {"status": "ok", "engines": []}
+    """Basic health check endpoint."""
+    logger.info("Health check requested.")
+    status = {"status": "OK", "timestamp": datetime.now().isoformat(), "engines": []}
 
     # Check Azure
     if azure_speech_config:
