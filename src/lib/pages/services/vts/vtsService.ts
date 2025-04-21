@@ -18,7 +18,7 @@ let paramUpdateIntervalId: number | undefined = undefined;
 const paramUpdateIntervalMS: number = 500;
 
 let voiceBasedMotionIntervalId: number | undefined = undefined;
-const voiceBasedMotionIntervalMS: number = 30;
+const voiceBasedMotionIntervalMS: number = 33.33;
 
 export async function connect() {
 	loading.set(true);
@@ -245,7 +245,7 @@ export async function deleteParam(name: string) {
  * @param freqHz  Update frequency in Hz
  * @param frameRate  Frames per second
  */
-function makeBrown(freqHz: number, frameRate: number = 60): () => number {
+function makeBrown(freqHz: number, frameRate: number = 30): () => number {
 	let z = 0;
 	const λ = Math.exp((-2 * Math.PI * freqHz) / frameRate);
 
@@ -258,11 +258,11 @@ function makeBrown(freqHz: number, frameRate: number = 60): () => number {
 
 // Tweak these to taste:
 const A_PITCH = 12; // ° swing on loudness
-const A_YAW = 8; // ° swing on frequency
-const J_P = 3; // ° idle noise pitch
-const J_Y = 3; // ° idle noise yaw
+const A_YAW = 12; // ° swing on frequency
+const J_P = 5; // ° idle noise pitch
+const J_Y = 5; // ° idle noise yaw
 const J_R = 5; // ° idle noise roll
-const ALPHA = 0.2; // smoothing factor [0..1]
+const ALPHA = 0.1; // smoothing factor [0..1]
 
 const noiseP = makeBrown(0.2);
 const noiseY = makeBrown(0.25);
