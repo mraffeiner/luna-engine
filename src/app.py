@@ -1,6 +1,8 @@
 import asyncio
 from contextlib import asynccontextmanager
 import json
+from datetime import datetime
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
 from dotenv import load_dotenv
@@ -55,7 +57,9 @@ load_dotenv()
 # API endpoints
 @app.get("/health")
 async def health_check():
-    return {"status": "ok"}
+    """Basic health check endpoint."""
+    logger.info("Health check requested.")
+    return {"status": "OK", "timestamp": datetime.now().isoformat()}
 
 
 @app.get("/container_status/{container_name}", response_model=ContainerStatusResponse)
