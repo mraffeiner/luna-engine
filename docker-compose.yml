@@ -1,22 +1,4 @@
 services:
-  luna-engine:
-    image: luna-engine
-    container_name: luna-engine
-    depends_on:
-      - docker-service
-      - llm-service
-      - stt-service
-      - tts-service
-      - discord-service
-      - chat-service
-      - alerts-service
-      - obs-service
-      - vts-service
-      - kokoro-tts
-    build: .
-    ports:
-      - "8080:80"
-
   docker-service:
     image: docker-service
     container_name: docker-service
@@ -45,6 +27,37 @@ services:
       - "5003:5003"
     env_file:
       - ../stt-service/.env
+
+  kokoro-tts:
+    image: kokoro-tts
+    container_name: kokoro-tts
+    ports:
+      - "8880:8880"
+    env_file:
+      - ../stt-service/.env
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+
+  sesame-tts:
+    image: sesame-tts
+    container_name: sesame-tts
+    profiles: [ 'experimental' ]
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../stt-service/.env
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
 
   tts-service:
     image: tts-service
@@ -85,15 +98,6 @@ services:
     env_file:
       - ../alerts-service/.env
 
-  obs-service:
-    image: obs-service
-    container_name: obs-service
-    build: ../obs-service
-    ports:
-      - "5006:5006"
-    env_file:
-      - ../obs-service/.env
-
   vts-service:
     image: vts-service
     container_name: vts-service
@@ -103,33 +107,28 @@ services:
     env_file:
       - ../vts-service/.env
 
-  kokoro-tts:
-    image: kokoro-tts
-    container_name: kokoro-tts
+  obs-service:
+    image: obs-service
+    container_name: obs-service
+    build: ../obs-service
     ports:
-      - "8880:8880"
+      - "5006:5006"
     env_file:
-      - ../stt-service/.env
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [ gpu ]
+      - ../obs-service/.env
 
-  sesame-tts:
-    image: sesame-tts
-    container_name: sesame-tts
-    profiles: [ 'experimental' ]
+  luna-engine:
+    image: luna-engine
+    container_name: luna-engine
+    depends_on:
+      - docker-service
+      - llm-service
+      - stt-service
+      - tts-service
+      - discord-service
+      - chat-service
+      - alerts-service
+      - vts-service
+      - obs-service
+    build: .
     ports:
-      - "8000:8000"
-    env_file:
-      - ../stt-service/.env
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [ gpu ]
+      - "8080:80"

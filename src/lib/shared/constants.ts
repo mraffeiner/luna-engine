@@ -73,16 +73,16 @@ export const PAGES: PageConfig[] = [
 		serviceId: 'alerts-service'
 	},
 	{
-		id: 'obs-page',
-		name: 'OBS Service',
-		icon: 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z',
-		serviceId: 'obs-service'
-	},
-	{
 		id: 'vts-page',
 		name: 'VTS Service',
 		icon: 'M11.25 5.25v1.5m0 0v1.5m0 0h1.5m-1.5 0h-1.5m3.75 3.75H15v1.5h-1.5v-1.5zm-3.75 0H7.5v1.5h1.5v-1.5zm-3.75 0H3.75v1.5h1.5v-1.5zm11.25 0h-1.5v1.5h1.5v-1.5zM4.5 15.75l-.75.75M19.5 15.75l.75.75M16.5 12a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM6.75 12a.75.75 0 100-1.5.75.75 0 000 1.5zM9 9.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0z', // Game controller icon
 		serviceId: 'vts-service'
+	},
+	{
+		id: 'obs-page',
+		name: 'OBS Service',
+		icon: 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z',
+		serviceId: 'obs-service'
 	}
 ] as const;
 

@@ -47,7 +47,7 @@
 <DiscordPage />
 <ChatPage />
 <AlertsPage />
-<ObsPage />
 <VtsPage />
+<ObsPage />
 <!-- Load last to ensure all other pages are fully loaded before engine starts -->
 <EnginePage />
