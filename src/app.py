@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
 from typing import Optional
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from datetime import datetime
+
 from pydantic import BaseModel
 import openai
 from groq import Groq
@@ -89,21 +91,9 @@ class SttResponse(BaseModel):
 # API Endpoints
 @app.get("/health", summary="Health check endpoint")
 async def health_check():
-    status = "ok"
-    warnings = []
-
-    if not openai.api_key:
-        warnings.append("OPENAI_API_KEY not set")
-        status = "warning"
-
-    if not groq_client.api_key:
-        warnings.append("GROQ_API_KEY not set")
-        status = "warning"
-
-    return {
-        "status": status,
-        "warnings": warnings if warnings else None,
-    }
+    """Basic health check endpoint."""
+    logger.info("Health check requested.")
+    return {"status": "OK", "timestamp": datetime.now().isoformat()}
 
 
 @app.get("/models", summary="Get available STT models")
