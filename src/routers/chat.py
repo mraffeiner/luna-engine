@@ -1,4 +1,6 @@
 import logging
+from datetime import datetime
+
 from typing import Dict
 
 from fastapi import (
@@ -22,6 +24,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter(
     tags=["Chat"],  # Add tags for OpenAPI documentation grouping
 )
+
+
+@router.get("/health")
+async def health_check():
+    """Basic health check endpoint."""
+    logger.info("Health check requested.")
+    return {"status": "OK", "timestamp": datetime.now().isoformat()}
 
 
 # --- API Endpoints ---
