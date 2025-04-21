@@ -1,4 +1,4 @@
-import { Application, Router } from "oak";
+import { Application, Context, Router } from "oak";
 import * as log from "https://deno.land/std@0.224.0/log/mod.ts";
 import { format } from "https://deno.land/std@0.224.0/datetime/format.ts";
 import { loadSync } from "dotenv";
@@ -118,8 +118,13 @@ await connectToObs();
  * GET / - Health check endpoint.
  * Returns the service status and OBS connection state.
  */
-router.get("/", (ctx) => {
-  ctx.response.body = { status: "running", obsConnected: isObsConnected };
+router.get("/health", (ctx: Context) => {
+  logger.info("Health check requested.");
+  ctx.response.body = {
+    status: "OK",
+    timestamp: new Date(),
+    obsConnected: isObsConnected,
+  };
 });
 
 /**
