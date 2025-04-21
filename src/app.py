@@ -2,6 +2,8 @@ import asyncio
 import os
 import httpx
 import logging
+from datetime import datetime
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Body, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
@@ -121,7 +123,9 @@ class LLMRequest(BaseModel):
 
 @app.get("/health")
 async def health_check():
-    return {"status": "ok"}
+    """Basic health check endpoint."""
+    logger.info("Health check requested.")
+    return {"status": "OK", "timestamp": datetime.now().isoformat()}
 
 
 @app.get("/models")
