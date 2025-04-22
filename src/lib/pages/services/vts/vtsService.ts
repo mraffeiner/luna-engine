@@ -258,8 +258,8 @@ function makeBrown(freqHz: number, frameRate: number = 30): () => number {
 
 // Tweak these to taste:
 const A_PITCH = 12; // ° swing on loudness
-const A_YAW = 12; // ° swing on frequency
-const J_P = 5; // ° idle noise pitch
+const A_YAW = 6; // ° swing on frequency
+const J_P = 3; // ° idle noise pitch
 const J_Y = 5; // ° idle noise yaw
 const J_R = 5; // ° idle noise roll
 const ALPHA = 0.1; // smoothing factor [0..1]
