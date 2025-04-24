@@ -49,6 +49,7 @@ async def lifespan(app: FastAPI):
     # Configure uvicorn access logger to match application logger format
     uvicorn_access_logger = logging.getLogger("uvicorn.access")
     handler = logging.StreamHandler()
+    handler.setLevel(logging.WARNING)
     handler.setFormatter(
         logging.Formatter(
             "[%(asctime)s] - %(levelname)s: %(message)s",
