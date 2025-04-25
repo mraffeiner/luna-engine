@@ -27,7 +27,7 @@ userPromptSections.subscribe((sections) => {
 	let content = '';
 	if (sections.length > 0) {
 		sections.forEach((section) => {
-			content += `\n\n# ${section.name}\n${section.content}`;
+			content += `\n\n## ${section.name}\n${section.content}`;
 		});
 	}
 
