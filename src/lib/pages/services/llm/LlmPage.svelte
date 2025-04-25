@@ -22,7 +22,7 @@
 	let userPrompt = $state('Hey there, hello!');
 
 	let prepassSystemPrompt = $state(
-		"Take the user's text and translate or remove things that can't be expressed through the English alphabet. If there are full uppercase occurrences adjust them to be properly cased. Everything else has to be the exact same with no modifications. Your response has to just be the final result and nothing else."
+		"Take the user's text and translate or remove things that can't be expressed through the English alphabet. If there are full uppercase occurrences adjust them to be properly cased for English. Everything else has to be the exact same with no modifications. Your response has to just be the final result and nothing else."
 	);
 
 	$effect(() => {
