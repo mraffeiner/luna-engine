@@ -35,7 +35,6 @@
 		const prompt = serviceOutput.prompt;
 		let combined = '';
 		if (prompt) {
-			combined += prompt.system ? prompt.system : '';
 			combined += prompt.user ? prompt.user : '';
 		}
 		return combined;
