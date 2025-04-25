@@ -20,7 +20,7 @@ export const engineConfig: {
 	msMinAfterResponse: number;
 } = $state({
 	mode: 'REACT',
-	llmPrepass: false,
+	llmPrepass: true,
 	interruptable: false,
 	msMinAfterResponse: 0
 });
