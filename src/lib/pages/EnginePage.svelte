@@ -37,7 +37,7 @@
 		if (prompt) {
 			combined += prompt.user ? prompt.user : '';
 		}
-		return combined;
+		return combined.trim();
 	});
 
 	async function handleThinking() {
@@ -173,7 +173,7 @@
 		<div class="grid grid-cols-8 grid-rows-9 gap-4">
 			{#each PAGES.slice(2, PAGES.length) as page}
 				{#if page.id === 'prompt-page'}
-					<div class="col-span-5 row-span-9">
+					<div class="col-span-8 row-span-5">
 						<EngineCard title={page.name} bind:receiveInput={receiveInput.prompt}>
 							<div class="whitespace-pre-wrap">
 								{combinedPrompt}
@@ -181,56 +181,21 @@
 						</EngineCard>
 					</div>
 				{:else if page.id === 'llm-page'}
-					<div class="col-span-3 row-span-3">
+					<div class="col-span-8 row-span-4">
 						<EngineCard title={page.name} bind:receiveInput={receiveInput.llm}>
-							<div class="whitespace-pre-wrap">
+							<div class="form-group whitespace-pre-wrap">
+								{#if serviceOutput.llm.raw}
+									{serviceOutput.llm.raw}
+								{/if}
+							</div>
+							<div class="form-group whitespace-pre-wrap">
 								{#if serviceOutput.llm.normalized}
 									{serviceOutput.llm.normalized}
 								{/if}
 							</div>
-						</EngineCard>
-					</div>
-				{:else if page.id === 'stt-page'}
-					<div class="col-span-3 row-span-2">
-						<EngineCard title={page.name} bind:receiveInput={receiveInput.stt}>
-							<div class="whitespace-pre-wrap">
-								{#each serviceOutput.stt as entry}
-									{entry.username}: {entry.transcript}
-								{/each}
-							</div>
-						</EngineCard>
-					</div>
-				{:else if page.id === 'tts-page'}
-					<div class="col-span-3 row-span-2">
-						<EngineCard title={page.name} bind:receiveInput={receiveInput.tts}>
-							<div>
-								{#if serviceOutput.tts}
-									<h4 class="text-text-subtle mb-2 flex items-center text-sm font-medium">
-										<Icon
-											path="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-											class="text-primary-light icon-sm mr-2"
-										/>
-										Luna
-									</h4>
-									<audio controls src={serviceOutput.tts.url} class="w-full rounded-md"></audio>
-								{/if}
-							</div>
-						</EngineCard>
-					</div>
-				{:else if page.id === 'discord-page'}
-					<div class="col-span-3 row-span-2">
-						<EngineCard title={page.name} bind:receiveInput={receiveInput.discord}>
-							<div>
-								{#if serviceOutput.discord}
-									{@const [username, audio] = [...serviceOutput.discord.entries()].pop() ?? []}
-									<h4 class="text-text-subtle mb-2 flex items-center text-sm font-medium">
-										<Icon
-											path="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-											class="text-success icon-sm mr-2"
-										/>
-										{username}
-									</h4>
-									<audio controls src={audio?.url} class="w-full rounded-md"></audio>
+							<div class="form-group whitespace-pre-wrap">
+								{#if serviceOutput.llm.final}
+									{serviceOutput.llm.final}
 								{/if}
 							</div>
 						</EngineCard>
