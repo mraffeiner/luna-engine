@@ -23,10 +23,10 @@ fn spawn_compose_up(cwd: &PathBuf) -> Child {
     .expect("failed to spawn `docker compose up`")
 }
 
-// Spawn `docker compose down` in `cwd`
-fn spawn_compose_down(cwd: &PathBuf) {
+// Spawn `docker compose stop` in `cwd`
+fn spawn_compose_stop(cwd: &PathBuf) {
   let _ = Command::new("docker")
-    .args(&["compose", "down"])
+    .args(&["compose", "stop"])
     .current_dir(cwd)
     .spawn();
 }
@@ -74,8 +74,8 @@ fn main() {
         let cwd = env::current_dir().unwrap();
         let app_handle = event.window().app_handle();
 
-        // 5) Run `docker compose down`
-        spawn_compose_down(&cwd);
+        // 5) Run `docker compose stop`
+        spawn_compose_stop(&cwd);
 
         // 6) Kill the original `compose up` process
         if let Some(mut child) = app_handle
