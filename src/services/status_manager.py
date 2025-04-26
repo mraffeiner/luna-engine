@@ -21,7 +21,7 @@ class StatusManager:
             Platform.TWITCH: ConnectionStatus.DISCONNECTED,
             Platform.YOUTUBE: ConnectionStatus.DISCONNECTED,
         }
-        # Use threading.Lock as status might be updated/read from different threads (YouTube listener)
+        # Use threading.Lock as status might be updated/read from different threads (YouTube poller)
         self._lock = threading.Lock()
         # Store ws_manager and main_loop for broadcasting updates
         self.ws_manager: ConnectionManager = ws_manager

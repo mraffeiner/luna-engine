@@ -11,7 +11,7 @@ from ..services.status_manager import StatusManager
 
 # Import platform modules from new locations
 from ..platforms.youtube.auth import GoogleAuthManager
-from ..platforms.youtube.listener import YouTubeListener
+from ..platforms.youtube.poller import YouTubePoller
 
 # from ..platforms.twitch.client import TwitchClient # Removed singleton import
 
@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         ws_manager=ws_manager, main_loop=main_loop
     )  # Pass ws_manager and loop
     google_auth_manager = GoogleAuthManager(status_manager)
-    youtube_listener = YouTubeListener(google_auth_manager, status_manager, ws_manager)
+    youtube_poller = YouTubePoller(google_auth_manager, status_manager, ws_manager)
     # twitch_client = TwitchClient(status_manager, ws_manager) # Removed singleton creation
 
     # Initialize the orchestrator, passing necessary components
@@ -48,7 +48,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         status_manager=status_manager,
         ws_manager=ws_manager,
         google_auth_manager=google_auth_manager,
-        youtube_listener=youtube_listener,
+        youtube_poller=youtube_poller,
         # twitch_client=twitch_client, # Removed twitch_client argument
     )
 
@@ -60,7 +60,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # (Though ideally, access should be standardized via dependencies or the orchestrator)
     app.state.status_manager = status_manager
     app.state.google_auth_manager = google_auth_manager
-    app.state.youtube_listener = youtube_listener
+    app.state.youtube_poller = youtube_poller
     # app.state.twitch_client = twitch_client # Removed storing singleton
 
     # Store the asyncio task and instance reference dicts in state for orchestrator use

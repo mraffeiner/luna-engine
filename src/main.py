@@ -81,11 +81,11 @@ async def oauth2callback(
 
     if success:
         logger.info(
-            "API: OAuth callback processed successfully. Triggering YouTube listener start if needed."
+            "API: OAuth callback processed successfully. Triggering YouTube poller start if needed."
         )
         await orchestrator.connect_youtube(background_tasks)
         return HTMLResponse(
-            "<html><head><title>Auth Success</title></head><body><h1>Authentication Successful!</h1><p>You have successfully authenticated with Google. You can close this window now. The YouTube chat listener will attempt to connect if required.</p></body></html>"
+            "<html><head><title>Auth Success</title></head><body><h1>Authentication Successful!</h1><p>You have successfully authenticated with Google. You can close this window now. The YouTube chat poller will attempt to connect if required.</p></body></html>"
         )
     else:
         # Error status should have been set by the auth manager via the orchestrator

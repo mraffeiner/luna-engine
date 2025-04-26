@@ -96,7 +96,7 @@ class GoogleAuthManager:
 
         if creds and creds.valid:
             self.credentials = creds
-            # Don't set status to connected/authenticated yet, wait for listener attempt
+            # Don't set status to connected/authenticated yet, wait for poller attempt
             return  # Valid creds loaded
 
         if creds and creds.expired and creds.refresh_token:
