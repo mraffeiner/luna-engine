@@ -51,7 +51,6 @@ app.include_router(websocket_router.router)  # Include WebSocket router
 @app.get("/oauth2callback")
 async def oauth2callback(
     request: Request,  # Keep for full URL access if needed by auth manager
-    background_tasks: BackgroundTasks,
     orchestrator: ChatOrchestrator = Depends(get_chat_orchestrator),
     code: Optional[str] = Query(None),
     state: Optional[str] = Query(None),
@@ -83,7 +82,7 @@ async def oauth2callback(
         logger.info(
             "API: OAuth callback processed successfully. Triggering YouTube poller start if needed."
         )
-        await orchestrator.connect_youtube(background_tasks)
+        await orchestrator.connect_youtube()
         return HTMLResponse(
             "<html><head><title>Auth Success</title></head><body><h1>Authentication Successful!</h1><p>You have successfully authenticated with Google. You can close this window now. The YouTube chat poller will attempt to connect if required.</p></body></html>"
         )
