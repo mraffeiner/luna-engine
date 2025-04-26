@@ -21,7 +21,7 @@
 		{ voice: 'jf_alpha', weight: 1.0 },
 		{ voice: 'zf_xiaoxiao', weight: 0.5 }
 	]);
-	let speed = $state(0.9);
+	let speed = $state(1);
 	let pitch = $state(1.17);
 
 	const voiceMixParams = $derived(voiceMix.map((v) => `${v.voice}(${v.weight})`).join('+'));
