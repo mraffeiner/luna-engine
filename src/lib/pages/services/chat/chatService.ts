@@ -219,6 +219,19 @@ async function fetchAndCopyAuthUrl(): Promise<void> {
 	}
 }
 
+async function pollYouTubeMessages() {
+	try {
+		const response = await fetch(`${API_BASE_URL}/youtube/poll`);
+		if (!response.ok) {
+			console.error('Failed to poll YouTube messages:', response.statusText);
+		} else {
+			console.log('YouTube messages polled successfully.');
+		}
+	} catch (error) {
+		console.error('Error polling YouTube messages:', error);
+	}
+}
+
 // --- Service Object ---
 export const chatService = {
 	connectWebSocket,
@@ -226,5 +239,6 @@ export const chatService = {
 	connectPlatform: (platform: Platform) => controlPlatform(platform, 'connect'),
 	disconnectPlatform: (platform: Platform) => controlPlatform(platform, 'disconnect'),
 	fetchStatus: fetchPlatformStatus,
-	fetchAndCopyAuthUrl: fetchAndCopyAuthUrl
+	fetchAndCopyAuthUrl: fetchAndCopyAuthUrl,
+	pollYouTubeMessages
 };

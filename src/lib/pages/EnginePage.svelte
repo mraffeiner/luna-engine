@@ -1,6 +1,5 @@
 <script lang="ts">
 	import EngineCard from '$lib/components/EngineCard.svelte';
-	import Icon from '$lib/components/Icon.svelte';
 	import { PAGES } from '$lib/shared/constants';
 	import {
 		engineConfig,
@@ -18,6 +17,7 @@
 	import ServicePage from './services/ServicePage.svelte';
 	import { generateSpeech, selectedTts, type TtsParams } from './services/tts/ttsService';
 	import { discordService } from './services/discord/discordService';
+	import { chatService } from './services/chat/chatService';
 	import {
 		asyncSleep,
 		normalizeLlmResponse,
@@ -26,6 +26,7 @@
 	} from '$lib/shared/utils';
 	import { consumeNewMessages, updateUserPromptSection } from './prompt/promptPage';
 	import { loading as sttLoading } from './services/stt/sttService';
+	import { tick } from 'svelte';
 
 	const shouldRespond = $derived(
 		!engineStates.paused && !engineStates.busy && !engineStates.waiting && !engineStates.listening
@@ -143,11 +144,18 @@
 
 			engineStates.waiting = true;
 			await asyncSleep(engineConfig.msMinAfterResponse);
+
+			// Poll YouTube messages after wait and tick to ensure new messages have been added
+			await chatService.pollYouTubeMessages();
+			await tick();
+
 			engineStates.waiting =
 				engineConfig.mode !== 'AUTO' && !engineStates.hasNewMessages && !engineStates.listening;
 		} catch (error) {
 			engineStates.reset();
 			console.error(`Engine paused because of error: `, error);
+		} finally {
+			engineStates.busy = false;
 		}
 	}
 
@@ -163,7 +171,7 @@
 
 	$effect(() => {
 		if (shouldRespond) {
-			respond().then(() => (engineStates.busy = false));
+			respond();
 		}
 	});
 </script>
