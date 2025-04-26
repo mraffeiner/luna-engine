@@ -287,3 +287,9 @@ class ChatOrchestrator:
             app_state.platform_instances.pop(Platform.TWITCH, None)
 
         logger.info("Orchestrator: All platforms disconnected.")
+
+    # --- YouTube Trigger Method ---
+    def trigger_youtube_poll(self):
+        """Triggers the YouTube listener to perform a poll."""
+        logger.info("Orchestrator: Received request to trigger YouTube poll.")
+        self.youtube_listener.trigger_poll()

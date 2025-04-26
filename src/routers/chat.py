@@ -118,3 +118,13 @@ async def disconnect_youtube(
     logger.info("API: YouTube disconnect requested.")
     await orchestrator.disconnect_youtube(background_tasks)
     return orchestrator.get_all_status()
+
+
+@router.post("/trigger-youtube-poll")
+async def trigger_youtube_poll(
+    orchestrator: ChatOrchestrator = Depends(get_chat_orchestrator),
+):
+    """Triggers the YouTube listener to perform a poll."""
+    logger.info("API: YouTube poll trigger requested.")
+    orchestrator.trigger_youtube_poll()
+    return {"message": "YouTube poll triggered"}

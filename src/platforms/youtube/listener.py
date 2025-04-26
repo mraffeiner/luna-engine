@@ -28,6 +28,7 @@ class YouTubeListener:
         self.status_manager = status_manager
         self.ws_manager = ws_manager
         self.stop_event = threading.Event()
+        self.poll_event = threading.Event()  # Event to trigger polling
         self.thread: Optional[threading.Thread] = None
         self.live_chat_id: Optional[str] = None
         self.main_loop: Optional[asyncio.AbstractEventLoop] = None  # Set during start
@@ -179,10 +180,17 @@ class YouTubeListener:
         logger.info(f"Starting YouTube API polling for chat ID: {self.live_chat_id}...")
         self.status_manager.update(Platform.YOUTUBE, ConnectionStatus.CONNECTED)
         next_page_token = None
-        polling_interval_ms = 5000  # Default, will be updated by API response
 
         while not self.stop_event.is_set():
-            logger.warning("Started polling.")
+            # Wait for the poll event to be set
+            logger.info("YouTube listener waiting for poll trigger.")
+            self.poll_event.wait()
+            self.poll_event.clear()  # Clear the event after it's set
+
+            if self.stop_event.is_set():
+                break  # Exit if stop was requested while waiting
+
+            logger.info("YouTube listener triggered, performing poll.")
             try:
                 request = self.auth_manager.youtube_service.liveChatMessages().list(
                     liveChatId=self.live_chat_id,
@@ -213,20 +221,6 @@ class YouTubeListener:
                         )
 
                 next_page_token = response.get("nextPageToken")
-                # Use the polling interval suggested by the API
-                polling_interval_ms = response.get(
-                    "pollingIntervalMillis", polling_interval_ms
-                )
-                # Wait for the specified interval, checking stop_event periodically
-                wait_time_secs = polling_interval_ms / 1000.0
-                logger.warning(f"Wait time: {wait_time_secs}s.")
-
-                # Safeguard
-                if wait_time_secs < 1:
-                    wait_time_secs = 1
-
-                if self.stop_event.wait(wait_time_secs):
-                    break  # Stop requested during wait
 
             except HttpError as e:
                 content_str = e.content.decode("utf-8", "ignore").lower()
@@ -289,6 +283,7 @@ class YouTubeListener:
                 if should_break:
                     break  # Exit polling loop
                 else:
+                    # On error, wait for a bit before allowing another poll trigger
                     if self.stop_event.wait(wait_secs):
                         break  # Wait and check stop event
 
@@ -329,6 +324,7 @@ class YouTubeListener:
 
         # Reset state before starting
         self.stop_event.clear()
+        self.poll_event.clear()  # Clear poll event on start
         self.live_chat_id = None  # Force re-finding chat ID on each start
 
         logger.info("Starting YouTube listener thread...")
@@ -363,6 +359,7 @@ class YouTubeListener:
 
         logger.info("Signaling YouTube listener thread to stop...")
         self.stop_event.set()
+        self.poll_event.set()  # Set poll event to unblock wait if necessary
         self.thread.join(timeout=timeout)
 
         if self.thread.is_alive():
@@ -375,3 +372,8 @@ class YouTubeListener:
 
         self.thread = None  # Clear thread variable after joining attempt
         # Final status is set within _run_polling or updated here if thread wasn't running
+
+    def trigger_poll(self):
+        """Signals the listener thread to perform a poll."""
+        logger.info("Received trigger to poll YouTube chat.")
+        self.poll_event.set()
