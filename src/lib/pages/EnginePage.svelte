@@ -17,7 +17,7 @@
 	import ServicePage from './services/ServicePage.svelte';
 	import { generateSpeech, selectedTts, type TtsParams } from './services/tts/ttsService';
 	import { discordService } from './services/discord/discordService';
-	import { chatService } from './services/chat/chatService';
+	import { chatService, platformStatus } from './services/chat/chatService';
 	import {
 		asyncSleep,
 		normalizeLlmResponse,
@@ -146,8 +146,10 @@
 			await asyncSleep(engineConfig.msMinAfterResponse);
 
 			// Poll YouTube messages after wait and tick to ensure new messages have been added
-			await chatService.pollYouTubeMessages();
-			await tick();
+			if ($platformStatus.youtube === 'connected') {
+				await chatService.pollYouTubeMessages();
+				await tick();
+			}
 
 			engineStates.waiting =
 				engineConfig.mode !== 'AUTO' && !engineStates.hasNewMessages && !engineStates.listening;
