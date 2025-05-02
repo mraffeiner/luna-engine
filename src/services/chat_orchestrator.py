@@ -210,8 +210,6 @@ class ChatOrchestrator:
     async def poll_youtube_messages(self):
         """
         Performs a single poll of YouTube Live Chat messages via the poller.
-        Returns a list of new messages.
         """
         logger.info("Orchestrator: Received request to poll YouTube chat.")
         await self.youtube_poller.poll_messages()
-        return {"status": "OK"}

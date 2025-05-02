@@ -205,12 +205,12 @@ class YouTubePoller:
                     error_status = ConnectionStatus.ERROR_API
 
             self.status_manager.update(Platform.YOUTUBE, error_status)
-            return
+            raise e
 
         except Exception:
             logger.exception("Unexpected error during YouTube poll.")
             self.status_manager.update(Platform.YOUTUBE, ConnectionStatus.ERROR)
-            return
+            raise e
 
     def start(self):
         """Initializes the YouTube poller."""

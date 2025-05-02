@@ -106,7 +106,7 @@ async def disconnect_youtube(
     return orchestrator.get_all_status()
 
 
-@router.get("/youtube/poll", response_model=List[Dict[str, Any]])
+@router.get("/youtube/poll")
 async def poll_youtube_messages(
     orchestrator: ChatOrchestrator = Depends(get_chat_orchestrator),
 ):
@@ -115,5 +115,5 @@ async def poll_youtube_messages(
     Returns a list of new messages.
     """
     logger.info("API: YouTube poll requested.")
-    messages = await orchestrator.poll_youtube_messages()
-    return messages
+    await orchestrator.poll_youtube_messages()
+    return {"status": "OK"}
