@@ -67,6 +67,8 @@ services:
       - "5002:5002"
     env_file:
       - ../tts-service/.env
+    volumes:
+      - /output/tts:${AUDIO_OUTPUT_DIR}
 
   discord-service:
     image: discord-service
