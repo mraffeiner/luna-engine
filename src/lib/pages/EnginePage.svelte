@@ -75,6 +75,7 @@
 
 	async function handleSpeaking(text: string) {
 		const ttsParams: TtsParams = $selectedTts;
+		ttsParams.requestParams.save = engineConfig.saveTts;
 
 		const normalizedText = normalizeTtsInput(text, ttsParams.requestParams.engine);
 

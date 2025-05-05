@@ -17,12 +17,14 @@ export const engineConfig: {
 	mode: EngineMode;
 	interruptable: boolean;
 	llmPrepass: boolean;
+	saveTts: boolean;
 	msMinAfterResponse: number;
 } = $state({
 	mode: 'REACT',
 	llmPrepass: false,
 	interruptable: false,
-	msMinAfterResponse: 0
+	saveTts: false,
+	msMinAfterResponse: 100
 });
 
 export const engineStates: {
