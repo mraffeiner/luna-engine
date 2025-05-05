@@ -32,7 +32,8 @@
 		voice: useVoiceMix ? voiceMixParams : voice,
 		speed,
 		pitch,
-		text
+		text,
+		save: false
 	});
 
 	function addVoice() {

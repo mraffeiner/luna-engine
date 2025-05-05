@@ -17,7 +17,8 @@
 	const params: SesameTtsRequestParams = $derived({
 		engine: 'sesame',
 		voice,
-		text
+		text,
+		save: false
 	});
 
 	$effect(() => {

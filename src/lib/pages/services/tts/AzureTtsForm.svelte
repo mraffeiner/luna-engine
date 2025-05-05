@@ -25,7 +25,8 @@
 		style,
 		rate: rate + '%',
 		pitch: pitch + '%',
-		text
+		text,
+		save: false
 	});
 
 	$effect(() => {

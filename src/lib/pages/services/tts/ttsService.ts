@@ -21,6 +21,7 @@ export interface BaseTtsRequestParams {
 	engine: TtsEngine;
 	voice: string;
 	text: string;
+	save: boolean;
 }
 
 export interface AzureTtsRequestParams extends BaseTtsRequestParams {
