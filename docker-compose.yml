@@ -7,3 +7,5 @@ services:
       - "5002:5002"
     env_file:
       - .env
+    volumes:
+      - /output:${AUDIO_OUTPUT_DIR}

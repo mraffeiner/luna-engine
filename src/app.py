@@ -76,6 +76,7 @@ class BaseTTSRequest(BaseModel):
 
     voice: str = Field(..., description="Voice identifier")
     text: str = Field(..., description="Text to synthesize")
+    save: bool = Field(False, description="Save generated audio locally")
 
 
 class AzureTTSRequest(BaseTTSRequest):
@@ -575,6 +576,17 @@ async def generate_endpoint(request: TTSRequest = Body(...)):
             audio_data = await synthesize_with_sesame(request)
         else:
             raise HTTPException(status_code=400, detail=f"Unsupported TTS engine")
+
+        # Save audio data to disk
+        if request.save:
+            output_dir = os.getenv("AUDIO_OUTPUT_DIR", "audio")
+            os.makedirs(output_dir, exist_ok=True)
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            filename = f"{request.engine}_{request.voice}_{timestamp}.wav"
+            file_path = os.path.join(output_dir, filename)
+            with open(file_path, "wb") as f:
+                f.write(audio_data)
+            logger.info(f"Saved audio file to {file_path}")
 
         # Return audio data
         return Response(
