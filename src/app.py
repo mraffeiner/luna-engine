@@ -579,7 +579,7 @@ async def generate_endpoint(request: TTSRequest = Body(...)):
 
         # Save audio data to disk
         if request.save:
-            output_dir = os.getenv("AUDIO_OUTPUT_DIR", "audio")
+            output_dir = "output"
             os.makedirs(output_dir, exist_ok=True)
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             filename = f"{request.engine}_{request.voice}_{timestamp}.wav"

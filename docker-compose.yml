@@ -8,4 +8,4 @@ services:
     env_file:
       - .env
     volumes:
-      - /output:${AUDIO_OUTPUT_DIR}
+      - ./output:/app/output
