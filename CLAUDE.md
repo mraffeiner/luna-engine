@@ -35,7 +35,6 @@ There are no tests. Verify with `curl localhost:5001/models` and a streaming `cu
 
 ## Gotchas
 
-- `requirements.in` is **UTF-16 encoded** (with a BOM). pip handles it, but plain-text tools and diffs may show it as binary. Keep the encoding unless you're asked to convert it.
 - On Linux, `host.docker.internal` requires an `extra_hosts` entry in compose.
 
 ## Cross-repo contract
