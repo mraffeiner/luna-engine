@@ -35,7 +35,7 @@ There are no tests. Verify with `curl localhost:5006/health` (check `obsConnecte
 
 ## Gotchas
 
-- OBS usually runs on the host, so use `ws://host.docker.internal:4455`. On Linux, that needs an `extra_hosts` entry or the host's LAN IP.
+- OBS runs on the host, so the address is usually `ws://host.docker.internal:4455`. That only resolves because of the `extra_hosts: host-gateway` entry in compose. Keep it.
 
 ## Cross-repo contract
 

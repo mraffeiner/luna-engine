@@ -33,7 +33,7 @@ curl -X POST http://localhost:5006/subtitle -H 'Content-Type: application/json' 
 | `OBS_SUBTITLE_SOURCE_NAME` | | Name of the text source to update |
 | `PORT` | `5006` | HTTP port |
 
-> On Linux, `host.docker.internal` needs `extra_hosts: ["host.docker.internal:host-gateway"]` in compose. Otherwise, use the host's LAN IP.
+> `host.docker.internal` is mapped to the host through `extra_hosts` in compose.
 
 ## Running
 
