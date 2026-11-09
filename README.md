@@ -27,7 +27,7 @@ Interactive docs: http://localhost:5007/docs
 2. Start the service and call `/connect`, or use **Connect** on the dashboard's VTS page.
 3. Accept the plugin authorization prompt in VTube Studio. The token is saved to `token.txt` in the container's working directory.
 
-The service doesn't read any environment variables, but Luna Engine's compose file still expects a `.env` file here, so an empty one is fine. It connects to `host.docker.internal:8001`, which means VTube Studio running on the Docker host. compose maps that name to the host with `extra_hosts: ["host.docker.internal:host-gateway"]`.
+The service doesn't read any environment variables, but Luna Engine's compose file still expects a `.env` file here, so copy `.env.example` (which is empty) to `.env`. It connects to `host.docker.internal:8001`, which means VTube Studio running on the Docker host. compose maps that name to the host with `extra_hosts: ["host.docker.internal:host-gateway"]`.
 
 > `token.txt` isn't stored on a volume, so you have to authorize the plugin again each time the container is recreated.
 
@@ -48,3 +48,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.in
 uvicorn src.app:app --host 0.0.0.0 --port 5007 --reload
 ```
+
+## License
+
+[MIT](LICENSE) © Matthias Raffeiner
