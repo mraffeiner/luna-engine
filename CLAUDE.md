@@ -25,7 +25,7 @@ There are no tests. Verify with `curl localhost:5006/health` (check `obsConnecte
 
 - `connectToObs()` connects with `OBS_WEBSOCKET_ADDRESS` and `OBS_WEBSOCKET_PASSWORD`. It retries every 5 s on failure and on `ConnectionClosed`, and the `isConnecting` flag prevents overlapping attempts.
 - `GET /scenes` calls `GetSceneList`. `POST /subtitle {text}` calls `SetInputSettings` on the input named by `OBS_SUBTITLE_SOURCE_NAME`, setting `inputSettings.text`. Both return 503 while disconnected.
-- `.env` is loaded with `std/dotenv` `loadSync({ export: true })`, so the service also works without compose's `env_file`.
+- `.env` is loaded with `std/dotenv` `loadSync({ export: true, allowEmptyValues: true })`, so the service also works without compose's `env_file`. When run locally, std/dotenv also checks `.env.example` and throws if a key listed there is missing from the env. The Docker image doesn't contain `.env.example`, so this check never runs there. Keep the two files in sync.
 
 ## Conventions (shared by the Deno Luna services)
 

@@ -24,7 +24,7 @@ curl -X POST http://localhost:5006/subtitle -H 'Content-Type: application/json' 
 
 1. In OBS, open **Tools → WebSocket Server Settings**, enable the server and set a password. The default port is 4455.
 2. Add a **Text (GDI+ / FreeType 2)** source to your scene for the subtitles, and note its name.
-3. Create a `.env` file in the repo root:
+3. Copy `.env.example` to `.env` and fill it in:
 
 | Variable | Default | Description |
 |---|---|---|
@@ -51,3 +51,7 @@ docker compose up -d --build
 deno task dev      # with file watching
 deno task start
 ```
+
+## License
+
+[MIT](LICENSE) © Matthias Raffeiner
