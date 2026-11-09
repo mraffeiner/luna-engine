@@ -75,6 +75,8 @@ Every backend exposes `GET /health` → `{ "status": "OK", "timestamp": ... }`.
 - `kokoro-tts` and `sesame-tts` are third-party images with no build context. `sesame-tts` only runs with `--profile experimental`. Both load `../stt-service/.env`, which is a known oddity, so leave it unless asked.
 - compose fails if any referenced `.env` file or `../chat-service/youtube_secret.json` is missing.
 - docker-service only streams logs for containers on the `luna-engine_default` network. That network name comes from this directory's name, so don't rename the folder.
+- Every service repo has a `.env.example`. When you add or rename an env var in a service, update its `.env.example` and README in the same change.
+- `src-tauri/icons/icon.png` is a blank placeholder. Tauri 1.x codegen panics on Linux if it's missing, so replace it, never delete it.
 - TTS files saved with "Save TTS" land in `./output/tts` (git-ignored).
 
 ## Working rules

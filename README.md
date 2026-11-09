@@ -101,7 +101,13 @@ LunaEngine/
 
 ### 2. Configure each service
 
-Most services read a `.env` file in their own repo root. These files are git-ignored. See each service's README for the full list of variables. A quick summary:
+Each service reads a `.env` file in its own repo root. These files are git-ignored. Every service repo ships a `.env.example` to start from:
+
+```bash
+for d in ../*-service; do [ -f "$d/.env" ] || cp "$d/.env.example" "$d/.env"; done
+```
+
+Then fill in the values you need. See each service's README for details. A quick summary:
 
 | Service | Required `.env` values |
 |---|---|
@@ -109,7 +115,7 @@ Most services read a `.env` file in their own repo root. These files are git-ign
 | llm-service | at least one of `OPENAI_API_KEY`, `GROQ_API_KEY` + `GROQ_BASE_URL`, `GEMINI_API_KEY` + `GOOGLE_BASE_URL`, or a local server at `LOCAL_BASE_URL` |
 | stt-service | `OPENAI_API_KEY` and/or `GROQ_API_KEY` |
 | tts-service | `AZURE_SUBSCRIPTION` + `AZURE_ENDPOINT` for Azure. Kokoro and Sesame need no keys |
-| discord-service | `DISCORD_TOKEN` |
+| discord-service | `DISCORD_TOKEN`, optionally `DISCORD_GUILD_ID` + `DISCORD_CHANNEL_ID` as the default voice channel |
 | chat-service | Twitch: `TWITCH_OAUTH_TOKEN`, `TWITCH_CLIENT_ID`, `TWITCH_NICK`, `TWITCH_CHANNELS`. YouTube: `YOUTUBE_CHANNEL_ID` plus a `youtube_secret.json` OAuth client file |
 | alerts-service | `STREAMELEMENTS_JWT_TOKEN` |
 | obs-service | `OBS_WEBSOCKET_ADDRESS`, `OBS_WEBSOCKET_PASSWORD`, `OBS_SUBTITLE_SOURCE_NAME` |
@@ -117,7 +123,7 @@ Most services read a `.env` file in their own repo root. These files are git-ign
 
 > **Note:** compose currently points `kokoro-tts` and `sesame-tts` at `../stt-service/.env`, so that file must exist even if you don't use STT.
 
-> **Note:** compose expects these files to exist even when you don't use the service: an `.env` for every service, and `chat-service/youtube_secret.json`. Create empty ones for anything you don't use.
+> **Note:** compose expects these files to exist even when you don't use the service: an `.env` for every service (the copy loop above handles that), and `chat-service/youtube_secret.json`. Create an empty `youtube_secret.json` if you don't use YouTube.
 
 ### Programs on the host
 
@@ -197,6 +203,8 @@ docker-compose.yml          # the whole stack
 cd src-tauri && cargo build      # or: npm run tauri:build
 ```
 
+`src-tauri/icons/icon.png` is a blank placeholder. Tauri 1.x on Linux refuses to compile without it, so replace it rather than delete it.
+
 Run the resulting binary **from the `luna-engine/` directory**, because it runs `docker compose` in its current working directory. It waits up to 60 s for `http://localhost:8080` to respond and then shows the window. Closing the window runs `docker compose stop`.
 
 ## Known issues
@@ -204,3 +212,7 @@ Run the resulting binary **from the `luna-engine/` directory**, because it runs 
 - The TTS output directory is hard-coded to `output/` inside `tts-service`. The host side of that mount is `luna-engine/output/tts`.
 - `kokoro-tts` and `sesame-tts` have no build context. You have to build or pull their images and tag them yourself.
 - There are no automated tests.
+
+## License
+
+[MIT](LICENSE) © Matthias Raffeiner
