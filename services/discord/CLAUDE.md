@@ -27,7 +27,7 @@ There are no tests. Verification needs a real bot token and voice channel: `POST
 - **Outgoing audio:** a binary WS frame from the client is played with `createAudioResource` and stops anything that is currently playing.
 - `/join-voice` uses `guildId` and `channelId` from the body and falls back to the `DISCORD_GUILD_ID` / `DISCORD_CHANNEL_ID` env vars when they're empty, which is the dashboard's default.
 - There is only **one** WS client (`audioWebSocket`) at a time. A new connection replaces the old one.
-- Permissions (`--allow-net --allow-read --allow-run --allow-ffi --allow-env`) are required: `run` for ffmpeg and `ffi` for native opus.
+- Permissions (`--allow-net --allow-read --allow-run --allow-ffi --allow-env --allow-sys=cpus,networkInterfaces,hostname`) are required: `run` for ffmpeg, `ffi` for native opus, and `sys` because the opus loader reads `process.report` (glibc detection) when it starts.
 
 ## Conventions (shared by the Deno Luna services)
 

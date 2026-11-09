@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "start": "deno run --allow-net --allow-read --allow-run --allow-ffi --allow-env --env-file src/main.ts"
+    "start": "deno run --allow-net --allow-read --allow-run --allow-ffi --allow-env --allow-sys=cpus,networkInterfaces,hostname --env-file src/main.ts"
   },
   "imports": {
     "discord.js": "npm:discord.js@14.18.0",

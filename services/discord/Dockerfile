@@ -30,4 +30,4 @@ RUN deno cache src/main.ts
 
 EXPOSE 5004
 
-CMD ["deno", "run", "--allow-net", "--allow-read", "--allow-run", "--allow-ffi", "--allow-env", "src/main.ts"]
+CMD ["deno", "run", "--allow-net", "--allow-read", "--allow-run", "--allow-ffi", "--allow-env", "--allow-sys=cpus,networkInterfaces,hostname", "src/main.ts"]
