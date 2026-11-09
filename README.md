@@ -27,7 +27,7 @@ The model list is fetched live from each configured provider.
 
 ```json
 {
-  "provider": "openai",          // openai | groq | gemini | local
+  "provider": "openai",          // openai | groq | google | local
   "model": "gpt-4.1-mini",
   "system_prompt": "You are Luna...",
   "prompt": "Chat: hi Luna!"
