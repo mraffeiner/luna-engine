@@ -1,0 +1,11 @@
+services:
+  llm-service:
+    image: llm-service
+    container_name: llm-service
+    build: .
+    ports:
+      - "5001:5001"
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
