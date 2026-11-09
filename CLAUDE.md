@@ -35,7 +35,7 @@ There are no tests. Verify with `curl localhost:5001/models` and a streaming `cu
 
 ## Gotchas
 
-- On Linux, `host.docker.internal` requires an `extra_hosts` entry in compose.
+- `host.docker.internal` only resolves because of the `extra_hosts: host-gateway` entry in compose (Linux Docker Engine). Keep it.
 
 ## Cross-repo contract
 

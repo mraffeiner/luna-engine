@@ -57,7 +57,7 @@ Create a `.env` file in the repo root. Set the variables for the providers you w
 | `GOOGLE_BASE_URL` | Gemini OpenAI-compatible endpoint, e.g. `https://generativelanguage.googleapis.com/v1beta/openai/` |
 | `LOCAL_BASE_URL` | Local OpenAI-compatible server (default `http://host.docker.internal:1234/v1`) |
 
-> On Linux, `host.docker.internal` is only available if you add `extra_hosts: ["host.docker.internal:host-gateway"]` to the service in compose.
+> `host.docker.internal` is mapped to the host through `extra_hosts` in compose. The local server must listen on an address the container can reach, e.g. LM Studio's *Serve on Local Network*.
 
 ## Running
 
