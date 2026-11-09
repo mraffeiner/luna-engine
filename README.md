@@ -53,7 +53,3 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.in
 uvicorn src.app:app --host 0.0.0.0 --port 5007 --reload
 ```
-
-## Known issues
-
-- `/health` calls `datetime.now()` but only `import datetime` is at the top, so the endpoint probably raises an error. Use `from datetime import datetime` to fix it.

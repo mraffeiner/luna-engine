@@ -35,7 +35,6 @@ There are no tests. Verification needs VTube Studio running on the host with its
 ## Gotchas
 
 - Error paths `return HTTPException(...)` instead of raising it, so failures may come back as HTTP 200 with an error body. Check before relying on status codes.
-- The module does `import datetime` but `/health` calls `datetime.now()`. Check whether `/health` actually works before relying on it.
 - `token.txt` isn't on a volume, so VTS has to approve the plugin again after the container is recreated.
 - No `.env` is used, and the compose entry has no `env_file`.
 

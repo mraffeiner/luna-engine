@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-import datetime
+from datetime import datetime
 from fastapi import FastAPI, HTTPException, Response
 import logging
 from dotenv import load_dotenv
