@@ -4,9 +4,8 @@ USER deno
 WORKDIR /home/deno
 
 COPY deno.json .
-RUN deno cache src/main.ts --config deno.json
-
 COPY src ./src
+RUN deno cache src/main.ts --config deno.json
 
 EXPOSE 5005
 

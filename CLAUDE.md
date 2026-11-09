@@ -36,10 +36,6 @@ To add an event type, add it to the `eventTypes` listener list, add a `case` in 
 - `/health` returns `{status: "OK", timestamp}`.
 - Imports are mapped in `deno.json`.
 
-## Gotchas
-
-- The `Dockerfile` runs `deno cache src/main.ts` before `COPY src`. Check this first if the image build fails.
-
 ## Cross-repo contract
 
 Consumer: `../luna-engine/src/lib/pages/services/alerts/alertsService.ts`, which must stay in sync with the `StandardizedAlert` shape.
