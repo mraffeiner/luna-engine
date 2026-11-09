@@ -370,7 +370,10 @@ const handler = async (request: Request): Promise<Response> => {
   } else if (url.pathname === "/join-voice") {
     try {
       logger.info("Handling /join-voice request"); // Log
-      const { guildId, channelId } = await request.json();
+      const body = await request.json();
+      // Fall back to the .env defaults when the dashboard leaves a field empty
+      const guildId = body.guildId || Deno.env.get("DISCORD_GUILD_ID");
+      const channelId = body.channelId || Deno.env.get("DISCORD_CHANNEL_ID");
       logger.info("Parsed request body:", { guildId, channelId }); // Log parsed body
       if (!guildId || !channelId) {
         return apiResponse({ message: "Missing guildId or channelId" }, 400);
