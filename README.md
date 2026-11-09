@@ -36,7 +36,7 @@ Interactive docs: http://localhost:8005/docs
 
 ## Configuration
 
-Create a `.env` file in the repo root:
+Copy `.env.example` to `.env` and fill it in:
 
 | Variable | Default | Description |
 |---|---|---|
@@ -89,3 +89,7 @@ src/
     ├── twitch/client.py    # twitchio bot
     └── youtube/            # OAuth + live chat poller
 ```
+
+## License
+
+[MIT](LICENSE) © Matthias Raffeiner
