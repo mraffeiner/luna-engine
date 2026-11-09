@@ -2,7 +2,7 @@
 name = "LunaEngine"
 version = "0.1.0"
 description = "Engine to run AI VTuber Luna"
-authors = ["TastiHam"]
+authors = ["Matthias Raffeiner"]
 license = "MIT"
 repository = ""
 default-run = "LunaEngine"

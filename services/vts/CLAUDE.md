@@ -21,7 +21,7 @@ There are no tests. Verification needs VTube Studio running on the host with its
 
 ## How it works
 
-- A global `pyvts.vts` instance is created in `lifespan`. It points at `host.docker.internal:8001`, the plugin is named "VTS Service" by developer "TastiHam", and the auth token goes to `./token.txt`.
+- A global `pyvts.vts` instance is created in `lifespan`. It points at `host.docker.internal:8001`, the plugin is named "VTS Service" by developer "Luna Engine", and the auth token goes to `./token.txt`.
 - `/connect` connects, requests a token (VTS shows an approval prompt the first time) and authenticates.
 - The parameter endpoints wrap pyvts requests (`requestCustomParameter`, `requestSetParameterValue` and so on). `/set_params` sets several values in one call. The UI calls it about every 33 ms for voice-based motion while Luna speaks, so keep it fast and keep the access logs quiet (the access log level is WARNING on purpose).
 

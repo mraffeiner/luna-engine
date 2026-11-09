@@ -16,7 +16,7 @@
 	let recordingTimer: number | null = $state(null);
 	let audioStream: MediaStream | null = $state(null);
 
-	let directInputUsername = $state('TastiHam');
+	let directInputUsername = $state('User');
 	let directInputText = $state('');
 
 	async function handleTranscribeAudio(audioBlob: Blob, username?: string) {

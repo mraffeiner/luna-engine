@@ -62,7 +62,7 @@ async def lifespan(app: FastAPI):
     vts = pyvts.vts(
         plugin_info={
             "plugin_name": "VTS Service",
-            "developer": "TastiHam",
+            "developer": "Luna Engine",
             "authentication_token_path": "./token.txt",
         },
         vts_api_info={
