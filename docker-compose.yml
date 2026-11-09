@@ -10,8 +10,6 @@ services:
       - "5000:5000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    env_file:
-      - ./services/docker/.env
 
   llm-service:
     image: llm-service
@@ -39,7 +37,7 @@ services:
     ports:
       - "8880:8880"
     env_file:
-      - ./services/stt/.env
+      - ./services/tts/.env
     deploy:
       resources:
         reservations:
@@ -55,7 +53,7 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - ./services/stt/.env
+      - ./services/tts/.env
     deploy:
       resources:
         reservations:
@@ -111,8 +109,6 @@ services:
     build: ./services/vts
     ports:
       - "5007:5007"
-    env_file:
-      - ./services/vts/.env
     extra_hosts:
       - "host.docker.internal:host-gateway"
 

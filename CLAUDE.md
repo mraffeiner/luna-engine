@@ -36,7 +36,7 @@ There is **no test suite**. Verify a service with `curl localhost:<port>/health`
 
 - Each backend's HTTP/WS API is consumed by exactly one client: `app/src/lib/pages/services/<name>/<name>Service.ts`. An API change and its client update go in the **same commit**.
 - Every backend exposes `GET /health` → `{ "status": "OK", "timestamp": ... }`.
-- Every service has a `.env.example`. When you add or rename an env var, update that service's `.env.example` and README in the same change.
+- Every service that reads env vars has a `.env.example` (docker and vts have none). When you add or rename an env var, update that service's `.env.example`, its README and, for a service's first variable, its `env_file` entry in compose, all in the same change.
 
 To add a new service, touch all of the following:
 
@@ -49,8 +49,8 @@ To add a new service, touch all of the following:
 ## Gotchas
 
 - `name: luna-engine` in compose pins the project name. docker-service only streams logs for containers on the `luna-engine_default` network, so keep the pin.
-- `kokoro-tts` and `sesame-tts` are third-party images with no build context. `sesame-tts` only runs with `--profile experimental`. Both load `services/stt/.env`, which is a known oddity, so leave it unless asked.
-- compose fails if any referenced `.env` file or `services/chat/youtube_secret.json` is missing.
+- `kokoro-tts` and `sesame-tts` are third-party images with no build context. `sesame-tts` only runs with `--profile experimental`. Both load `services/tts/.env` (for `HF_TOKEN` and Kokoro settings), which tts-service shares and ignores.
+- compose fails if any referenced `.env` file is missing. docker-service and vts-service read no env vars, so they have no `env_file` and no `.env.example`. Keep it that way unless they gain variables. A missing `services/chat/youtube_secret.json` makes Docker create a directory in its place.
 - TTS files saved with "Save TTS" land in `output/tts/` at the repo root (git-ignored).
 - History from the former separate repos was merged in, so `git log --follow services/<name>/<file>` shows a file's full history.
 

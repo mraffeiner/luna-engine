@@ -44,7 +44,7 @@ Copy `.env.example` to `.env` and fill it in:
 | `TWITCH_CLIENT_ID` | | Twitch application client ID |
 | `TWITCH_NICK` | | Bot account username |
 | `TWITCH_CHANNELS` | | Comma-separated list of channels to join |
-| `YOUTUBE_CHANNEL_ID` | | ID of the channel whose live chat should be read |
+| `YOUTUBE_CHANNEL_ID` | | Your channel ID. It must be set, but it's only used as a label: the live chat is found through the active broadcast of the Google account you log in with |
 | `GOOGLE_CLIENT_SECRETS_FILE` | `/app/youtube_secret.json` | OAuth client secrets file |
 | `GOOGLE_CREDENTIALS_STORE_DIR` | `/app/credentials` | Where the OAuth token (`youtube_token.pickle`) is saved |
 | `OAUTH_REDIRECT_URI` | `http://localhost:8005/oauth2callback` | Must match the redirect URI registered in Google Cloud |

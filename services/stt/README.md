@@ -42,8 +42,6 @@ Copy `.env.example` to `.env` and fill it in:
 
 The Silero VAD model is downloaded from `torch.hub` on startup, so the first start needs internet access.
 
-> In the root `docker-compose.yml`, `kokoro-tts` and `sesame-tts` also load this `.env`.
-
 ## Running
 
 **With the rest of the stack (recommended):** from the repo root, run `docker compose up -d --build stt-service`.

@@ -24,7 +24,7 @@ Interactive docs: http://localhost:5000/docs
 
 ## Configuration
 
-No environment variables are required. the root `docker-compose.yml` still expects a `.env`, so copy `.env.example` (which is empty) to `.env`. The container needs access to the Docker socket, which the root `docker-compose.yml` sets up:
+No environment variables or `.env` file are needed. The container needs access to the Docker socket, which the root `docker-compose.yml` sets up:
 
 ```yaml
 volumes:

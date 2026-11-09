@@ -94,29 +94,27 @@ Keep the folder name `luna-engine`. The compose project is pinned to that name a
 
 ### 2. Configure the services
 
-Each service reads a `.env` file in its own folder. These files are git-ignored. Every service ships a `.env.example` to start from:
+Services that need configuration read a `.env` file in their own folder. These files are git-ignored. Each of those services ships a `.env.example` to start from:
 
 ```bash
-for d in services/*/; do [ -f "$d.env" ] || cp "$d.env.example" "$d.env"; done
+for d in services/*/; do [ -f "$d.env.example" ] && [ ! -f "$d.env" ] && cp "$d.env.example" "$d.env"; done
 ```
 
 Then fill in the values you need. See each service's README for details. A quick summary:
 
 | Service | Required `.env` values |
 |---|---|
-| docker | none (it mounts `/var/run/docker.sock`) |
+| docker | no `.env` (it mounts `/var/run/docker.sock`) |
 | llm | at least one of `OPENAI_API_KEY`, `GROQ_API_KEY` + `GROQ_BASE_URL`, `GEMINI_API_KEY` + `GOOGLE_BASE_URL`, or a local server at `LOCAL_BASE_URL` |
 | stt | `OPENAI_API_KEY` and/or `GROQ_API_KEY` |
-| tts | `AZURE_SUBSCRIPTION` + `AZURE_ENDPOINT` for Azure. Kokoro and Sesame need no keys |
+| tts | `AZURE_SUBSCRIPTION` + `AZURE_ENDPOINT` for Azure. This file is also passed to the `kokoro-tts` and `sesame-tts` containers: `HF_TOKEN` for Sesame's gated model, plus optional Kokoro settings |
 | discord | `DISCORD_TOKEN`, optionally `DISCORD_GUILD_ID` + `DISCORD_CHANNEL_ID` as the default voice channel |
-| chat | Twitch: `TWITCH_OAUTH_TOKEN`, `TWITCH_CLIENT_ID`, `TWITCH_NICK`, `TWITCH_CHANNELS`. YouTube: `YOUTUBE_CHANNEL_ID` plus a `youtube_secret.json` OAuth client file |
+| chat | Twitch: `TWITCH_OAUTH_TOKEN`, `TWITCH_CLIENT_ID`, `TWITCH_NICK`, `TWITCH_CHANNELS`. YouTube: `YOUTUBE_CHANNEL_ID` (a label; the chat is found through the logged-in account's live broadcast) plus a `youtube_secret.json` OAuth client file |
 | alerts | `STREAMELEMENTS_JWT_TOKEN` |
 | obs | `OBS_WEBSOCKET_ADDRESS`, `OBS_WEBSOCKET_PASSWORD`, `OBS_SUBTITLE_SOURCE_NAME` |
-| vts | none (it connects to VTube Studio on the host at port 8001) |
+| vts | no `.env` (it connects to VTube Studio on the host at port 8001) |
 
-> **Note:** compose points `kokoro-tts` and `sesame-tts` at `services/stt/.env`, so that file must exist even if you don't use STT.
-
-> **Note:** compose expects these files to exist even when you don't use the service: an `.env` in every service folder (the copy loop above handles that), and `services/chat/youtube_secret.json`. Create an empty `youtube_secret.json` if you don't use YouTube.
+> **Note:** compose refuses to start if any service's `.env` is missing, even for services you don't use. The copy loop above creates them all. Also create `services/chat/youtube_secret.json` before the first start (an empty file is fine if you don't use YouTube). Otherwise Docker creates a root-owned *directory* with that name for the bind mount.
 
 ### Programs on the host
 

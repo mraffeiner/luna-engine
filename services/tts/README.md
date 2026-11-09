@@ -58,6 +58,8 @@ Copy `.env.example` to `.env` and fill it in:
 | `KOKORO_API_URL` | `http://kokoro-tts:8880` | OpenAI-compatible Kokoro server (`/v1/audio/speech`, `/health`) |
 | `SESAME_API_URL` | `http://sesame-tts:8000` | OpenAI-compatible Sesame CSM server (`/v1/audio/speech`, `/health`) |
 
+The root `docker-compose.yml` also passes this `.env` to the `kokoro-tts` and `sesame-tts` containers. Those containers read `HF_TOKEN` (needed by Sesame to download the gated CSM-1B model from Hugging Face) and Kokoro-FastAPI's `USE_GPU`, `PYTHONUNBUFFERED` and `PYTHONPATH` (its GPU image already defaults to them). tts-service itself ignores these.
+
 Kokoro and Sesame aren't part of Luna Engine. Run an OpenAI-compatible server for each, e.g. [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI) for Kokoro, and tag the images `kokoro-tts` and `sesame-tts` so the root `docker-compose.yml` can find them.
 
 ## Running

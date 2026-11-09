@@ -35,7 +35,7 @@ There are no tests. Verification needs VTube Studio running on the host with its
 
 - Error paths `return HTTPException(...)` instead of raising it, so failures may come back as HTTP 200 with an error body. Check before relying on status codes.
 - `token.txt` isn't on a volume, so VTS has to approve the plugin again after the container is recreated.
-- No environment variables are read, but the root `docker-compose.yml` lists `services/vts/.env` as an `env_file`, so the file must exist (it can be empty).
+- No environment variables are read, so compose has no `env_file` for this service and there's no `.env.example`.
 - `host.docker.internal` only resolves because of the `extra_hosts: host-gateway` entry in compose. Keep it. VTube Studio runs under Steam Proton on the host.
 
 ## Cross-repo contract

@@ -45,6 +45,7 @@ To add an engine, touch all of these:
 
 ## Gotchas
 
+- The root compose file passes this service's `.env` to `kokoro-tts` and `sesame-tts` too (`HF_TOKEN`, Kokoro's `USE_GPU`/`PYTHON*`). tts-service ignores those keys, so don't remove them as unused.
 - The UI normalizes text per engine before sending it (`normalizeTtsInput` in `../../app/src/lib/shared/utils.ts`).
 
 ## Cross-repo contract

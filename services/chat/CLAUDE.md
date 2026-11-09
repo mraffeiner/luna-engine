@@ -46,7 +46,8 @@ src/utils/logging_config.py         logging setup
 ## Gotchas
 
 - The OAuth token is pickled to `$GOOGLE_CREDENTIALS_STORE_DIR/youtube_token.pickle` (`/app/credentials`). That path isn't on a volume, so you have to log in again after the container is recreated.
-- compose mounts `./youtube_secret.json` read-only, and the file must exist for compose to start.
+- compose mounts `./youtube_secret.json` read-only. If the file is missing, Docker creates a root-owned directory in its place and the OAuth flow fails to initialize.
+- `YOUTUBE_CHANNEL_ID` is only checked for being set and used as a label. The live chat is found with `liveBroadcasts().list(mine=True)`, i.e. through the authenticated account's active broadcast.
 - `OAUTH_REDIRECT_URI` must match the redirect URI registered in Google Cloud (default `http://localhost:8005/oauth2callback`).
 
 ## Cross-repo contract
