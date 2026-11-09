@@ -1,0 +1,91 @@
+# chat-service
+
+Live chat input for [Luna Engine](https://github.com/mraffeiner/luna-engine). It reads **Twitch** and **YouTube** live chat and forwards each message to the dashboard over a WebSocket, where it becomes part of Luna's prompt.
+
+- **Twitch:** a twitchio IRC bot joins the configured channels and pushes messages in real time.
+- **YouTube:** uses the YouTube Data API with Google OAuth. Messages are polled **on demand**: the dashboard calls `/youtube/poll` after each of Luna's replies, which keeps API quota use low.
+
+- **Stack:** Python 3.11, FastAPI, twitchio, google-api-python-client
+- **Port:** 8005
+- **Proxied by Luna Engine at:** `/api/chat/`
+
+## API
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/health` | Health check |
+| `GET` | `/status` | Connection status per platform, e.g. `{ "twitch": "connected", "youtube": "auth_required" }` |
+| `GET` | `/auth-url` | Google OAuth URL to open in the browser, or a message explaining why none is needed |
+| `GET` | `/oauth2callback` | OAuth redirect target. Stores the token and finishes YouTube auth |
+| `POST` | `/connect/twitch` | Connects to Twitch |
+| `POST` | `/disconnect/twitch` | Disconnects from Twitch |
+| `POST` | `/connect/youtube` | Starts the YouTube poller, which finds the channel's active live chat |
+| `POST` | `/disconnect/youtube` | Stops the YouTube poller |
+| `GET` | `/youtube/poll` | Fetches new YouTube messages and broadcasts them on `/ws` |
+| `WS` | `/ws` | Broadcasts chat messages and status updates |
+
+Chat message format:
+
+```json
+{ "platform": "twitch", "channel": "mychannel", "author": "viewer", "text": "hi Luna", "timestamp": "..." }
+```
+
+Possible status values: `disconnected`, `connecting`, `connected`, `authenticated`, `auth_required`, `error`, `error_config`, `error_api`, `error_auth`, `error_quota`, `error_chat_ended` and `error_no_live_chat`.
+
+Interactive docs: http://localhost:8005/docs
+
+## Configuration
+
+Create a `.env` file in the repo root:
+
+| Variable | Default | Description |
+|---|---|---|
+| `TWITCH_OAUTH_TOKEN` | | Chat OAuth token for the bot account. The `oauth:` prefix is optional |
+| `TWITCH_CLIENT_ID` | | Twitch application client ID |
+| `TWITCH_NICK` | | Bot account username |
+| `TWITCH_CHANNELS` | | Comma-separated list of channels to join |
+| `YOUTUBE_CHANNEL_ID` | | ID of the channel whose live chat should be read |
+| `GOOGLE_CLIENT_SECRETS_FILE` | `/app/youtube_secret.json` | OAuth client secrets file |
+| `GOOGLE_CREDENTIALS_STORE_DIR` | `/app/credentials` | Where the OAuth token (`youtube_token.pickle`) is saved |
+| `OAUTH_REDIRECT_URI` | `http://localhost:8005/oauth2callback` | Must match the redirect URI registered in Google Cloud |
+
+### YouTube setup
+
+1. In Google Cloud Console, enable the **YouTube Data API v3**.
+2. Create an **OAuth client ID** of type *Web application* and add `http://localhost:8005/oauth2callback` as a redirect URI.
+3. Download the client JSON and save it as `youtube_secret.json` in this repo's root. It is git-ignored, and compose mounts it read-only.
+4. In the dashboard's Chat page, click **Connect YouTube**, open the auth URL and grant access. The token is saved and refreshed automatically after that.
+
+> `/app/credentials` isn't stored on a volume, so you have to log in to YouTube again each time the container is recreated. To avoid that, add a volume such as `./credentials:/app/credentials`.
+
+## Running
+
+**As part of Luna Engine (recommended):** clone this repo next to `luna-engine/` and run `docker compose up -d --build` from `luna-engine/`.
+
+**Standalone:**
+
+```bash
+docker compose up -d --build
+```
+
+**Locally (without Docker):** set `GOOGLE_CLIENT_SECRETS_FILE` and `GOOGLE_CREDENTIALS_STORE_DIR` to local paths first.
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.in
+uvicorn src.main:app --host 0.0.0.0 --port 8005 --reload
+```
+
+Project layout:
+
+```
+src/
+├── main.py                 # app + OAuth callback
+├── config.py               # env config, status enums
+├── routers/chat.py         # REST endpoints
+├── core/                   # lifespan, WebSocket endpoint and manager
+├── services/               # chat orchestrator, status manager
+└── platforms/
+    ├── twitch/client.py    # twitchio bot
+    └── youtube/            # OAuth + live chat poller
+```
