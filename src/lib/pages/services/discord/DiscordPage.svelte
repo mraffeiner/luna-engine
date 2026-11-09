@@ -7,8 +7,8 @@
 	import { receiveInput, serviceOutput, speakerAudio } from '$lib/shared/shared.svelte';
 	import { onDestroy, onMount } from 'svelte';
 
-	let guildId: string = $state('1194692480805904384');
-	let channelId: string = $state('1349007184406642798');
+	let guildId: string = $state('');
+	let channelId: string = $state('');
 
 	async function connect() {
 		await discordService.connect(guildId, channelId);
@@ -47,7 +47,14 @@
 
 			<div class="form-group">
 				<label for="guildId">Guild ID</label>
-				<input type="text" id="guildId" name="guildId" bind:value={guildId} class="form-control" />
+				<input
+					type="text"
+					id="guildId"
+					name="guildId"
+					bind:value={guildId}
+					placeholder="Default: DISCORD_GUILD_ID from discord-service .env"
+					class="form-control"
+				/>
 			</div>
 
 			<div class="form-group">
@@ -57,6 +64,7 @@
 					id="channelId"
 					name="channelId"
 					bind:value={channelId}
+					placeholder="Default: DISCORD_CHANNEL_ID from discord-service .env"
 					class="form-control"
 				/>
 			</div>
