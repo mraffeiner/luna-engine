@@ -53,10 +53,10 @@ Bot setup:
 
 **With the rest of the stack (recommended):** from the repo root, run `docker compose up -d --build discord-service`.
 
-**Locally (without Docker):** this needs Deno 2 and ffmpeg.
+**Locally (without Docker):** this needs Deno 2 and ffmpeg. `deno install --allow-scripts` can't set up the native `@discordjs/opus` binary under Deno (see the comment in the `Dockerfile`), so install without scripts and then put the prebuilt binary in place the way the Dockerfile does.
 
 ```bash
-deno install --allow-scripts=npm:@discordjs/opus
+deno install
 deno task start        # reads .env via --env-file
 ```
 

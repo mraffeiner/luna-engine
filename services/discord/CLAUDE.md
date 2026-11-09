@@ -13,8 +13,8 @@ Part of the **Luna Engine** monorepo (AI VTuber). The root `CLAUDE.md` covers th
 docker compose up -d --build discord-service
 docker compose logs -f discord-service
 
-# local, without Docker (needs ffmpeg)
-deno install --allow-scripts=npm:@discordjs/opus
+# local, without Docker (needs ffmpeg; see the opus gotcha below)
+deno install
 deno task start                  # loads .env via --env-file
 deno check src/main.ts && deno lint
 ```
@@ -36,7 +36,7 @@ There are no tests. Verification needs a real bot token and voice channel: `POST
 
 ## Gotchas
 
-- `@discordjs/opus` is a native module. The Dockerfile runs `deno install --allow-scripts=npm:@discordjs/opus@0.10.0` to build it, so a version bump has to change both `deno.json` and the Dockerfile.
+- `@discordjs/opus` is a native module that picks its prebuilt binary by glibc version. Deno always reports glibc 2.38 to npm packages, no 2.38 binary exists, and the source-build fallback can't run under Deno (no `node-gyp`). So `deno install --allow-scripts` fails. The Dockerfile skips the install scripts, downloads the glibc-2.35 binary (matching the Ubuntu 22.04 base) and puts it in the `...-glibc-2.38` folder the loader looks in. A version bump of `@discordjs/opus`, or a base image whose glibc or Deno-reported Node ABI (`node-v108`) changes, has to update `deno.json` and those Dockerfile paths together.
 - The bot needs the Message Content privileged intent enabled in the developer portal.
 
 ## Cross-repo contract
