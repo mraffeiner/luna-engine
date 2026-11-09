@@ -46,7 +46,7 @@ Interactive docs: http://localhost:5001/docs
 
 ## Configuration
 
-Create a `.env` file in the repo root. Set the variables for the providers you want to use. A provider without its key is skipped.
+Copy `.env.example` to `.env` and fill it in. Set the variables for the providers you want to use. A provider without its key is skipped.
 
 | Variable | Description |
 |---|---|
@@ -76,3 +76,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.in
 uvicorn src.app:app --host 0.0.0.0 --port 5001 --reload
 ```
+
+## License
+
+[MIT](LICENSE) © Matthias Raffeiner
