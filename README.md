@@ -72,10 +72,12 @@ Both need an NVIDIA GPU with the NVIDIA Container Toolkit installed.
 
 ### Prerequisites
 
-- Docker with Compose v2
+Luna Engine is developed and run on **Linux**. Other platforms aren't tested or maintained.
+
+- Docker Engine 20.10+ with Compose v2
 - An NVIDIA GPU and the NVIDIA Container Toolkit, needed for `kokoro-tts` and `sesame-tts`. Remove those services if you only use Azure TTS.
 - [Deno](https://deno.com) 2.x, only needed for local frontend development
-- Rust and Cargo, only needed to build the Tauri desktop app
+- Rust and Cargo plus Tauri 1.x's system libraries (`webkit2gtk-4.0`, `libsoup2`, `gtk3`), only needed to build the desktop app. On Arch-based distros, `webkit2gtk` (4.0) is in the AUR
 
 ### 1. Clone everything side by side
 
@@ -111,11 +113,15 @@ Most services read a `.env` file in their own repo root. These files are git-ign
 | chat-service | Twitch: `TWITCH_OAUTH_TOKEN`, `TWITCH_CLIENT_ID`, `TWITCH_NICK`, `TWITCH_CHANNELS`. YouTube: `YOUTUBE_CHANNEL_ID` plus a `youtube_secret.json` OAuth client file |
 | alerts-service | `STREAMELEMENTS_JWT_TOKEN` |
 | obs-service | `OBS_WEBSOCKET_ADDRESS`, `OBS_WEBSOCKET_PASSWORD`, `OBS_SUBTITLE_SOURCE_NAME` |
-| vts-service | none (connects to VTube Studio on the host at port 8001) |
+| vts-service | none (an empty file is fine; it connects to VTube Studio on the host at port 8001) |
 
 > **Note:** compose currently points `kokoro-tts` and `sesame-tts` at `../stt-service/.env`, so that file must exist even if you don't use STT.
 
-> **Note:** compose expects these files to exist even when you don't use the service: an `.env` for every service except vts-service, and `chat-service/youtube_secret.json`. Create empty ones for anything you don't use.
+> **Note:** compose expects these files to exist even when you don't use the service: an `.env` for every service, and `chat-service/youtube_secret.json`. Create empty ones for anything you don't use.
+
+### Programs on the host
+
+vts-service, obs-service and llm-service's `local` provider connect to programs running on your machine: VTube Studio (port 8001; it works under Steam Proton), OBS (4455) and LM Studio or a similar server (1234). The compose file maps `host.docker.internal` to the host with `extra_hosts: host-gateway`, so the containers can reach them. Make sure each program listens on an address the Docker bridge can reach, not just `127.0.0.1`. LM Studio, for example, needs *Serve on Local Network*. Also check that your firewall allows traffic from the Docker network.
 
 ### 3. Start the stack
 
@@ -197,5 +203,4 @@ Run the resulting binary **from the `luna-engine/` directory**, because it runs 
 
 - The TTS output directory is hard-coded to `output/` inside `tts-service`. The host side of that mount is `luna-engine/output/tts`.
 - `kokoro-tts` and `sesame-tts` have no build context. You have to build or pull their images and tag them yourself.
-- On Linux, `host.docker.internal` (used to reach VTube Studio and local LLM servers) isn't defined by default. Add `extra_hosts: ["host.docker.internal:host-gateway"]` to the affected services.
 - There are no automated tests.

@@ -18,6 +18,8 @@ services:
       - "5001:5001"
     env_file:
       - ../llm-service/.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   stt-service:
     image: stt-service
@@ -108,6 +110,8 @@ services:
       - "5007:5007"
     env_file:
       - ../vts-service/.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   obs-service:
     image: obs-service
@@ -117,6 +121,8 @@ services:
       - "5006:5006"
     env_file:
       - ../obs-service/.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   luna-engine:
     image: luna-engine

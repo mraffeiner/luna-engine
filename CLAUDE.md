@@ -2,6 +2,8 @@
 
 Dashboard and orchestrator for **Luna**, an AI VTuber. This is the hub of a multi-repo system. The nine backend services are separate git repos checked out next to this one (`../llm-service`, `../tts-service`, ...). See `README.md` for the full architecture diagram, the service and port table, and user setup.
 
+**Platform: Linux-first.** The stack runs with Docker Engine on Linux, and host apps like VTube Studio (under Proton), OBS and LM Studio are reached through `host.docker.internal` (mapped with `extra_hosts: host-gateway`). Don't add Windows- or macOS-specific code or config.
+
 ## What lives here
 
 - **SvelteKit SPA** (`src/`): Svelte 5 (runes), Tailwind 4 and TypeScript, built with `adapter-static` (with an `index.html` fallback).
@@ -23,7 +25,7 @@ deno task build         # static build → build/
 npm run compose:up      # docker compose up -d --build (whole stack, UI on :8080)
 docker compose up -d --build luna-engine   # rebuild only the UI container
 docker compose logs -f <service>
-cd src-tauri && cargo build                # desktop wrapper
+cd src-tauri && cargo build                # desktop wrapper (needs webkit2gtk-4.0 / libsoup2)
 ```
 
 There is **no test suite**. Verify UI changes with `deno task check` and `deno task lint`, then in the running stack at http://localhost:8080.

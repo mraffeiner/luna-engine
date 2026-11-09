@@ -25,8 +25,7 @@
 				"icons/32x32.png",
 				"icons/128x128.png",
 				"icons/128x128@2x.png",
-				"icons/icon.icns",
-				"icons/icon.ico"
+				"icons/icon.icns"
 			],
 			"identifier": "com.tauri.dev",
 			"longDescription": "",
@@ -39,12 +38,7 @@
 			},
 			"resources": [],
 			"shortDescription": "",
-			"targets": "all",
-			"windows": {
-				"certificateThumbprint": null,
-				"digestAlgorithm": "sha256",
-				"timestampUrl": ""
-			}
+			"targets": "all"
 		},
 		"security": {
 			"csp": null
@@ -58,8 +52,7 @@
 				"resizable": true,
 				"width": 1920,
 				"height": 1080,
-				"title": "Luna Engine",
-				"additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows --disable-ipc-flooding-protection"
+				"title": "Luna Engine"
 			}
 		]
 	}
