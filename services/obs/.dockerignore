@@ -1,0 +1,46 @@
+# Version control
+.git
+.gitignore
+
+# Environment variables
+.env
+*.env
+
+# Deno cache
+.deno_dir
+deno.lock
+
+# Node modules (if any)
+node_modules
+
+# Logs
+*.log
+logs/
+
+# OS specific files
+.DS_Store
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker files
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+README.md
+LICENSE
+docs/
+
+# Test files
+*_test.ts
+test/
+tests/
+
+# Temporary files
+tmp/
+temp/
