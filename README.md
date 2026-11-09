@@ -51,7 +51,3 @@ docker compose up -d --build
 deno task dev      # with file watching
 deno task start
 ```
-
-## Known issues
-
-- The `Dockerfile` runs `deno cache src/main.ts` *before* `COPY src`, so that step can't find the file. Move `COPY src ./src` above it if the build fails.

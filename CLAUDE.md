@@ -35,7 +35,6 @@ There are no tests. Verify with `curl localhost:5006/health` (check `obsConnecte
 
 ## Gotchas
 
-- The `Dockerfile` runs `deno cache src/main.ts` before `COPY src`. Check this first if the image build fails.
 - OBS usually runs on the host, so use `ws://host.docker.internal:4455`. On Linux, that needs an `extra_hosts` entry or the host's LAN IP.
 
 ## Cross-repo contract
