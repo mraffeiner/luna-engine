@@ -1,0 +1,9 @@
+services:
+  discord-service:
+    image: discord-service
+    container_name: discord-service
+    build: .
+    ports:
+      - "5004:5004"
+    env_file:
+      - .env
