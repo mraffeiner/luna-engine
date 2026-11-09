@@ -46,7 +46,6 @@ To add an engine, touch all of these:
 
 ## Gotchas
 
-- `requirements.in` is **UTF-16 encoded** (with a BOM). pip handles it, but tools may show it as binary. Keep the encoding unless you're asked to convert it.
 - The UI normalizes text per engine before sending it (`normalizeTtsInput` in `../luna-engine/src/lib/shared/utils.ts`).
 
 ## Cross-repo contract
