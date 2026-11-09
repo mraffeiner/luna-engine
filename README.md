@@ -14,7 +14,7 @@ Discord voice bridge for [Luna Engine](https://github.com/mraffeiner/luna-engine
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/health` | Health check |
-| `POST` | `/join-voice` | Body `{ "guildId": "...", "channelId": "..." }`. Joins that voice channel |
+| `POST` | `/join-voice` | Body `{ "guildId": "...", "channelId": "..." }`. Joins that voice channel. Empty or missing fields fall back to `DISCORD_GUILD_ID` / `DISCORD_CHANNEL_ID` |
 | `POST` | `/leave-voice` | Leaves the voice channel |
 | `WS` | any path (`Upgrade: websocket`) | Audio bridge, described below. Only one client is supported |
 
@@ -34,11 +34,13 @@ Discord voice bridge for [Luna Engine](https://github.com/mraffeiner/luna-engine
 
 ## Configuration
 
-Create a `.env` file in the repo root:
+Copy `.env.example` to `.env` and fill it in:
 
 | Variable | Description |
 |---|---|
 | `DISCORD_TOKEN` | Bot token from the [Discord Developer Portal](https://discord.com/developers/applications) |
+| `DISCORD_GUILD_ID` | Optional. Default server for `/join-voice` when the dashboard's field is empty |
+| `DISCORD_CHANNEL_ID` | Optional. Default voice channel for `/join-voice` when the dashboard's field is empty |
 
 Bot setup:
 
@@ -63,3 +65,7 @@ docker compose up -d --build
 deno install --allow-scripts=npm:@discordjs/opus
 deno task start        # reads .env via --env-file
 ```
+
+## License
+
+[MIT](LICENSE) © Matthias Raffeiner
