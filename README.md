@@ -33,7 +33,7 @@ Interactive docs: http://localhost:5003/docs
 
 ## Configuration
 
-Create a `.env` file in the repo root:
+Copy `.env.example` to `.env` and fill it in:
 
 | Variable | Description |
 |---|---|
@@ -63,3 +63,7 @@ uvicorn src.app:app --host 0.0.0.0 --port 5003 --reload
 ```
 
 The image is large because it installs PyTorch, which is only used for VAD.
+
+## License
+
+[MIT](LICENSE) © Matthias Raffeiner
