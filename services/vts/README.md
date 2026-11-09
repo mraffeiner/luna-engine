@@ -1,6 +1,6 @@
 # vts-service
 
-[VTube Studio](https://denchisoft.com/) integration for [Luna Engine](https://github.com/mraffeiner/luna-engine). It connects to the VTube Studio plugin API with [pyvts](https://github.com/Genteki/pyvts) so the dashboard can create and drive custom tracking parameters on Luna's avatar. The main use is voice-based motion: the dashboard updates parameters about 30 times per second while Luna is speaking.
+[VTube Studio](https://denchisoft.com/) integration for [Luna Engine](../../README.md). It connects to the VTube Studio plugin API with [pyvts](https://github.com/Genteki/pyvts) so the dashboard can create and drive custom tracking parameters on Luna's avatar. The main use is voice-based motion: the dashboard updates parameters about 30 times per second while Luna is speaking.
 
 - **Stack:** Python 3.11, FastAPI, pyvts
 - **Port:** 5007
@@ -27,19 +27,13 @@ Interactive docs: http://localhost:5007/docs
 2. Start the service and call `/connect`, or use **Connect** on the dashboard's VTS page.
 3. Accept the plugin authorization prompt in VTube Studio. The token is saved to `token.txt` in the container's working directory.
 
-The service doesn't read any environment variables, but Luna Engine's compose file still expects a `.env` file here, so copy `.env.example` (which is empty) to `.env`. It connects to `host.docker.internal:8001`, which means VTube Studio running on the Docker host. compose maps that name to the host with `extra_hosts: ["host.docker.internal:host-gateway"]`.
+The service doesn't read any environment variables, but the root `docker-compose.yml` still expects a `.env` file here, so copy `.env.example` (which is empty) to `.env`. It connects to `host.docker.internal:8001`, which means VTube Studio running on the Docker host. compose maps that name to the host with `extra_hosts: ["host.docker.internal:host-gateway"]`.
 
 > `token.txt` isn't stored on a volume, so you have to authorize the plugin again each time the container is recreated.
 
 ## Running
 
-**As part of Luna Engine (recommended):** clone this repo next to `luna-engine/` and run `docker compose up -d --build` from `luna-engine/`.
-
-**Standalone:**
-
-```bash
-docker compose up -d --build
-```
+**With the rest of the stack (recommended):** from the repo root, run `docker compose up -d --build vts-service`.
 
 **Locally (without Docker):** change the host in `src/app.py` to `localhost`.
 
@@ -51,4 +45,4 @@ uvicorn src.app:app --host 0.0.0.0 --port 5007 --reload
 
 ## License
 
-[MIT](LICENSE) © Matthias Raffeiner
+[MIT](../../LICENSE) © Matthias Raffeiner

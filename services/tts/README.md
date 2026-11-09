@@ -1,6 +1,6 @@
 # tts-service
 
-Text-to-speech backend for [Luna Engine](https://github.com/mraffeiner/luna-engine). It gives one API over three TTS engines, and the dashboard picks an engine and voice per request.
+Text-to-speech backend for [Luna Engine](../../README.md). It gives one API over three TTS engines, and the dashboard picks an engine and voice per request.
 
 | Engine | Where it runs | Notes |
 |---|---|---|
@@ -35,7 +35,7 @@ The `POST /generate` body depends on `engine`:
 { "engine": "sesame", "voice": "...", "text": "Hi!", "save": false }
 ```
 
-With `"save": true`, the audio is also written to `output/<engine>_<voice>_<timestamp>.wav`. Luna Engine mounts this folder at `luna-engine/output/tts/`.
+With `"save": true`, the audio is also written to `output/<engine>_<voice>_<timestamp>.wav`. compose mounts this folder at `output/tts/` in the repo root.
 
 Example:
 
@@ -58,17 +58,11 @@ Copy `.env.example` to `.env` and fill it in:
 | `KOKORO_API_URL` | `http://kokoro-tts:8880` | OpenAI-compatible Kokoro server (`/v1/audio/speech`, `/health`) |
 | `SESAME_API_URL` | `http://sesame-tts:8000` | OpenAI-compatible Sesame CSM server (`/v1/audio/speech`, `/health`) |
 
-Kokoro and Sesame aren't part of this repo. Run an OpenAI-compatible server for each, e.g. [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI) for Kokoro, and tag the images `kokoro-tts` and `sesame-tts` so Luna Engine's compose file can find them.
+Kokoro and Sesame aren't part of Luna Engine. Run an OpenAI-compatible server for each, e.g. [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI) for Kokoro, and tag the images `kokoro-tts` and `sesame-tts` so the root `docker-compose.yml` can find them.
 
 ## Running
 
-**As part of Luna Engine (recommended):** clone this repo next to `luna-engine/` and run `docker compose up -d --build` from `luna-engine/`.
-
-**Standalone:** only Azure works here unless you also run the Kokoro or Sesame containers and point the URLs at them.
-
-```bash
-docker compose up -d --build
-```
+**With the rest of the stack (recommended):** from the repo root, run `docker compose up -d --build tts-service`.
 
 **Locally (without Docker):**
 
@@ -80,4 +74,4 @@ uvicorn src.app:app --host 0.0.0.0 --port 5002 --reload
 
 ## License
 
-[MIT](LICENSE) © Matthias Raffeiner
+[MIT](../../LICENSE) © Matthias Raffeiner

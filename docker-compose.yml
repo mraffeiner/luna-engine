@@ -1,34 +1,37 @@
+# Pin the project name: docker-service follows logs on the luna-engine_default network
+name: luna-engine
+
 services:
   docker-service:
     image: docker-service
     container_name: docker-service
-    build: ../docker-service
+    build: ./services/docker
     ports:
       - "5000:5000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     env_file:
-      - ../docker-service/.env
+      - ./services/docker/.env
 
   llm-service:
     image: llm-service
     container_name: llm-service
-    build: ../llm-service
+    build: ./services/llm
     ports:
       - "5001:5001"
     env_file:
-      - ../llm-service/.env
+      - ./services/llm/.env
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
   stt-service:
     image: stt-service
     container_name: stt-service
-    build: ../stt-service
+    build: ./services/stt
     ports:
       - "5003:5003"
     env_file:
-      - ../stt-service/.env
+      - ./services/stt/.env
 
   kokoro-tts:
     image: kokoro-tts
@@ -36,7 +39,7 @@ services:
     ports:
       - "8880:8880"
     env_file:
-      - ../stt-service/.env
+      - ./services/stt/.env
     deploy:
       resources:
         reservations:
@@ -52,7 +55,7 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - ../stt-service/.env
+      - ./services/stt/.env
     deploy:
       resources:
         reservations:
@@ -64,63 +67,63 @@ services:
   tts-service:
     image: tts-service
     container_name: tts-service
-    build: ../tts-service
+    build: ./services/tts
     ports:
       - "5002:5002"
     env_file:
-      - ../tts-service/.env
+      - ./services/tts/.env
     volumes:
       - ./output/tts:/app/output
 
   discord-service:
     image: discord-service
     container_name: discord-service
-    build: ../discord-service
+    build: ./services/discord
     ports:
       - "5004:5004"
     env_file:
-      - ../discord-service/.env
+      - ./services/discord/.env
 
   chat-service:
     image: chat-service
     container_name: chat-service
-    build: ../chat-service
+    build: ./services/chat
     ports:
       - "8005:8005"
     env_file:
-      - ../chat-service/.env
+      - ./services/chat/.env
     volumes:
       # Mount the secrets file (read-only)
-      - ../chat-service/youtube_secret.json:/app/youtube_secret.json:ro
+      - ./services/chat/youtube_secret.json:/app/youtube_secret.json:ro
 
   alerts-service:
     image: alerts-service
     container_name: alerts-service
-    build: ../alerts-service
+    build: ./services/alerts
     ports:
       - "5005:5005"
     env_file:
-      - ../alerts-service/.env
+      - ./services/alerts/.env
 
   vts-service:
     image: vts-service
     container_name: vts-service
-    build: ../vts-service
+    build: ./services/vts
     ports:
       - "5007:5007"
     env_file:
-      - ../vts-service/.env
+      - ./services/vts/.env
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
   obs-service:
     image: obs-service
     container_name: obs-service
-    build: ../obs-service
+    build: ./services/obs
     ports:
       - "5006:5006"
     env_file:
-      - ../obs-service/.env
+      - ./services/obs/.env
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -137,6 +140,6 @@ services:
       - alerts-service
       - vts-service
       - obs-service
-    build: .
+    build: ./app
     ports:
       - "8080:80"

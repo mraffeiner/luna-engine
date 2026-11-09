@@ -1,6 +1,6 @@
 # obs-service
 
-[OBS Studio](https://obsproject.com/) integration for [Luna Engine](https://github.com/mraffeiner/luna-engine). It connects to OBS through **obs-websocket v5** and lets the dashboard show Luna's current spoken line as a subtitle in a text source. It also lists scenes.
+[OBS Studio](https://obsproject.com/) integration for [Luna Engine](../../README.md). It connects to OBS through **obs-websocket v5** and lets the dashboard show Luna's current spoken line as a subtitle in a text source. It also lists scenes.
 
 If the connection drops, it reconnects every 5 seconds.
 
@@ -37,13 +37,7 @@ curl -X POST http://localhost:5006/subtitle -H 'Content-Type: application/json' 
 
 ## Running
 
-**As part of Luna Engine (recommended):** clone this repo next to `luna-engine/` and run `docker compose up -d --build` from `luna-engine/`.
-
-**Standalone:**
-
-```bash
-docker compose up -d --build
-```
+**With the rest of the stack (recommended):** from the repo root, run `docker compose up -d --build obs-service`.
 
 **Locally (without Docker):**
 
@@ -54,4 +48,4 @@ deno task start
 
 ## License
 
-[MIT](LICENSE) © Matthias Raffeiner
+[MIT](../../LICENSE) © Matthias Raffeiner

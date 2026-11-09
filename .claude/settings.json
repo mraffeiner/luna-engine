@@ -2,8 +2,12 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "deny": [
-      "Read(./.env)",
-      "Edit(./.env)"
+      "Read(**/.env)",
+      "Edit(**/.env)",
+      "Read(./services/chat/youtube_secret.json)",
+      "Edit(./services/chat/youtube_secret.json)",
+      "Read(./services/chat/credentials/**)",
+      "Edit(./services/chat/credentials/**)"
     ]
   }
 }

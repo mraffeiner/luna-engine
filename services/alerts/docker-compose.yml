@@ -1,9 +1,0 @@
-services:
-  alerts-service:
-    image: alerts-service
-    container_name: alerts-service
-    build: .
-    ports:
-      - "5005:5005"
-    env_file:
-      - .env

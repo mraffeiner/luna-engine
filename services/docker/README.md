@@ -1,6 +1,6 @@
 # docker-service
 
-Container management backend for [Luna Engine](https://github.com/mraffeiner/luna-engine). The dashboard uses it to start and stop the other Luna services and to show their logs live.
+Container management backend for [Luna Engine](../../README.md). The dashboard uses it to start and stop the other Luna services and to show their logs live.
 
 It talks to the Docker daemon through the mounted socket (`/var/run/docker.sock`) using [aiodocker](https://github.com/aio-libs/aiodocker).
 
@@ -24,7 +24,7 @@ Interactive docs: http://localhost:5000/docs
 
 ## Configuration
 
-No environment variables are required. Luna Engine's compose file still expects a `.env`, so copy `.env.example` (which is empty) to `.env`. The container needs access to the Docker socket, which `docker-compose.yml` sets up:
+No environment variables are required. the root `docker-compose.yml` still expects a `.env`, so copy `.env.example` (which is empty) to `.env`. The container needs access to the Docker socket, which the root `docker-compose.yml` sets up:
 
 ```yaml
 volumes:
@@ -35,15 +35,7 @@ volumes:
 
 ## Running
 
-**As part of Luna Engine (recommended):** clone this repo next to `luna-engine/` and run `docker compose up -d --build` from `luna-engine/`.
-
-**Standalone:**
-
-```bash
-docker compose up -d --build
-```
-
-Without the Luna Engine stack, the log stream finds nothing, because it only follows containers on the `luna-engine_default` network.
+**With the rest of the stack (recommended):** from the repo root, run `docker compose up -d --build docker-service`.
 
 **Locally (without Docker):**
 
@@ -55,4 +47,4 @@ uvicorn src.app:app --host 0.0.0.0 --port 5000 --reload
 
 ## License
 
-[MIT](LICENSE) © Matthias Raffeiner
+[MIT](../../LICENSE) © Matthias Raffeiner

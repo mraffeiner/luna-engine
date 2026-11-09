@@ -1,6 +1,6 @@
 # discord-service
 
-Discord voice bridge for [Luna Engine](https://github.com/mraffeiner/luna-engine). A Discord bot joins a voice channel so Luna can talk with people there:
+Discord voice bridge for [Luna Engine](../../README.md). A Discord bot joins a voice channel so Luna can talk with people there:
 
 - **Incoming:** each user's speech is decoded from Opus, converted to WAV with ffmpeg, and sent to the dashboard over a WebSocket. The dashboard then transcribes it with the STT service.
 - **Outgoing:** audio the dashboard sends over the same WebSocket (Luna's TTS) is played in the voice channel.
@@ -51,13 +51,7 @@ Bot setup:
 
 ## Running
 
-**As part of Luna Engine (recommended):** clone this repo next to `luna-engine/` and run `docker compose up -d --build` from `luna-engine/`.
-
-**Standalone:**
-
-```bash
-docker compose up -d --build
-```
+**With the rest of the stack (recommended):** from the repo root, run `docker compose up -d --build discord-service`.
 
 **Locally (without Docker):** this needs Deno 2 and ffmpeg.
 
@@ -68,4 +62,4 @@ deno task start        # reads .env via --env-file
 
 ## License
 
-[MIT](LICENSE) © Matthias Raffeiner
+[MIT](../../LICENSE) © Matthias Raffeiner

@@ -1,6 +1,6 @@
 # chat-service
 
-Live chat input for [Luna Engine](https://github.com/mraffeiner/luna-engine). It reads **Twitch** and **YouTube** live chat and forwards each message to the dashboard over a WebSocket, where it becomes part of Luna's prompt.
+Live chat input for [Luna Engine](../../README.md). It reads **Twitch** and **YouTube** live chat and forwards each message to the dashboard over a WebSocket, where it becomes part of Luna's prompt.
 
 - **Twitch:** a twitchio IRC bot joins the configured channels and pushes messages in real time.
 - **YouTube:** uses the YouTube Data API with Google OAuth. Messages are polled **on demand**: the dashboard calls `/youtube/poll` after each of Luna's replies, which keeps API quota use low.
@@ -53,20 +53,14 @@ Copy `.env.example` to `.env` and fill it in:
 
 1. In Google Cloud Console, enable the **YouTube Data API v3**.
 2. Create an **OAuth client ID** of type *Web application* and add `http://localhost:8005/oauth2callback` as a redirect URI.
-3. Download the client JSON and save it as `youtube_secret.json` in this repo's root. It is git-ignored, and compose mounts it read-only.
+3. Download the client JSON and save it as `youtube_secret.json` in `services/chat/`. It is git-ignored, and compose mounts it read-only.
 4. In the dashboard's Chat page, click **Connect YouTube**, open the auth URL and grant access. The token is saved and refreshed automatically after that.
 
 > `/app/credentials` isn't stored on a volume, so you have to log in to YouTube again each time the container is recreated. To avoid that, add a volume such as `./credentials:/app/credentials`.
 
 ## Running
 
-**As part of Luna Engine (recommended):** clone this repo next to `luna-engine/` and run `docker compose up -d --build` from `luna-engine/`.
-
-**Standalone:**
-
-```bash
-docker compose up -d --build
-```
+**With the rest of the stack (recommended):** from the repo root, run `docker compose up -d --build chat-service`.
 
 **Locally (without Docker):** set `GOOGLE_CLIENT_SECRETS_FILE` and `GOOGLE_CREDENTIALS_STORE_DIR` to local paths first.
 
@@ -92,4 +86,4 @@ src/
 
 ## License
 
-[MIT](LICENSE) © Matthias Raffeiner
+[MIT](../../LICENSE) © Matthias Raffeiner

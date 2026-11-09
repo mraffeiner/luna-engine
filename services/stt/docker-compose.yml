@@ -1,9 +1,0 @@
-services:
-  stt-service:
-    image: stt-service
-    container_name: stt-service
-    build: .
-    ports:
-      - "5003:5003"
-    env_file:
-      - .env

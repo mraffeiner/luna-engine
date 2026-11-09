@@ -1,12 +1,6 @@
 # Luna Engine
 
-Control center for **Luna**, an AI VTuber. Luna Engine is a SvelteKit web dashboard that drives the conversation loop. It takes in chat and voice, generates a reply with an LLM, speaks it with TTS, and then sends the result to OBS, VTube Studio and Discord. Each capability runs as its own small Docker microservice.
-
-This repo contains:
-
-- **The dashboard**: SvelteKit + Svelte 5 + Tailwind 4, built to static files and served by Nginx. Nginx also proxies `/api/<service>/` to each backend.
-- **The orchestration**: `docker-compose.yml` brings up the whole stack.
-- **An optional desktop wrapper** (`src-tauri/`): a Tauri 1.x app that runs `docker compose up`, waits for the dashboard, opens it in a native window, and stops the stack when the window closes.
+Control center for **Luna**, an AI VTuber. Luna Engine is a SvelteKit web dashboard that drives the conversation loop. It takes in chat and voice, generates a reply with an LLM, speaks it with TTS, and then sends the result to OBS, VTube Studio and Discord. Each capability runs as its own small Docker microservice, and everything lives in this repo.
 
 ## How it works
 
@@ -28,7 +22,7 @@ This repo contains:
           docker-service ◄── start/stop containers, stream logs
 ```
 
-The engine loop lives in the browser (`src/lib/pages/EnginePage.svelte`):
+The engine loop lives in the browser (`app/src/lib/pages/EnginePage.svelte`):
 
 1. New chat messages, transcribed speech and alerts are added to the **prompt**. The prompt is a system prompt plus named sections such as `conversation`, and you can edit and save templates on the *Prompt Templates* page. Templates are stored in the browser's `localStorage`.
 2. **Think**: the prompt goes to the selected LLM. There is an optional *prepass*, where a second LLM call rewrites the first answer.
@@ -42,22 +36,32 @@ Engine modes:
 
 The engine starts paused.
 
-## Repositories
+## Repository layout
 
-Every service is its own repo and must be cloned **next to** this one. The compose file builds them from `../<service>`.
+```
+luna-engine/
+├── app/                  # dashboard: SvelteKit + Nginx, plus the Tauri desktop wrapper
+├── services/
+│   ├── docker/   llm/   tts/   stt/   discord/
+│   └── alerts/   obs/   vts/   chat/
+├── docker-compose.yml    # the whole stack
+└── output/tts/           # TTS audio saved with "Save TTS" (git-ignored)
+```
 
-| Repo | Port | Stack | Purpose |
-|---|---|---|---|
-| [`luna-engine`](https://github.com/mraffeiner/luna-engine) | 8080 | SvelteKit, Nginx, Tauri | Dashboard and orchestration (this repo) |
-| [`docker-service`](https://github.com/mraffeiner/docker-service) | 5000 | Python, FastAPI | Start and stop service containers, stream their logs |
-| [`llm-service`](https://github.com/mraffeiner/llm-service) | 5001 | Python, FastAPI | Streams LLM replies from OpenAI, Groq, Gemini or a local OpenAI-compatible server |
-| [`tts-service`](https://github.com/mraffeiner/tts-service) | 5002 | Python, FastAPI | One TTS API on top of Azure, Kokoro and Sesame |
-| [`stt-service`](https://github.com/mraffeiner/stt-service) | 5003 | Python, FastAPI | Speech-to-text with Whisper (OpenAI or Groq) and Silero VAD |
-| [`discord-service`](https://github.com/mraffeiner/discord-service) | 5004 | Deno, discord.js | Joins a voice channel, streams users' speech out and plays Luna's audio in |
-| [`alerts-service`](https://github.com/mraffeiner/alerts-service) | 5005 | Deno, Oak | Relays StreamElements alerts (follows, subs, tips and so on) over a WebSocket |
-| [`obs-service`](https://github.com/mraffeiner/obs-service) | 5006 | Deno, Oak | Writes subtitles to an OBS text source and lists scenes |
-| [`vts-service`](https://github.com/mraffeiner/vts-service) | 5007 | Python, FastAPI | Controls VTube Studio model parameters through the plugin API |
-| [`chat-service`](https://github.com/mraffeiner/chat-service) | 8005 | Python, FastAPI | Twitch and YouTube live chat, sent to the UI over a WebSocket |
+| Folder | Container | Port | Stack | Purpose |
+|---|---|---|---|---|
+| [`app/`](app/) | `luna-engine` | 8080 | SvelteKit, Nginx, Tauri | Dashboard, engine loop, `/api/<service>/` reverse proxy |
+| [`services/docker/`](services/docker/) | `docker-service` | 5000 | Python, FastAPI | Start and stop service containers, stream their logs |
+| [`services/llm/`](services/llm/) | `llm-service` | 5001 | Python, FastAPI | Streams LLM replies from OpenAI, Groq, Gemini or a local OpenAI-compatible server |
+| [`services/tts/`](services/tts/) | `tts-service` | 5002 | Python, FastAPI | One TTS API on top of Azure, Kokoro and Sesame |
+| [`services/stt/`](services/stt/) | `stt-service` | 5003 | Python, FastAPI | Speech-to-text with Whisper (OpenAI or Groq) and Silero VAD |
+| [`services/discord/`](services/discord/) | `discord-service` | 5004 | Deno, discord.js | Joins a voice channel, streams users' speech out and plays Luna's audio in |
+| [`services/alerts/`](services/alerts/) | `alerts-service` | 5005 | Deno, Oak | Relays StreamElements alerts (follows, subs, tips and so on) over a WebSocket |
+| [`services/obs/`](services/obs/) | `obs-service` | 5006 | Deno, Oak | Writes subtitles to an OBS text source and lists scenes |
+| [`services/vts/`](services/vts/) | `vts-service` | 5007 | Python, FastAPI | Controls VTube Studio model parameters through the plugin API |
+| [`services/chat/`](services/chat/) | `chat-service` | 8005 | Python, FastAPI | Twitch and YouTube live chat, sent to the UI over a WebSocket |
+
+Each folder has its own README with its API and configuration.
 
 Two more containers come from third-party images that you build or pull yourself:
 
@@ -79,51 +83,40 @@ Luna Engine is developed and run on **Linux**. Other platforms aren't tested or 
 - [Deno](https://deno.com) 2.x, only needed for local frontend development
 - Rust and Cargo plus Tauri 1.x's system libraries (`webkit2gtk-4.0`, `libsoup2`, `gtk3`), only needed to build the desktop app. On Arch-based distros, `webkit2gtk` (4.0) is in the AUR
 
-### 1. Clone everything side by side
+### 1. Clone
 
 ```bash
-mkdir LunaEngine && cd LunaEngine
-for r in luna-engine docker-service llm-service tts-service stt-service \
-         discord-service alerts-service obs-service vts-service chat-service; do
-  git clone https://github.com/mraffeiner/$r.git
-done
+git clone https://github.com/mraffeiner/luna-engine.git
+cd luna-engine
 ```
 
-The resulting layout:
+Keep the folder name `luna-engine`. The compose project is pinned to that name anyway, because docker-service follows logs on the `luna-engine_default` network.
 
-```
-LunaEngine/
-├── luna-engine/      ← run compose from here
-├── docker-service/
-├── llm-service/
-└── ...
-```
+### 2. Configure the services
 
-### 2. Configure each service
-
-Each service reads a `.env` file in its own repo root. These files are git-ignored. Every service repo ships a `.env.example` to start from:
+Each service reads a `.env` file in its own folder. These files are git-ignored. Every service ships a `.env.example` to start from:
 
 ```bash
-for d in ../*-service; do [ -f "$d/.env" ] || cp "$d/.env.example" "$d/.env"; done
+for d in services/*/; do [ -f "$d.env" ] || cp "$d.env.example" "$d.env"; done
 ```
 
 Then fill in the values you need. See each service's README for details. A quick summary:
 
 | Service | Required `.env` values |
 |---|---|
-| docker-service | none (it mounts `/var/run/docker.sock`) |
-| llm-service | at least one of `OPENAI_API_KEY`, `GROQ_API_KEY` + `GROQ_BASE_URL`, `GEMINI_API_KEY` + `GOOGLE_BASE_URL`, or a local server at `LOCAL_BASE_URL` |
-| stt-service | `OPENAI_API_KEY` and/or `GROQ_API_KEY` |
-| tts-service | `AZURE_SUBSCRIPTION` + `AZURE_ENDPOINT` for Azure. Kokoro and Sesame need no keys |
-| discord-service | `DISCORD_TOKEN`, optionally `DISCORD_GUILD_ID` + `DISCORD_CHANNEL_ID` as the default voice channel |
-| chat-service | Twitch: `TWITCH_OAUTH_TOKEN`, `TWITCH_CLIENT_ID`, `TWITCH_NICK`, `TWITCH_CHANNELS`. YouTube: `YOUTUBE_CHANNEL_ID` plus a `youtube_secret.json` OAuth client file |
-| alerts-service | `STREAMELEMENTS_JWT_TOKEN` |
-| obs-service | `OBS_WEBSOCKET_ADDRESS`, `OBS_WEBSOCKET_PASSWORD`, `OBS_SUBTITLE_SOURCE_NAME` |
-| vts-service | none (an empty file is fine; it connects to VTube Studio on the host at port 8001) |
+| docker | none (it mounts `/var/run/docker.sock`) |
+| llm | at least one of `OPENAI_API_KEY`, `GROQ_API_KEY` + `GROQ_BASE_URL`, `GEMINI_API_KEY` + `GOOGLE_BASE_URL`, or a local server at `LOCAL_BASE_URL` |
+| stt | `OPENAI_API_KEY` and/or `GROQ_API_KEY` |
+| tts | `AZURE_SUBSCRIPTION` + `AZURE_ENDPOINT` for Azure. Kokoro and Sesame need no keys |
+| discord | `DISCORD_TOKEN`, optionally `DISCORD_GUILD_ID` + `DISCORD_CHANNEL_ID` as the default voice channel |
+| chat | Twitch: `TWITCH_OAUTH_TOKEN`, `TWITCH_CLIENT_ID`, `TWITCH_NICK`, `TWITCH_CHANNELS`. YouTube: `YOUTUBE_CHANNEL_ID` plus a `youtube_secret.json` OAuth client file |
+| alerts | `STREAMELEMENTS_JWT_TOKEN` |
+| obs | `OBS_WEBSOCKET_ADDRESS`, `OBS_WEBSOCKET_PASSWORD`, `OBS_SUBTITLE_SOURCE_NAME` |
+| vts | none (it connects to VTube Studio on the host at port 8001) |
 
-> **Note:** compose currently points `kokoro-tts` and `sesame-tts` at `../stt-service/.env`, so that file must exist even if you don't use STT.
+> **Note:** compose points `kokoro-tts` and `sesame-tts` at `services/stt/.env`, so that file must exist even if you don't use STT.
 
-> **Note:** compose expects these files to exist even when you don't use the service: an `.env` for every service (the copy loop above handles that), and `chat-service/youtube_secret.json`. Create an empty `youtube_secret.json` if you don't use YouTube.
+> **Note:** compose expects these files to exist even when you don't use the service: an `.env` in every service folder (the copy loop above handles that), and `services/chat/youtube_secret.json`. Create an empty `youtube_secret.json` if you don't use YouTube.
 
 ### Programs on the host
 
@@ -131,26 +124,26 @@ vts-service, obs-service and llm-service's `local` provider connect to programs 
 
 ### 3. Start the stack
 
+From the repo root:
+
 ```bash
-cd luna-engine
-npm run compose:up          # docker compose up -d --build
+docker compose up -d --build
 # with the experimental Sesame TTS:
 docker compose --profile experimental up -d --build
 ```
 
 Open **http://localhost:8080**.
 
-Other scripts in `package.json`:
+Useful commands:
 
-| Script | What it does |
+| Command | What it does |
 |---|---|
-| `compose:build` | Build all images |
-| `compose:start` / `compose:stop` / `compose:restart` | Start, stop or restart existing containers |
-| `compose:recreate` | Rebuild and force-recreate all containers |
-| `compose:down` | Stop and remove containers |
-| `prune:image` | Remove dangling images |
-| `tauri:build` | Build the desktop wrapper (`cargo build` in `src-tauri/`) |
-| `build:all` | Build the Docker images and the desktop wrapper |
+| `docker compose up -d --build <service>` | Rebuild and restart one service, e.g. `llm-service` |
+| `docker compose logs -f <service>` | Follow one service's logs |
+| `docker compose stop` / `start` | Stop or start the stack without removing containers |
+| `docker compose down` | Stop and remove the containers |
+
+The same commands exist as `compose:*` scripts in `app/package.json`.
 
 ### 4. Use the dashboard
 
@@ -159,59 +152,28 @@ Other scripts in `package.json`:
 - **Prompt Templates**: edit the system prompt and the user prompt sections, and save or load templates.
 - **One page per service** (LLM, TTS, STT, Discord, Chat, Alerts, OBS, VTS): pick models and voices, connect accounts, and test each service on its own.
 
-Audio saved with *Save TTS* ends up in `luna-engine/output/tts/`.
+Audio saved with *Save TTS* ends up in `output/tts/`.
+
+### Desktop app (optional)
+
+`app/src-tauri/` is a Tauri 1.x wrapper. It runs `docker compose up`, waits for the dashboard, opens it in a native window, and stops the stack when you close the window. See [`app/README.md`](app/README.md#desktop-app-tauri) for build instructions. Run the binary from the **repo root**, where `docker-compose.yml` is.
 
 ## Development
 
-The dashboard calls every backend through relative `/api/<service>/` paths, which Nginx proxies inside the compose network (see `nginx.conf`). The simplest workflow is to run the full stack with compose and rebuild the `luna-engine` container after making changes:
+- Frontend: see [`app/README.md`](app/README.md).
+- Services: each `services/<name>/README.md` covers its API and how to run it outside Docker.
+- A change to a service's API usually also needs a change to its client in `app/src/lib/pages/services/<name>/<name>Service.ts`. With everything in one repo, both go in the same commit.
 
-```bash
-docker compose up -d --build luna-engine
-```
-
-`deno task dev` (Vite) serves the UI with hot reload, but its `/api` proxy is out of date. It sends everything to `localhost:5000` and strips only `/api`, so `/api/llm/models` ends up at docker-service as `/llm/models`. Until `vite.config.ts` gets one proxy entry per service that mirrors `nginx.conf`, use the compose-served UI on port 8080 for anything that calls a backend.
-
-Code checks:
-
-```bash
-deno install            # or npm install
-deno task check         # svelte-check / type check
-deno task lint          # prettier + eslint
-deno task format
-```
-
-Project layout:
-
-```
-src/
-├── routes/                 # single-page app shell (+layout, +page)
-└── lib/
-    ├── components/         # Sidebar, cards, controls, banners
-    ├── pages/
-    │   ├── EnginePage.svelte   # the think → speak loop
-    │   ├── prompt/             # prompt templates and sections
-    │   └── services/<name>/    # one page + API client per service
-    └── shared/             # global state, constants, text utils
-src-tauri/                  # Tauri 1.x desktop wrapper
-nginx.conf                  # static hosting + /api reverse proxy
-docker-compose.yml          # the whole stack
-```
-
-### Desktop app (Tauri)
-
-```bash
-cd src-tauri && cargo build      # or: npm run tauri:build
-```
-
-`src-tauri/icons/icon.png` is a blank placeholder. Tauri 1.x on Linux refuses to compile without it, so replace it rather than delete it.
-
-Run the resulting binary **from the `luna-engine/` directory**, because it runs `docker compose` in its current working directory. It waits up to 60 s for `http://localhost:8080` to respond and then shows the window. Closing the window runs `docker compose stop`.
+There are no automated tests.
 
 ## Known issues
 
-- The TTS output directory is hard-coded to `output/` inside `tts-service`. The host side of that mount is `luna-engine/output/tts`.
+- The TTS output directory is hard-coded to `output/` inside tts-service. The host side of that mount is `output/tts/` in the repo root.
 - `kokoro-tts` and `sesame-tts` have no build context. You have to build or pull their images and tag them yourself.
-- There are no automated tests.
+
+## History
+
+Until November 2026 the services lived in separate repos (`mraffeiner/<name>-service`). Their full histories were merged into this repo, so `git log --follow services/<name>/...` reaches back to each service's first commit.
 
 ## License
 

@@ -48,6 +48,3 @@ coverage/
 
 # Docker volumes
 data/
-# Claude Code (personal, not shared)
-.claude/settings.local.json
-CLAUDE.local.md

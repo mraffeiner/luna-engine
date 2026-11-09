@@ -1,6 +1,6 @@
 # CLAUDE.md: stt-service
 
-Part of the **Luna Engine** multi-repo system (AI VTuber). Sibling repos live in `../`, and the hub is `../luna-engine` (read its `CLAUDE.md` for the big picture). This service transcribes audio clips (the browser mic, or Discord voice relayed by the UI). Silero VAD trims silence first, then Whisper runs on OpenAI or Groq. See `README.md` for the API.
+Part of the **Luna Engine** monorepo (AI VTuber). The root `CLAUDE.md` covers the big picture, and the dashboard lives in `../../app`. This service transcribes audio clips (the browser mic, or Discord voice relayed by the UI). Silero VAD trims silence first, then Whisper runs on OpenAI or Groq. See `README.md` for the API.
 
 - **Stack:** Python 3.11, FastAPI, uvicorn, torch + torchaudio (VAD only), `openai`, `groq`
 - **Port:** 5003. The UI reaches it through Nginx at `/api/stt/`
@@ -9,12 +9,11 @@ Part of the **Luna Engine** multi-repo system (AI VTuber). Sibling repos live in
 ## Commands
 
 ```bash
-# from ../luna-engine (normal workflow)
+# from the repo root (normal workflow)
 docker compose up -d --build stt-service
 docker compose logs -f stt-service
 
-# standalone / local (needs ffmpeg + libsndfile)
-docker compose up -d --build
+# local, without Docker (needs ffmpeg + libsndfile)
 pip install -r requirements.in && uvicorn src.app:app --port 5003 --reload
 ```
 
@@ -40,13 +39,13 @@ There are no tests. Verify with `curl localhost:5003/transcribe -F audio=@clip.w
 ## Gotchas
 
 - The image is large because of PyTorch. Avoid adding more ML dependencies without a reason.
-- `../luna-engine/docker-compose.yml` also gives this repo's `.env` to `kokoro-tts` and `sesame-tts`, so renaming or removing the file breaks those containers.
+- the root `docker-compose.yml` also gives this service's `.env` to `kokoro-tts` and `sesame-tts`, so renaming or removing the file breaks those containers.
 
 ## Cross-repo contract
 
-Consumer: `../luna-engine/src/lib/pages/services/stt/sttService.ts`. The recording UI is in `SttPage.svelte`, which uses MediaRecorder with webm or mp3.
+Consumer: `../../app/src/lib/pages/services/stt/sttService.ts`. The recording UI is in `SttPage.svelte`, which uses MediaRecorder with webm or mp3.
 
 ## Working rules
 
-- Default branch is `development`. Use feature branches and don't push unless asked.
-- Never read or print `.env`, which holds API keys (enforced in `.claude/settings.json`).
+- Don't push unless asked.
+- Never read or print `.env`, which holds API keys (enforced in the root `.claude/settings.json`).

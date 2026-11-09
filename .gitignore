@@ -1,0 +1,11 @@
+# Secrets (each service keeps its .env next to its code)
+.env
+services/chat/youtube_secret.json
+services/chat/credentials/
+
+# TTS audio saved with "Save TTS"
+output/
+
+# Claude Code (personal, not shared)
+.claude/settings.local.json
+CLAUDE.local.md

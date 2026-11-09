@@ -1,6 +1,6 @@
 # CLAUDE.md: obs-service
 
-Part of the **Luna Engine** multi-repo system (AI VTuber). Sibling repos live in `../`, and the hub is `../luna-engine` (read its `CLAUDE.md` for the big picture). This service connects to **OBS Studio** through obs-websocket v5 so the dashboard can write Luna's current spoken line into a text source as a subtitle, and list scenes. See `README.md` for the API and OBS setup.
+Part of the **Luna Engine** monorepo (AI VTuber). The root `CLAUDE.md` covers the big picture, and the dashboard lives in `../../app`. This service connects to **OBS Studio** through obs-websocket v5 so the dashboard can write Luna's current spoken line into a text source as a subtitle, and list scenes. See `README.md` for the API and OBS setup.
 
 - **Stack:** Deno 2, Oak (`deno.land/x/oak@v12.6.1`), `npm:obs-websocket-js@5`
 - **Port:** 5006 (env `PORT`). The UI reaches it through Nginx at `/api/obs/`
@@ -9,12 +9,11 @@ Part of the **Luna Engine** multi-repo system (AI VTuber). Sibling repos live in
 ## Commands
 
 ```bash
-# from ../luna-engine (normal workflow)
+# from the repo root (normal workflow)
 docker compose up -d --build obs-service
 docker compose logs -f obs-service
 
-# standalone / local
-docker compose up -d --build
+# local, without Docker
 deno task dev                    # --watch
 deno check src/main.ts && deno lint
 ```
@@ -39,9 +38,9 @@ There are no tests. Verify with `curl localhost:5006/health` (check `obsConnecte
 
 ## Cross-repo contract
 
-Consumer: `../luna-engine/src/lib/pages/services/obs/obsService.ts`. The engine loop writes `subtitles.text`, and the OBS page sends it to this service.
+Consumer: `../../app/src/lib/pages/services/obs/obsService.ts`. The engine loop writes `subtitles.text`, and the OBS page sends it to this service.
 
 ## Working rules
 
-- Default branch is `development`. Use feature branches and don't push unless asked.
-- Never read or print `.env`, which holds the OBS password (enforced in `.claude/settings.json`).
+- Don't push unless asked.
+- Never read or print `.env`, which holds the OBS password (enforced in the root `.claude/settings.json`).

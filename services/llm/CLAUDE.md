@@ -1,6 +1,6 @@
 # CLAUDE.md: llm-service
 
-Part of the **Luna Engine** multi-repo system (AI VTuber). Sibling repos live in `../`, and the hub is `../luna-engine` (read its `CLAUDE.md` for the big picture). This service generates Luna's replies by streaming chat completions from OpenAI-compatible providers. See `README.md` for the API and env vars.
+Part of the **Luna Engine** monorepo (AI VTuber). The root `CLAUDE.md` covers the big picture, and the dashboard lives in `../../app`. This service generates Luna's replies by streaming chat completions from OpenAI-compatible providers. See `README.md` for the API and env vars.
 
 - **Stack:** Python 3.11, FastAPI, uvicorn, `openai` (AsyncOpenAI), httpx
 - **Port:** 5001. The UI reaches it through Nginx at `/api/llm/`
@@ -9,12 +9,11 @@ Part of the **Luna Engine** multi-repo system (AI VTuber). Sibling repos live in
 ## Commands
 
 ```bash
-# from ../luna-engine (normal workflow)
+# from the repo root (normal workflow)
 docker compose up -d --build llm-service
 docker compose logs -f llm-service
 
-# standalone / local
-docker compose up -d --build
+# local, without Docker
 pip install -r requirements.in && uvicorn src.app:app --port 5001 --reload
 ```
 
@@ -39,9 +38,9 @@ There are no tests. Verify with `curl localhost:5001/models` and a streaming `cu
 
 ## Cross-repo contract
 
-Consumer: `../luna-engine/src/lib/pages/services/llm/llmService.ts`. The dashboard's default response model and prepass settings are configured there, not here.
+Consumer: `../../app/src/lib/pages/services/llm/llmService.ts`. The dashboard's default response model and prepass settings are configured there, not here.
 
 ## Working rules
 
-- Default branch is `development`. Use feature branches and don't push unless asked.
-- Never read or print `.env`, which holds API keys (enforced in `.claude/settings.json`).
+- Don't push unless asked.
+- Never read or print `.env`, which holds API keys (enforced in the root `.claude/settings.json`).

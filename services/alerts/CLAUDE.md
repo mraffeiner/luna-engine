@@ -1,6 +1,6 @@
 # CLAUDE.md: alerts-service
 
-Part of the **Luna Engine** multi-repo system (AI VTuber). Sibling repos live in `../`, and the hub is `../luna-engine` (read its `CLAUDE.md` for the big picture). This service connects to the **StreamElements** realtime socket, converts each alert (follow, sub, tip, raid and so on) into a `StandardizedAlert`, and broadcasts it to WebSocket clients. See `README.md` for the alert format.
+Part of the **Luna Engine** monorepo (AI VTuber). The root `CLAUDE.md` covers the big picture, and the dashboard lives in `../../app`. This service connects to the **StreamElements** realtime socket, converts each alert (follow, sub, tip, raid and so on) into a `StandardizedAlert`, and broadcasts it to WebSocket clients. See `README.md` for the alert format.
 
 - **Stack:** Deno 2, Oak (`deno.land/x/oak@v12.6.1`), `npm:socket.io-client`
 - **Port:** 5005 (env `PORT`). The UI reaches it through Nginx at `/api/alerts/`
@@ -9,12 +9,11 @@ Part of the **Luna Engine** multi-repo system (AI VTuber). Sibling repos live in
 ## Commands
 
 ```bash
-# from ../luna-engine (normal workflow)
+# from the repo root (normal workflow)
 docker compose up -d --build alerts-service
 docker compose logs -f alerts-service
 
-# standalone / local
-docker compose up -d --build
+# local, without Docker
 deno run --env-file --watch --allow-net --allow-env --allow-read src/main.ts   # deno task dev doesn't load .env
 deno check src/main.ts && deno lint
 ```
@@ -38,9 +37,9 @@ To add an event type, add it to the `eventTypes` listener list, add a `case` in 
 
 ## Cross-repo contract
 
-Consumer: `../luna-engine/src/lib/pages/services/alerts/alertsService.ts`, which must stay in sync with the `StandardizedAlert` shape.
+Consumer: `../../app/src/lib/pages/services/alerts/alertsService.ts`, which must stay in sync with the `StandardizedAlert` shape.
 
 ## Working rules
 
-- Default branch is `development`. Use feature branches and don't push unless asked.
-- Never read or print `.env`, which holds the StreamElements JWT (enforced in `.claude/settings.json`).
+- Don't push unless asked.
+- Never read or print `.env`, which holds the StreamElements JWT (enforced in the root `.claude/settings.json`).

@@ -1,6 +1,6 @@
 # llm-service
 
-LLM backend for [Luna Engine](https://github.com/mraffeiner/luna-engine). It gives one streaming API over several OpenAI-compatible providers, so the dashboard can switch models without caring where they run.
+LLM backend for [Luna Engine](../../README.md). It gives one streaming API over several OpenAI-compatible providers, so the dashboard can switch models without caring where they run.
 
 Supported providers:
 
@@ -61,13 +61,7 @@ Copy `.env.example` to `.env` and fill it in. Set the variables for the provider
 
 ## Running
 
-**As part of Luna Engine (recommended):** clone this repo next to `luna-engine/` and run `docker compose up -d --build` from `luna-engine/`.
-
-**Standalone:**
-
-```bash
-docker compose up -d --build
-```
+**With the rest of the stack (recommended):** from the repo root, run `docker compose up -d --build llm-service`.
 
 **Locally (without Docker):**
 
@@ -79,4 +73,4 @@ uvicorn src.app:app --host 0.0.0.0 --port 5001 --reload
 
 ## License
 
-[MIT](LICENSE) © Matthias Raffeiner
+[MIT](../../LICENSE) © Matthias Raffeiner

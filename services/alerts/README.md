@@ -1,6 +1,6 @@
 # alerts-service
 
-Stream alerts relay for [Luna Engine](https://github.com/mraffeiner/luna-engine). It connects to the **StreamElements** realtime socket, converts each alert (follows, subs, gift subs, cheers, tips, raids and so on) into one common format, and broadcasts it to every connected WebSocket client. Luna can then react to alerts on stream.
+Stream alerts relay for [Luna Engine](../../README.md). It connects to the **StreamElements** realtime socket, converts each alert (follows, subs, gift subs, cheers, tips, raids and so on) into one common format, and broadcasts it to every connected WebSocket client. Luna can then react to alerts on stream.
 
 - **Stack:** Deno 2, Oak, socket.io-client
 - **Port:** 5005
@@ -47,13 +47,7 @@ Copy `.env.example` to `.env` and fill it in:
 
 ## Running
 
-**As part of Luna Engine (recommended):** clone this repo next to `luna-engine/` and run `docker compose up -d --build` from `luna-engine/`.
-
-**Standalone:**
-
-```bash
-docker compose up -d --build
-```
+**With the rest of the stack (recommended):** from the repo root, run `docker compose up -d --build alerts-service`.
 
 **Locally (without Docker):** the code doesn't load `.env` itself, so pass it with `--env-file`:
 
@@ -63,4 +57,4 @@ deno run --env-file --watch --allow-net --allow-env --allow-read src/main.ts
 
 ## License
 
-[MIT](LICENSE) © Matthias Raffeiner
+[MIT](../../LICENSE) © Matthias Raffeiner

@@ -1,6 +1,6 @@
 # stt-service
 
-Speech-to-text backend for [Luna Engine](https://github.com/mraffeiner/luna-engine). The dashboard records the microphone in the browser and uploads the clip here to be transcribed.
+Speech-to-text backend for [Luna Engine](../../README.md). The dashboard records the microphone in the browser and uploads the clip here to be transcribed.
 
 Before transcription, the audio goes through **[Silero VAD](https://github.com/snakers4/silero-vad)**, which removes silence and keeps only the speech. Silent clips are rejected, and less audio is sent to the API. Transcription itself uses Whisper models from **OpenAI** or **Groq**.
 
@@ -42,17 +42,11 @@ Copy `.env.example` to `.env` and fill it in:
 
 The Silero VAD model is downloaded from `torch.hub` on startup, so the first start needs internet access.
 
-> In Luna Engine's compose file, `kokoro-tts` and `sesame-tts` also load this `.env`.
+> In the root `docker-compose.yml`, `kokoro-tts` and `sesame-tts` also load this `.env`.
 
 ## Running
 
-**As part of Luna Engine (recommended):** clone this repo next to `luna-engine/` and run `docker compose up -d --build` from `luna-engine/`.
-
-**Standalone:**
-
-```bash
-docker compose up -d --build
-```
+**With the rest of the stack (recommended):** from the repo root, run `docker compose up -d --build stt-service`.
 
 **Locally (without Docker):** this needs `ffmpeg` and `libsndfile` on the system.
 
@@ -66,4 +60,4 @@ The image is large because it installs PyTorch, which is only used for VAD.
 
 ## License
 
-[MIT](LICENSE) © Matthias Raffeiner
+[MIT](../../LICENSE) © Matthias Raffeiner

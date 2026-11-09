@@ -1,6 +1,6 @@
 # CLAUDE.md: discord-service
 
-Part of the **Luna Engine** multi-repo system (AI VTuber). Sibling repos live in `../`, and the hub is `../luna-engine` (read its `CLAUDE.md` for the big picture). This service is a Discord bot that joins a voice channel. It streams each user's speech to the dashboard (which then calls the STT service) and plays Luna's TTS audio back into the channel. See `README.md` for the API and the WebSocket protocol.
+Part of the **Luna Engine** monorepo (AI VTuber). The root `CLAUDE.md` covers the big picture, and the dashboard lives in `../../app`. This service is a Discord bot that joins a voice channel. It streams each user's speech to the dashboard (which then calls the STT service) and plays Luna's TTS audio back into the channel. See `README.md` for the API and the WebSocket protocol.
 
 - **Stack:** Deno 2 (npm packages: discord.js 14, @discordjs/voice, @discordjs/opus) and ffmpeg
 - **Port:** 5004, with HTTP and WebSocket on the same port. The UI reaches it through Nginx at `/api/discord/`
@@ -9,12 +9,11 @@ Part of the **Luna Engine** multi-repo system (AI VTuber). Sibling repos live in
 ## Commands
 
 ```bash
-# from ../luna-engine (normal workflow)
+# from the repo root (normal workflow)
 docker compose up -d --build discord-service
 docker compose logs -f discord-service
 
-# standalone / local (needs ffmpeg)
-docker compose up -d --build
+# local, without Docker (needs ffmpeg)
 deno install --allow-scripts=npm:@discordjs/opus
 deno task start                  # loads .env via --env-file
 deno check src/main.ts && deno lint
@@ -42,9 +41,9 @@ There are no tests. Verification needs a real bot token and voice channel: `POST
 
 ## Cross-repo contract
 
-Consumer: `../luna-engine/src/lib/pages/services/discord/discordService.ts`. That file parses the binary frame format, so any change to the framing must be made on both sides.
+Consumer: `../../app/src/lib/pages/services/discord/discordService.ts`. That file parses the binary frame format, so any change to the framing must be made on both sides.
 
 ## Working rules
 
-- Default branch is `development`. Use feature branches and don't push unless asked.
-- Never read or print `.env`, which holds the bot token (enforced in `.claude/settings.json`).
+- Don't push unless asked.
+- Never read or print `.env`, which holds the bot token (enforced in the root `.claude/settings.json`).

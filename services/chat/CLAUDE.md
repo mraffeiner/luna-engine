@@ -1,6 +1,6 @@
 # CLAUDE.md: chat-service
 
-Part of the **Luna Engine** multi-repo system (AI VTuber). Sibling repos live in `../`, and the hub is `../luna-engine` (read its `CLAUDE.md` for the big picture). This service collects **Twitch** and **YouTube** live chat and broadcasts each message to the dashboard over a WebSocket, where it becomes prompt input. See `README.md` for the API, env vars and OAuth setup.
+Part of the **Luna Engine** monorepo (AI VTuber). The root `CLAUDE.md` covers the big picture, and the dashboard lives in `../../app`. This service collects **Twitch** and **YouTube** live chat and broadcasts each message to the dashboard over a WebSocket, where it becomes prompt input. See `README.md` for the API, env vars and OAuth setup.
 
 - **Stack:** Python 3.11, FastAPI, uvicorn, twitchio, google-api-python-client, google-auth-oauthlib
 - **Port:** 8005. The UI reaches it through Nginx at `/api/chat/`
@@ -9,12 +9,11 @@ Part of the **Luna Engine** multi-repo system (AI VTuber). Sibling repos live in
 ## Commands
 
 ```bash
-# from ../luna-engine (normal workflow)
+# from the repo root (normal workflow)
 docker compose up -d --build chat-service
 docker compose logs -f chat-service
 
-# standalone / local (set GOOGLE_* paths to local files first)
-docker compose up -d --build
+# local, without Docker (set GOOGLE_* paths to local files first)
 pip install -r requirements.in && uvicorn src.main:app --port 8005 --reload
 ```
 
@@ -52,9 +51,9 @@ src/utils/logging_config.py         logging setup
 
 ## Cross-repo contract
 
-Consumer: `../luna-engine/src/lib/pages/services/chat/chatService.ts` (`chatService`, `platformStatus`). The engine loop in `EnginePage.svelte` triggers the YouTube polls.
+Consumer: `../../app/src/lib/pages/services/chat/chatService.ts` (`chatService`, `platformStatus`). The engine loop in `EnginePage.svelte` triggers the YouTube polls.
 
 ## Working rules
 
-- Default branch is `development`. Use feature branches and don't push unless asked.
-- Never read or print `.env`, `youtube_secret.json` or `credentials/`, which hold OAuth secrets and tokens (enforced in `.claude/settings.json`).
+- Don't push unless asked.
+- Never read or print `.env`, `youtube_secret.json` or `credentials/`, which hold OAuth secrets and tokens (enforced in the root `.claude/settings.json`).
