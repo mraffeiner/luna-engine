@@ -23,16 +23,11 @@ Interactive docs: http://localhost:5007/docs
 
 ## Setup
 
-1. In VTube Studio, open **Settings → General → Start API** and enable the plugin API on port **8001** (the default).
+1. In VTube Studio (it runs fine under Steam Proton), open **Settings → General → Start API** and enable the plugin API on port **8001** (the default).
 2. Start the service and call `/connect`, or use **Connect** on the dashboard's VTS page.
 3. Accept the plugin authorization prompt in VTube Studio. The token is saved to `token.txt` in the container's working directory.
 
-No `.env` is needed. The service connects to `host.docker.internal:8001`, which means VTube Studio running on the Docker host. On Linux, add this to the service in compose:
-
-```yaml
-extra_hosts:
-  - "host.docker.internal:host-gateway"
-```
+The service doesn't read any environment variables, but Luna Engine's compose file still expects a `.env` file here, so an empty one is fine. It connects to `host.docker.internal:8001`, which means VTube Studio running on the Docker host. compose maps that name to the host with `extra_hosts: ["host.docker.internal:host-gateway"]`.
 
 > `token.txt` isn't stored on a volume, so you have to authorize the plugin again each time the container is recreated.
 
