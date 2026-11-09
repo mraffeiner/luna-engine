@@ -24,7 +24,7 @@ Interactive docs: http://localhost:5000/docs
 
 ## Configuration
 
-No environment variables are required. The container needs access to the Docker socket, which `docker-compose.yml` sets up:
+No environment variables are required. Luna Engine's compose file still expects a `.env`, so copy `.env.example` (which is empty) to `.env`. The container needs access to the Docker socket, which `docker-compose.yml` sets up:
 
 ```yaml
 volumes:
@@ -52,3 +52,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.in
 uvicorn src.app:app --host 0.0.0.0 --port 5000 --reload
 ```
+
+## License
+
+[MIT](LICENSE) © Matthias Raffeiner
