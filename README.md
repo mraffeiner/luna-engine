@@ -38,7 +38,7 @@ Use **Emulate** in the StreamElements dashboard to send test alerts.
 
 ## Configuration
 
-Create a `.env` file in the repo root:
+Copy `.env.example` to `.env` and fill it in:
 
 | Variable | Default | Description |
 |---|---|---|
@@ -55,9 +55,12 @@ Create a `.env` file in the repo root:
 docker compose up -d --build
 ```
 
-**Locally (without Docker):**
+**Locally (without Docker):** the code doesn't load `.env` itself, so pass it with `--env-file`:
 
 ```bash
-deno task dev      # with file watching
-deno task start
+deno run --env-file --watch --allow-net --allow-env --allow-read src/main.ts
 ```
+
+## License
+
+[MIT](LICENSE) © Matthias Raffeiner

@@ -15,7 +15,7 @@ docker compose logs -f alerts-service
 
 # standalone / local
 docker compose up -d --build
-deno task dev                    # --watch
+deno run --env-file --watch --allow-net --allow-env --allow-read src/main.ts   # deno task dev doesn't load .env
 deno check src/main.ts && deno lint
 ```
 
