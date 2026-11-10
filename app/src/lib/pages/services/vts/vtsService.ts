@@ -52,6 +52,10 @@ export async function getCustomParams() {
 			serviceError.set(`Failed to get model params: ${response.status} ${response.statusText}`);
 		} else {
 			const data = await response.json();
+			if (!Array.isArray(data)) {
+				serviceError.set(`Failed to get model params: unexpected response from vts service`);
+				return;
+			}
 			modelParams.set(data);
 
 			// Start/restart periodic updates

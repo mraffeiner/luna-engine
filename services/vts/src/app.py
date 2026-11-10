@@ -105,15 +105,24 @@ async def connect():
     try:
         await vts.connect()
         await vts.request_authenticate_token()
-        await vts.request_authenticate()
-
-        logger.info("Successfully connected to VTS")
-        return Response(status_code=200, content="Successfully connected to VTS API")
+        authenticated = await vts.request_authenticate()
     except Exception:
         logger.exception("Unexpected error trying to connect to VTS API")
-        return HTTPException(
+        raise HTTPException(
             status_code=500, detail=f"Unexpected error trying to connect to VTS API"
         )
+
+    if not authenticated:
+        logger.error(
+            "VTS authentication failed - was the plugin approved in VTube Studio?"
+        )
+        raise HTTPException(
+            status_code=401,
+            detail="VTS authentication failed - approve the plugin in VTube Studio and try again",
+        )
+
+    logger.info("Successfully connected to VTS")
+    return Response(status_code=200, content="Successfully connected to VTS API")
 
 
 @app.get("/list_custom_params")
@@ -123,18 +132,27 @@ async def list_custom_params():
     logger.info("Listing tracking parameters..")
     try:
         response = await vts.request(vts.vts_request.requestTrackingParameterList())
-
-        logger.info("Successfully retrieved tracking parameters")
-        return JSONResponse(
-            status_code=200,
-            content=response.get("data", {}).get("customParameters", {}),
-        )
     except Exception:
         logger.exception("Unexpected error trying to list tracking parameters")
-        return HTTPException(
+        raise HTTPException(
             status_code=500,
             detail=f"Unexpected error trying to list tracking parameters",
         )
+
+    data = response.get("data", {})
+    if response.get("messageType") == "APIError":
+        message = data.get("message", "unknown error")
+        logger.error(f"VTS API error listing tracking parameters: {message}")
+        raise HTTPException(
+            status_code=502,
+            detail=f"VTS API error listing tracking parameters: {message}",
+        )
+
+    logger.info("Successfully retrieved tracking parameters")
+    return JSONResponse(
+        status_code=200,
+        content=data.get("customParameters", []),
+    )
 
 
 @app.post("/create_param")
@@ -162,7 +180,7 @@ async def create_param(request: CreateParamRequest):
         logger.exception(
             f"Unexpected error trying to create custom parameter {request.name}"
         )
-        return HTTPException(
+        raise HTTPException(
             status_code=500,
             detail=f"Unexpected error trying to create custom parameter {request.name}",
         )
@@ -181,7 +199,7 @@ async def get_param(request: BaseParamRequest):
         return JSONResponse(status_code=200, content=response.get("data", {}))
     except Exception:
         logger.exception(f"Unexpected error trying to get {request.name}")
-        return HTTPException(
+        raise HTTPException(
             status_code=500,
             detail=f"Unexpected error trying to get {request.name}",
         )
@@ -208,7 +226,7 @@ async def set_param(request: SetParamRequest):
         logger.exception(
             f"Unexpected error trying to set {request.name} to {request.value}"
         )
-        return HTTPException(
+        raise HTTPException(
             status_code=500,
             detail=f"Unexpected error trying to set {request.name} to {request.value}",
         )
@@ -239,7 +257,7 @@ async def set_params(request: SetMultiParamRequest):
         logger.exception(
             f"Unexpected error trying to set multiple parameters {request.names} to {request.values}"
         )
-        return HTTPException(
+        raise HTTPException(
             status_code=500,
             detail=f"Unexpected error trying to set multiple parameters {request.names} to {request.values}",
         )
@@ -259,7 +277,7 @@ async def delete_param(request: BaseParamRequest):
         logger.exception(
             f"Unexpected error trying to delete custom parameter {request.name}"
         )
-        return HTTPException(
+        raise HTTPException(
             status_code=500,
             detail=f"Unexpected error trying to delete custom parameter {request.name}",
         )
