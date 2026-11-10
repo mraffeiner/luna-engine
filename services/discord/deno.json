@@ -3,8 +3,8 @@
     "start": "deno run --allow-net --allow-read --allow-run --allow-ffi --allow-env --allow-sys=cpus,networkInterfaces,hostname --env-file src/main.ts"
   },
   "imports": {
-    "discord.js": "npm:discord.js@14.18.0",
-    "@discordjs/voice": "npm:@discordjs/voice@0.18.0",
+    "discord.js": "npm:discord.js@14.28.1",
+    "@discordjs/voice": "npm:@discordjs/voice@0.19.2",
     "@discordjs/opus": "npm:@discordjs/opus@0.10.0"
   },
   "compilerOptions": {

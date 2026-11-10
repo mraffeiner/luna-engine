@@ -12,9 +12,11 @@ import {
   createAudioPlayer,
   createAudioResource,
   EndBehaviorType,
+  entersState,
   joinVoiceChannel,
   NoSubscriberBehavior,
   VoiceConnection,
+  VoiceConnectionStatus,
 } from "@discordjs/voice";
 import { Buffer } from "node:buffer";
 import { spawn } from "node:child_process";
@@ -111,7 +113,31 @@ async function connectToVoiceChannel(guildId: string, channelId: string) {
     adapterCreator: (channel as VoiceChannel).guild.voiceAdapterCreator,
   });
 
+  connection.on("stateChange", (oldState, newState) => {
+    logger.info(
+      `Voice connection state: ${oldState.status} -> ${newState.status}`
+    );
+  });
+  connection.on("error", (error) => {
+    logger.error("Voice connection error:", error);
+  });
+
   connection.subscribe(audioPlayer);
+
+  // Joining the channel is not enough: the voice handshake (including DAVE
+  // end-to-end encryption) must finish before audio can be sent or received.
+  try {
+    await entersState(connection, VoiceConnectionStatus.Ready, 20_000);
+  } catch (error) {
+    logger.error(
+      `Voice connection to ${channel.name} did not become ready within 20s`
+    );
+    disconnectFromVoiceChannel();
+    throw error instanceof Error
+      ? new Error(`Voice connection did not become ready: ${error.message}`)
+      : new Error("Voice connection did not become ready");
+  }
+
   logger.info(
     `Connected to voice channel ${channel.name} in guild ${guild.name}`
   );
