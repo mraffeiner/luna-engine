@@ -58,7 +58,6 @@ Copy `.env.example` to `.env` and fill it in:
 3. Download the client JSON and save it as `youtube_secret.json` in `services/chat/`. It is git-ignored, and compose mounts it read-only.
 4. In the dashboard's Chat page, click **Connect YouTube**, open the auth URL and grant access. The token is saved and refreshed automatically after that.
 
-> `/app/credentials` isn't stored on a volume, so you have to log in to YouTube again each time the container is recreated. To avoid that, add a volume such as `./credentials:/app/credentials`.
 
 ## Running
 
@@ -85,6 +84,20 @@ src/
     ├── twitch/client.py    # twitchio bot
     └── youtube/            # OAuth + live chat poller
 ```
+
+## Troubleshooting
+
+### YouTube asks to log in again after an update
+The OAuth token in `/app/credentials` isn't stored on a volume, so it's lost each time the container is recreated. To keep it, add a volume such as `./services/chat/credentials:/app/credentials` to the service in `docker-compose.yml` (the folder is git-ignored).
+
+### YouTube status is `error_no_live_chat`
+The service finds the chat through the logged-in account's active broadcast. Start the stream first, and log in with the account that owns it.
+
+### YouTube status is `error_quota`
+The YouTube Data API's daily quota is used up. It resets at midnight Pacific time.
+
+### The OAuth flow fails with a redirect URI mismatch
+`OAUTH_REDIRECT_URI` must exactly match a redirect URI registered for the OAuth client in Google Cloud.
 
 ## License
 

@@ -33,7 +33,7 @@ volumes:
   - /var/run/docker.sock:/var/run/docker.sock
 ```
 
-> **Security:** mounting the Docker socket gives this container full control over the host's Docker daemon. Don't expose port 5000 outside your machine.
+> **Security:** mounting the Docker socket gives this container full control over the host's Docker daemon. compose binds port 5000 to `127.0.0.1`; keep it that way. See [Security](../../README.md#security).
 
 ## Running
 

@@ -46,6 +46,14 @@ deno task dev      # with file watching
 deno task start
 ```
 
+## Troubleshooting
+
+### `obsConnected` stays `false`
+Check that the WebSocket server is enabled in OBS and that address and password match. When OBS runs on the Docker host, see [Troubleshooting](../../README.md#troubleshooting) in the root README for host connectivity.
+
+### `/subtitle` fails although OBS is connected
+`OBS_SUBTITLE_SOURCE_NAME` must exactly match the name of a text source in OBS.
+
 ## License
 
 [MIT](../../LICENSE) © Matthias Raffeiner

@@ -36,7 +36,7 @@ There are no tests. Verification needs VTube Studio running on the host with its
 - Errors are raised as `HTTPException`, so failures come back with real status codes: `/connect` gives `401` when VTube Studio didn't approve the plugin, and `/list_custom_params` gives `502` when VTS answers with an `APIError` (it returns a list otherwise). Don't go back to returning error bodies with `200`: `vtsService.ts` stores the `/list_custom_params` response as `modelParams` and needs it to be a list.
 - `token.txt` isn't on a volume, so VTS has to approve the plugin again after the container is recreated.
 - No environment variables are read, so compose has no `env_file` for this service and there's no `.env.example`.
-- `host.docker.internal` only resolves because of the `extra_hosts: host-gateway` entry in compose. Keep it. VTube Studio runs under Steam Proton on the host.
+- `host.docker.internal` only resolves because of the `extra_hosts: host-gateway` entry in compose. Keep it. VTube Studio has no native Linux build and runs under Steam Proton on the host, which makes no difference to the connection.
 
 ## Contract with the app
 

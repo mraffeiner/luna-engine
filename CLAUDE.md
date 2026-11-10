@@ -2,7 +2,7 @@
 
 Monorepo for **Luna**, an AI VTuber: a SvelteKit dashboard (`app/`) that runs the conversation loop, plus nine small Docker microservices (`services/<name>/`). See `README.md` for the architecture diagram, user setup and port table. Each subfolder has its own `CLAUDE.md` with details. Read the one for the area you're changing.
 
-**Platform: Linux-first.** The stack runs with Docker Engine on Linux, and host apps like VTube Studio (under Proton), OBS and LM Studio are reached through `host.docker.internal` (mapped with `extra_hosts: host-gateway`). Don't add Windows- or macOS-specific code or config.
+**Platform: Linux-first.** The stack runs with Docker Engine on Linux, and host apps like VTube Studio, OBS and local LLM servers are reached through `host.docker.internal` (mapped with `extra_hosts: host-gateway`). Don't add Windows- or macOS-specific code or config.
 
 ## Layout
 

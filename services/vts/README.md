@@ -23,13 +23,12 @@ Interactive docs: http://localhost:5007/docs
 
 ## Setup
 
-1. In VTube Studio (it runs fine under Steam Proton), open **Settings → General → Start API** and enable the plugin API on port **8001** (the default).
+1. In VTube Studio, open **Settings → General → Start API** and enable the plugin API on port **8001** (the default).
 2. Start the service and call `/connect`, or use **Connect** on the dashboard's VTS page.
 3. Accept the plugin authorization prompt in VTube Studio. The token is saved to `token.txt` in the container's working directory.
 
 No environment variables or `.env` file are needed. The service connects to `host.docker.internal:8001`, which means VTube Studio running on the Docker host. compose maps that name to the host with `extra_hosts: ["host.docker.internal:host-gateway"]`.
 
-> `token.txt` isn't stored on a volume, so you have to authorize the plugin again each time the container is recreated.
 
 ## Running
 
@@ -42,6 +41,17 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.in
 uvicorn src.app:app --host 0.0.0.0 --port 5007 --reload
 ```
+
+## Troubleshooting
+
+### `/connect` returns `401`
+The plugin wasn't approved. Accept the authorization prompt in VTube Studio and call `/connect` again.
+
+### `/connect` returns `500`
+The service can't reach VTube Studio. Check that the API is enabled on port 8001 and see [Troubleshooting](../../README.md#troubleshooting) in the root README for host connectivity.
+
+### The plugin has to be approved again after an update
+`token.txt` isn't stored on a volume, so the token is lost each time the container is recreated.
 
 ## License
 

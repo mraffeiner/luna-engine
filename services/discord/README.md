@@ -60,6 +60,14 @@ deno install
 deno task start        # reads .env via --env-file
 ```
 
+## Troubleshooting
+
+### The bot joins the channel but no speech arrives and nothing plays
+Discord requires end-to-end encrypted voice (DAVE). It needs `@discordjs/voice` 0.19 or newer, which `deno.json` pins. If the connection never becomes ready, `/join-voice` returns `500` after 20 seconds. The service log shows the voice connection states.
+
+### The bot can't join the channel or stays silent
+The bot needs the **Connect** and **Speak** permissions in that channel. Check the invite permissions and any channel-specific overrides.
+
 ## License
 
 [MIT](../../LICENSE) © Matthias Raffeiner

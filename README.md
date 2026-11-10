@@ -90,7 +90,7 @@ git clone https://github.com/mraffeiner/luna-engine.git
 cd luna-engine
 ```
 
-Keep the folder name `luna-engine`. The compose project is pinned to that name anyway, because docker-service follows logs on the `luna-engine_default` network.
+The compose project name is pinned to `luna-engine` in `docker-compose.yml`, so the folder name doesn't matter. docker-service relies on that name to find the stack's containers.
 
 ### 2. Configure the services
 
@@ -118,7 +118,15 @@ Then fill in the values you need. See each service's README for details. A quick
 
 ### Programs on the host
 
-vts-service, obs-service and llm-service's `local` provider connect to programs running on your machine: VTube Studio (port 8001; it works under Steam Proton), OBS (4455) and LM Studio or a similar server (1234). The compose file maps `host.docker.internal` to the host with `extra_hosts: host-gateway`, so the containers can reach them. Make sure each program listens on an address the Docker bridge can reach, not just `127.0.0.1`. LM Studio, for example, needs *Serve on Local Network*. Also check that your firewall allows traffic from the Docker network.
+Some services connect to programs on the Docker host rather than to other containers:
+
+| Service | Program | Default port |
+|---|---|---|
+| vts-service | VTube Studio (plugin API) | 8001 |
+| obs-service | OBS Studio (obs-websocket) | 4455 |
+| llm-service, `local` provider | LM Studio, Ollama or another OpenAI-compatible server | 1234 / 11434 |
+
+The compose file maps `host.docker.internal` to the host with `extra_hosts: host-gateway`, so the containers can reach these programs. Each program has to listen on an address the Docker bridge can reach, not only `127.0.0.1`. See [Troubleshooting](#troubleshooting) if a service can't connect.
 
 ### 3. Start the stack
 
@@ -158,7 +166,7 @@ Audio saved with *Save TTS* ends up in `output/tts/`.
 
 ## Security
 
-Luna Engine is a single-user tool for your own machine. None of the services have authentication.
+Luna Engine is a single-user tool meant to run on one machine. None of the services have authentication.
 
 - Every port in `docker-compose.yml` is bound to `127.0.0.1`, so only the local machine can reach the dashboard and the services. Docker's published ports bypass host firewalls such as ufw, so this binding is what keeps the rest of your network out. If you change it, anyone who can reach a port can use your API keys (llm, tts, stt), play audio in your Discord call or write to OBS.
 - To open the dashboard from another device, put port 8080 behind a reverse proxy with authentication rather than publishing it on all interfaces.
@@ -176,6 +184,34 @@ There are no automated tests.
 
 - The TTS output directory is hard-coded to `output/` inside tts-service. The host side of that mount is `output/tts/` in the repo root.
 - `sesame-tts` has no build context and no public image. You have to build an OpenAI-compatible Sesame CSM-1B server yourself and tag it `sesame-tts`.
+
+## Troubleshooting
+
+### `docker compose up` fails with `env file ... not found`
+compose needs every `.env` file it references, even for services that aren't used. Run the copy loop from [Configure the services](#2-configure-the-services) to create the missing ones.
+
+### `services/chat/youtube_secret.json` is a directory
+It was missing when the stack first started, so Docker created a directory for the bind mount. Remove it (it's owned by root) and create the file: either the OAuth client JSON or an empty file if YouTube isn't used.
+
+### A service can't reach VTube Studio, OBS or a local LLM server on the host
+- Check that the program is running and its API or server is enabled on the expected port.
+- The program has to listen on an address containers can reach. A server bound to `127.0.0.1` only accepts connections from the host itself, so bind it to `0.0.0.0` or enable its LAN option (e.g. LM Studio's *Serve on Local Network*).
+- Host firewalls (ufw, firewalld, nftables) may block traffic from the Docker bridge to the host. Allow the Docker networks (by default inside `172.16.0.0/12`) to reach that port, e.g. with ufw: `sudo ufw allow from 172.16.0.0/12 to any port 4455 proto tcp`.
+- From the host, `curl` the program's address to make sure it answers at all.
+
+### VTube Studio asks to approve the plugin again
+The plugin token is stored inside the vts-service container, so it's lost whenever the container is recreated. Approve the plugin again in VTube Studio.
+
+### Does VTube Studio work on Linux?
+VTube Studio has no native Linux build, but it runs under Steam's Proton, and vts-service can connect to it there like to any other host program.
+
+### The desktop app shows an error page
+The app opens its window after waiting up to 60 seconds for the dashboard. On the first start, building the images usually takes longer. Run `docker compose build` once before starting the app.
+
+### The desktop app doesn't compile
+Missing system libraries are the usual cause. Install the [Tauri 2 Linux prerequisites](https://v2.tauri.app/start/prerequisites/#linux) for your distribution. If `rustup` reports that no default toolchain is configured, run `rustup default stable`.
+
+Most services have their own Troubleshooting section in their README.
 
 ## History
 
