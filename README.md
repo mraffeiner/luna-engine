@@ -81,7 +81,7 @@ Luna Engine is developed and run on **Linux**. Other platforms aren't tested or 
 - Docker Engine 20.10+ with Compose v2
 - An NVIDIA GPU and the NVIDIA Container Toolkit, needed for `kokoro-tts` and `sesame-tts`. Remove those services if you only use Azure TTS.
 - [Deno](https://deno.com) 2.x, only needed for local frontend development
-- Rust and Cargo plus Tauri 1.x's system libraries (`webkit2gtk-4.0`, `libsoup2`, `gtk3`), only needed to build the desktop app. On Arch-based distros, `webkit2gtk` (4.0) is in the AUR
+- Rust 1.77.2+ and the [Tauri 2 Linux prerequisites](https://v2.tauri.app/start/prerequisites/#linux) (WebKitGTK 4.1 and friends), only needed to build the desktop app
 
 ### 1. Clone
 
@@ -154,7 +154,7 @@ Audio saved with *Save TTS* ends up in `output/tts/`.
 
 ### Desktop app (optional)
 
-`app/src-tauri/` is a Tauri 1.x wrapper. It runs `docker compose up`, waits for the dashboard, opens it in a native window, and stops the stack when you close the window. See [`app/README.md`](app/README.md#desktop-app-tauri) for build instructions. Run the binary from the **repo root**, where `docker-compose.yml` is.
+`app/src-tauri/` is a Tauri 2 wrapper. It runs `docker compose up`, waits for the dashboard, opens it in a native window, and stops the stack when you close the window. See [`app/README.md`](app/README.md#desktop-app-tauri) for build instructions. Run the binary from the **repo root**, where `docker-compose.yml` is.
 
 ## Security
 

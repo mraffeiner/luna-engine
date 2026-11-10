@@ -1,56 +1,22 @@
 {
+	"$schema": "https://schema.tauri.app/config/2",
+	"productName": "luna-engine",
+	"version": "0.1.0",
+	"identifier": "io.github.mraffeiner.lunaengine",
 	"build": {
-		"beforeBuildCommand": "",
-		"beforeDevCommand": "",
-		"devPath": "http://localhost:8080",
-		"distDir": ""
+		"devUrl": "http://localhost:8080",
+		"frontendDist": "http://localhost:8080"
 	},
-	"package": {
-		"productName": "luna-engine",
-		"version": "0.1.0"
-	},
-	"tauri": {
-		"allowlist": {
-			"all": false
-		},
-		"bundle": {
-			"active": true,
-			"category": "DeveloperTool",
-			"copyright": "",
-			"deb": {
-				"depends": []
-			},
-			"externalBin": [],
-			"icon": [
-				"icons/icon.png"
-			],
-			"identifier": "com.tauri.dev",
-			"longDescription": "",
-			"macOS": {
-				"entitlements": null,
-				"exceptionDomain": "",
-				"frameworks": [],
-				"providerShortName": null,
-				"signingIdentity": null
-			},
-			"resources": [],
-			"shortDescription": "",
-			"targets": "all"
-		},
+	"app": {
+		"windows": [],
 		"security": {
 			"csp": null
-		},
-		"updater": {
-			"active": false
-		},
-		"windows": [
-			{
-				"fullscreen": false,
-				"resizable": true,
-				"width": 1920,
-				"height": 1080,
-				"title": "Luna Engine"
-			}
-		]
+		}
+	},
+	"bundle": {
+		"active": true,
+		"category": "DeveloperTool",
+		"icon": ["icons/icon.png"],
+		"targets": "all"
 	}
 }

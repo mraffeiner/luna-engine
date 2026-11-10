@@ -39,7 +39,7 @@ src/
     │   ├── prompt/             # prompt templates and sections
     │   └── services/<name>/    # one page + API client per service
     └── shared/             # global state, constants, text utils
-src-tauri/                  # Tauri 1.x desktop wrapper
+src-tauri/                  # Tauri 2 desktop wrapper
 nginx.conf                  # static hosting + /api reverse proxy
 Dockerfile                  # Deno build → nginx:alpine
 ```
@@ -50,6 +50,6 @@ Dockerfile                  # Deno build → nginx:alpine
 cd src-tauri && cargo build      # or: deno task tauri:build
 ```
 
-`src-tauri/icons/icon.png` is a blank placeholder. Tauri 1.x on Linux refuses to compile without it, so replace it rather than delete it.
+It needs Rust 1.77.2+ and the [Tauri 2 Linux prerequisites](https://v2.tauri.app/start/prerequisites/#linux). `src-tauri/icons/icon.png` is a blank placeholder. Tauri uses it as the window icon and won't compile without it, so replace it rather than delete it.
 
-Run the resulting binary **from the repo root**, because it runs `docker compose` in its current working directory. It waits up to 60 s for `http://localhost:8080` to respond and then shows the window. Closing the window runs `docker compose stop`.
+Run the resulting binary **from the repo root**, because it runs `docker compose` in its current working directory. It waits up to 60 s for `http://localhost:8080` to respond, then opens the window. Closing the window exits the app, which runs `docker compose stop` first.
