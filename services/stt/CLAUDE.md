@@ -34,11 +34,12 @@ There are no tests. Verify with `curl localhost:5003/transcribe -F audio=@clip.w
 
 - Logging format: `[%(asctime)s] - %(levelname)s: %(message)s` with datefmt `%Y/%m/%d %H:%M:%S`. The `lifespan` hook re-formats the `uvicorn.access` logger to match.
 - `GET /health` returns `{"status": "OK", "timestamp": <iso>}`.
-- Dependencies are listed in `requirements.in` without pins.
+- Dependencies are listed in `requirements.in` without pins, except `torch`/`torchaudio` (see Gotchas).
 
 ## Gotchas
 
 - The image is large because of PyTorch. Avoid adding more ML dependencies without a reason.
+- `torch` and `torchaudio` are pinned to `<2.9`. From 2.9 on, torchaudio needs `torchcodec` to read and write audio, and Silero's `read_audio`/`save_audio` then fail, so every `/transcribe` returns 500. Keep both pins in step.
 - the root `docker-compose.yml` also gives this service's `.env` to `kokoro-tts` and `sesame-tts`, so renaming or removing the file breaks those containers.
 
 ## Cross-repo contract

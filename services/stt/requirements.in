@@ -4,5 +4,5 @@ uvicorn[standard]
 python-dotenv
 openai
 groq
-torch
-torchaudio
+torch<2.9
+torchaudio<2.9
