@@ -28,7 +28,7 @@ The model list is fetched live from each configured provider.
 ```json
 {
   "provider": "openai",          // openai | groq | google | local
-  "model": "gpt-4.1-mini",
+  "model": "gpt-6-luna",
   "system_prompt": "You are Luna...",
   "prompt": "Chat: hi Luna!"
 }
@@ -39,7 +39,7 @@ Example:
 ```bash
 curl -N http://localhost:5001/generate \
   -H 'Content-Type: application/json' \
-  -d '{"provider":"openai","model":"gpt-4.1-mini","system_prompt":"Be brief.","prompt":"Hello!"}'
+  -d '{"provider":"openai","model":"gpt-6-luna","system_prompt":"Be brief.","prompt":"Hello!"}'
 ```
 
 Interactive docs: http://localhost:5001/docs

@@ -15,7 +15,7 @@
 	} from './llmService';
 
 	// Initialize with a default model, provider|model format
-	let currentModelOption = $state('openai|gpt-4.1-mini');
+	let currentModelOption = $state('openai|gpt-6-luna');
 	let [selectedProvider, selectedModel] = $derived(currentModelOption.split('|'));
 
 	let systemPrompt = $state('You are Luna, a young AI woman an space elf Vtuber');
