@@ -45,7 +45,7 @@ async def lifespan(app: FastAPI):
         global vad_model, get_speech_timestamps, collect_chunks
         torch.set_num_threads(1)
         vad_model, utils = torch.hub.load(
-            repo_or_dir="snakers4/silero-vad", model="silero_vad", force_reload=False
+            repo_or_dir="snakers4/silero-vad", model="silero_vad", force_reload=False, trust_repo=True
         )
         # Silero's read_audio/save_audio need a torchaudio backend, so audio I/O
         # goes through ffmpeg and the wave module instead (see decode_audio/write_wav).
