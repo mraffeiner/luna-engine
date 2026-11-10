@@ -4,7 +4,7 @@ Speech-to-text backend for [Luna Engine](../../README.md). The dashboard records
 
 Before transcription, the audio goes through **[Silero VAD](https://github.com/snakers4/silero-vad)**, which removes silence and keeps only the speech. Silent clips are rejected, and less audio is sent to the API. Transcription itself uses Whisper models from **OpenAI** or **Groq**.
 
-- **Stack:** Python 3.11, FastAPI, PyTorch/torchaudio (VAD), `openai`, `groq`
+- **Stack:** Python 3.11, FastAPI, PyTorch (Silero VAD), ffmpeg, `openai`, `groq`
 - **Port:** 5003
 - **Proxied by Luna Engine at:** `/api/stt/`
 
@@ -46,7 +46,7 @@ The Silero VAD model is downloaded from `torch.hub` on startup, so the first sta
 
 **With the rest of the stack (recommended):** from the repo root, run `docker compose up -d --build stt-service`.
 
-**Locally (without Docker):** this needs `ffmpeg` and `libsndfile` on the system.
+**Locally (without Docker):** this needs `ffmpeg` on the system.
 
 ```bash
 python -m venv .venv && source .venv/bin/activate

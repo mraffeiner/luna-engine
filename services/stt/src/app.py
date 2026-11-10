@@ -9,6 +9,9 @@ from groq import Groq
 import os
 import logging
 import tempfile
+import subprocess
+import wave
+from array import array
 import torch
 
 # Configure logging
@@ -39,14 +42,14 @@ async def lifespan(app: FastAPI):
 
     # Load Silero VAD model
     try:
-        global vad_model, get_speech_timestamps, save_audio, read_audio, VADIterator, collect_chunks
+        global vad_model, get_speech_timestamps, collect_chunks
         torch.set_num_threads(1)
         vad_model, utils = torch.hub.load(
             repo_or_dir="snakers4/silero-vad", model="silero_vad", force_reload=False
         )
-        (get_speech_timestamps, save_audio, read_audio, VADIterator, collect_chunks) = (
-            utils
-        )
+        # Silero's read_audio/save_audio need a torchaudio backend, so audio I/O
+        # goes through ffmpeg and the wave module instead (see decode_audio/write_wav).
+        (get_speech_timestamps, _, _, _, collect_chunks) = utils
         logger.info("Silero VAD model loaded successfully.")
     except Exception as e:
         logger.error(f"Failed to load Silero VAD model: {e}")
@@ -122,6 +125,37 @@ async def get_models():
     return {"models": available_models}
 
 
+TARGET_SAMPLE_RATE = 16000
+
+
+def decode_audio(path: str) -> torch.Tensor:
+    """Decode any format ffmpeg reads (webm, mp3, wav...) to mono float32 at TARGET_SAMPLE_RATE."""
+    proc = subprocess.run(
+        [
+            "ffmpeg", "-nostdin", "-v", "error", "-i", path,
+            "-f", "f32le", "-ac", "1", "-ar", str(TARGET_SAMPLE_RATE), "-",
+        ],
+        capture_output=True,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(
+            f"ffmpeg failed to decode {path}: {proc.stderr.decode(errors='replace').strip()}"
+        )
+    if not proc.stdout:
+        return torch.zeros(0)
+    return torch.frombuffer(bytearray(proc.stdout), dtype=torch.float32)
+
+
+def write_wav(path: str, audio: torch.Tensor) -> None:
+    """Write a mono float tensor as 16-bit PCM WAV at TARGET_SAMPLE_RATE."""
+    pcm = (audio.clamp(-1.0, 1.0) * 32767).to(torch.int16)
+    with wave.open(path, "wb") as f:
+        f.setnchannels(1)
+        f.setsampwidth(2)
+        f.setframerate(TARGET_SAMPLE_RATE)
+        f.writeframes(array("h", pcm.tolist()).tobytes())
+
+
 async def extract_speech_only(
     input_audio_path: str, output_dir: str = "."
 ) -> Optional[str]:
@@ -131,9 +165,8 @@ async def extract_speech_only(
     If no speech is detected, returns None. Otherwise, returns the path
     to the output audio file containing only speech segments.
 
-    Assumes 'model', 'TARGET_SAMPLE_RATE', 'read_audio',
-    'get_speech_timestamps', 'collect_chunks', and 'save_audio'
-    are defined in the calling scope.
+    Uses the Silero 'vad_model', 'get_speech_timestamps' and 'collect_chunks'
+    loaded in lifespan.
 
     Args:
         input_audio_path: Path to the input audio file.
@@ -150,11 +183,9 @@ async def extract_speech_only(
     if not os.path.exists(input_audio_path):
         raise FileNotFoundError(f"Input audio file not found: {input_audio_path}")
 
-    TARGET_SAMPLE_RATE = 16000
-
     try:
-        # 1. Read audio (Silero's read_audio handles resampling)
-        wav = read_audio(input_audio_path, sampling_rate=TARGET_SAMPLE_RATE)
+        # 1. Decode and resample to mono TARGET_SAMPLE_RATE with ffmpeg
+        wav = decode_audio(input_audio_path)
 
         # 2. Get speech timestamps from the VAD model
         # You can tweak parameters like threshold, min_speech_duration_ms, etc.
@@ -187,11 +218,10 @@ async def extract_speech_only(
         # 4. Define output path and ensure directory exists
         os.makedirs(output_dir, exist_ok=True)
         base, _ = os.path.splitext(os.path.basename(input_audio_path))
-        # Force output to .wav for simplicity with save_audio
         output_audio_path = os.path.join(output_dir, f"{base}_speech_only.wav")
 
         # 5. Save the concatenated speech segments
-        save_audio(output_audio_path, speech_audio, sampling_rate=TARGET_SAMPLE_RATE)
+        write_wav(output_audio_path, speech_audio)
 
         # 6. Basic check if file was created and has some size (more than header)
         # A typical WAV header is 44 bytes. Anything larger means audio data exists.

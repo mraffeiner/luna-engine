@@ -4,9 +4,8 @@ WORKDIR /app
 
 COPY requirements.in .
 
-# Install system dependencies required for torchaudio (soundfile and ffmpeg backends)
+# ffmpeg decodes the uploaded audio (webm/mp3/wav) before Silero VAD
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libsndfile1 \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 

@@ -2,7 +2,7 @@
 
 Part of the **Luna Engine** monorepo (AI VTuber). The root `CLAUDE.md` covers the big picture, and the dashboard lives in `../../app`. This service transcribes audio clips (the browser mic, or Discord voice relayed by the UI). Silero VAD trims silence first, then Whisper runs on OpenAI or Groq. See `README.md` for the API.
 
-- **Stack:** Python 3.11, FastAPI, uvicorn, torch + torchaudio (VAD only), `openai`, `groq`
+- **Stack:** Python 3.11, FastAPI, uvicorn, torch (VAD only), ffmpeg, `openai`, `groq`
 - **Port:** 5003. The UI reaches it through Nginx at `/api/stt/`
 - **Single file:** `src/app.py`
 
@@ -13,7 +13,7 @@ Part of the **Luna Engine** monorepo (AI VTuber). The root `CLAUDE.md` covers th
 docker compose up -d --build stt-service
 docker compose logs -f stt-service
 
-# local, without Docker (needs ffmpeg + libsndfile)
+# local, without Docker (needs ffmpeg)
 pip install -r requirements.in && uvicorn src.app:app --port 5003 --reload
 ```
 
@@ -24,7 +24,7 @@ There are no tests. Verify with `curl localhost:5003/transcribe -F audio=@clip.w
 - `lifespan` loads Silero VAD from `torch.hub` (`snakers4/silero-vad`), which needs network access on the first start. If loading fails, `vad_model` is `None`.
 - `POST /transcribe` (multipart `audio`, `model`):
   1. writes the upload to a temp `.wav`
-  2. `extract_speech_only` keeps only the speech segments, resampled to `TARGET_SAMPLE_RATE`
+  2. `extract_speech_only` decodes it with the ffmpeg CLI (`decode_audio`) to mono `TARGET_SAMPLE_RATE`, keeps only the speech segments and writes them as WAV (`write_wav`)
   3. the clip goes to OpenAI or Groq depending on which dict, `OPENAI_MODELS` or `GROQ_MODELS`, contains the model
   4. temp files are cleaned up
 - `GET /models` only lists models whose provider API key is set.
@@ -34,12 +34,12 @@ There are no tests. Verify with `curl localhost:5003/transcribe -F audio=@clip.w
 
 - Logging format: `[%(asctime)s] - %(levelname)s: %(message)s` with datefmt `%Y/%m/%d %H:%M:%S`. The `lifespan` hook re-formats the `uvicorn.access` logger to match.
 - `GET /health` returns `{"status": "OK", "timestamp": <iso>}`.
-- Dependencies are listed in `requirements.in` without pins, except `torch`/`torchaudio` (see Gotchas).
+- Dependencies are listed in `requirements.in` without pins.
 
 ## Gotchas
 
 - The image is large because of PyTorch. Avoid adding more ML dependencies without a reason.
-- `torch` and `torchaudio` are pinned to `<2.9`. From 2.9 on, torchaudio needs `torchcodec` to read and write audio, and Silero's `read_audio`/`save_audio` then fail, so every `/transcribe` returns 500. Keep both pins in step.
+- Don't use Silero's `read_audio`/`save_audio` or add torchaudio back. They need a torchaudio backend (torchcodec from 2.9, sox or soundfile before that; 2.8 dropped the FFmpeg backend), none of which can decode the browser's webm/opus, and a missing backend makes every `/transcribe` return 500.
 - the root `docker-compose.yml` also gives this service's `.env` to `kokoro-tts` and `sesame-tts`, so renaming or removing the file breaks those containers.
 
 ## Cross-repo contract
