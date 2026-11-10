@@ -67,13 +67,14 @@ async def is_local_llm_available():
     if not local_base_url:
         logger.warning("Local LLM base URL is not configured.")
         return False
+    # Probe <base>/models: every OpenAI-compatible server (LM Studio, Ollama,
+    # llama.cpp) serves it, while the bare base URL may 404 (e.g. Ollama).
+    models_url = f"{local_base_url.rstrip('/')}/models"
     try:
-        logger.info(f"Checking local LLM availability at {local_base_url}")
+        logger.info(f"Checking local LLM availability at {models_url}")
         async with httpx.AsyncClient() as client:
-            # Use HEAD request for efficiency, target base URL or /health if available
-            response = await client.head(local_base_url, timeout=3.0)
-            # Consider status code 405 (Method Not Allowed) as OK if HEAD isn't supported
-            if 200 <= response.status_code < 300 or response.status_code == 405:
+            response = await client.get(models_url, timeout=3.0)
+            if 200 <= response.status_code < 300:
                 logger.info(f"Local LLM is available (Status: {response.status_code})")
                 return True
             else:
