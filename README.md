@@ -167,7 +167,7 @@ There are no automated tests.
 ## Known issues
 
 - The TTS output directory is hard-coded to `output/` inside tts-service. The host side of that mount is `output/tts/` in the repo root.
-- `kokoro-tts` and `sesame-tts` have no build context. You have to build or pull their images and tag them yourself.
+- `sesame-tts` has no build context and no public image. You have to build an OpenAI-compatible Sesame CSM-1B server yourself and tag it `sesame-tts`.
 
 ## History
 

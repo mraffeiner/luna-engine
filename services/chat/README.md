@@ -48,6 +48,8 @@ Copy `.env.example` to `.env` and fill it in:
 | `GOOGLE_CLIENT_SECRETS_FILE` | `/app/youtube_secret.json` | OAuth client secrets file |
 | `GOOGLE_CREDENTIALS_STORE_DIR` | `/app/credentials` | Where the OAuth token (`youtube_token.pickle`) is saved |
 | `OAUTH_REDIRECT_URI` | `http://localhost:8005/oauth2callback` | Must match the redirect URI registered in Google Cloud |
+| `LOG_LEVEL` | `INFO` | Python log level |
+| `HOST`, `PORT`, `WS_PING_INTERVAL`, `WS_PING_TIMEOUT` | `0.0.0.0`, `8005`, `20`, `20` | Only used by `python -m src.main`. The Docker image starts uvicorn with these values as flags |
 
 ### YouTube setup
 

@@ -40,9 +40,8 @@ There are no tests. Verify with `curl localhost:5003/transcribe -F audio=@clip.w
 
 - The image is large because of PyTorch. Avoid adding more ML dependencies without a reason.
 - Don't use Silero's `read_audio`/`save_audio` or add torchaudio back. They need a torchaudio backend (torchcodec from 2.9, sox or soundfile before that; 2.8 dropped the FFmpeg backend), none of which can decode the browser's webm/opus, and a missing backend makes every `/transcribe` return 500.
-- the root `docker-compose.yml` also gives this service's `.env` to `kokoro-tts` and `sesame-tts`, so renaming or removing the file breaks those containers.
 
-## Cross-repo contract
+## Contract with the app
 
 Consumer: `../../app/src/lib/pages/services/stt/sttService.ts`. The recording UI is in `SttPage.svelte`, which uses MediaRecorder with webm or mp3.
 

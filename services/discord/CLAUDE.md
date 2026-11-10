@@ -41,7 +41,7 @@ There are no tests. Verification needs a real bot token and voice channel: `POST
 - The bot needs the Message Content privileged intent enabled in the developer portal.
 - Since March 2026 Discord rejects voice clients without DAVE (end-to-end encryption). `@discordjs/voice` below 0.19 has no DAVE: the bot still appears in the channel, but the connection never becomes ready, so no speech arrives and playback goes straight to `autopaused`. DAVE comes from the native `@snazzah/davey`, a regular dependency of `@discordjs/voice`. Don't downgrade below 0.19.
 
-## Cross-repo contract
+## Contract with the app
 
 Consumer: `../../app/src/lib/pages/services/discord/discordService.ts`. That file parses the binary frame format, so any change to the framing must be made on both sides.
 

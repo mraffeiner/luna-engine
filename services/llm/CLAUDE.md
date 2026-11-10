@@ -36,7 +36,7 @@ There are no tests. Verify with `curl localhost:5001/models` and a streaming `cu
 
 - `host.docker.internal` only resolves because of the `extra_hosts: host-gateway` entry in compose (Linux Docker Engine). Keep it.
 
-## Cross-repo contract
+## Contract with the app
 
 Consumer: `../../app/src/lib/pages/services/llm/llmService.ts`. The dashboard's default response model and prepass settings are configured there, not here.
 

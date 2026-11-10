@@ -32,11 +32,11 @@ There are no tests. Verify with `curl localhost:5000/health`, `/docs`, and the d
 - `GET /health` returns `{"status": "OK", "timestamp": <iso>}`.
 - Dependencies are listed in `requirements.in` without pins and installed directly with pip.
 
-## Cross-repo contract
+## Contract with the app
 
 Consumer: `../../app/src/lib/pages/services/docker/dockerService.ts`. Update it together with any API change here.
 
 ## Working rules
 
 - Don't push unless asked.
-- Never read or print `.env` (enforced in the root `.claude/settings.json`).
+- This service reads no env vars. Never read or print other services' `.env` files (enforced in the root `.claude/settings.json`).

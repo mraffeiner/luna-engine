@@ -36,7 +36,7 @@ There are no tests. Verify with `curl localhost:5006/health` (check `obsConnecte
 
 - OBS runs on the host, so the address is usually `ws://host.docker.internal:4455`. That only resolves because of the `extra_hosts: host-gateway` entry in compose. Keep it.
 
-## Cross-repo contract
+## Contract with the app
 
 Consumer: `../../app/src/lib/pages/services/obs/obsService.ts`. The engine loop writes `subtitles.text`, and the OBS page sends it to this service.
 

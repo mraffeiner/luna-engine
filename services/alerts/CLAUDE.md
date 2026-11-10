@@ -35,7 +35,7 @@ To add an event type, add it to the `eventTypes` listener list, add a `case` in 
 - `/health` returns `{status: "OK", timestamp}`.
 - Imports are mapped in `deno.json`.
 
-## Cross-repo contract
+## Contract with the app
 
 Consumer: `../../app/src/lib/pages/services/alerts/alertsService.ts`, which must stay in sync with the `StandardizedAlert` shape.
 

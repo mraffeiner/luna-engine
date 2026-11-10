@@ -11,8 +11,8 @@
 | Method | Path | Body | Description |
 |---|---|---|---|
 | `GET` | `/health` | | Health check |
-| `GET` | `/connect` | | Connects and authenticates with VTube Studio. On first use, VTube Studio shows a prompt where you must allow the plugin |
-| `GET` | `/list_custom_params` | | Lists the custom parameters on the current model |
+| `GET` | `/connect` | | Connects and authenticates with VTube Studio. On first use, VTube Studio shows a prompt where you must allow the plugin. Returns `401` if the plugin isn't approved |
+| `GET` | `/list_custom_params` | | Lists the custom parameters on the current model. Returns `502` if VTube Studio reports an API error |
 | `POST` | `/create_param` | `{ "name", "min", "max", "default_value", "info" }` | Creates a custom parameter |
 | `POST` | `/get_param` | `{ "name" }` | Gets a parameter's current value |
 | `POST` | `/set_param` | `{ "name", "value" }` | Sets one parameter |
