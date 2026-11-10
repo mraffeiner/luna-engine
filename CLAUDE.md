@@ -49,7 +49,7 @@ To add a new service, touch all of the following:
 ## Gotchas
 
 - `name: luna-engine` in compose pins the project name. docker-service only streams logs for containers on the `luna-engine_default` network, so keep the pin.
-- `kokoro-tts` and `sesame-tts` are third-party images with no build context. `sesame-tts` only runs with `--profile experimental`. Both load `services/tts/.env` (for `HF_TOKEN` and Kokoro settings), which tts-service shares and ignores.
+- `kokoro-tts` (upstream `ghcr.io/remsky/kokoro-fastapi-gpu`, pinned) and `sesame-tts` are third-party images with no build context. `sesame-tts` only runs with `--profile experimental`. Both load `services/tts/.env` (for `HF_TOKEN` and Kokoro settings), which tts-service shares and ignores.
 - compose fails if any referenced `.env` file is missing. docker-service and vts-service read no env vars, so they have no `env_file` and no `.env.example`. Keep it that way unless they gain variables. A missing `services/chat/youtube_secret.json` makes Docker create a directory in its place.
 - TTS files saved with "Save TTS" land in `output/tts/` at the repo root (git-ignored).
 - History from the former separate repos was merged in, so `git log --follow services/<name>/<file>` shows a file's full history.

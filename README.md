@@ -63,11 +63,11 @@ luna-engine/
 
 Each folder has its own README with its API and configuration.
 
-Two more containers come from third-party images that you build or pull yourself:
+Two more containers come from third-party images:
 
 | Container | Port | What it should be |
 |---|---|---|
-| `kokoro-tts` | 8880 | An OpenAI-compatible Kokoro server exposing `/v1/audio/speech` and `/health`, e.g. [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI) (GPU image), tagged as `kokoro-tts` |
+| `kokoro-tts` | 8880 | [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI)'s GPU image (`ghcr.io/remsky/kokoro-fastapi-gpu`). compose pulls it automatically |
 | `sesame-tts` | 8000 | An OpenAI-compatible Sesame CSM-1B server exposing `/v1/audio/speech`, tagged as `sesame-tts`. It only starts with `--profile experimental` |
 
 Both need an NVIDIA GPU with the NVIDIA Container Toolkit installed.

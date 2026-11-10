@@ -24,6 +24,7 @@ There are no tests. Verify with `curl localhost:5002/health` (which lists the re
 - `TTSRequest` is a union of `AzureTTSRequest`, `KokoroTTSRequest` and `SesameTTSRequest`, selected by the `engine` literal. `/generate` dispatches on the type with `isinstance` and returns `audio/wav` bytes.
 - **Azure** builds SSML (style through `mstts:express-as`, plus rate and pitch) and needs `AZURE_SUBSCRIPTION` and `AZURE_ENDPOINT`.
 - **Kokoro and Sesame** send an OpenAI-style `POST {URL}/v1/audio/speech` to the `kokoro-tts:8880` and `sesame-tts:8000` containers. Those are third-party images that aren't in any Luna repo.
+- **Kokoro pitch** is varispeed done in tts-service, not by Kokoro: `apply_varispeed_pitch` scales the sample rate and byte rate in the WAV's `fmt ` chunk. Kokoro is called with `stream: false` so it returns one complete WAV.
 - `GET /options` is a **hard-coded** catalog of voices, languages and styles that the UI uses for its dropdowns. When you add a voice or engine, update it here.
 - With `save: true`, the audio is also written to `output/<engine>_<voice>_<timestamp>.wav`. The path is hard-coded on purpose, after env-based config misbehaved. compose mounts it at `output/tts/` in the repo root.
 

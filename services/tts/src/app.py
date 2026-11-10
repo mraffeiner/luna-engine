@@ -7,6 +7,7 @@ import os
 import httpx
 from dotenv import load_dotenv
 import logging
+import struct
 from enum import Enum
 from typing import List, Dict, Literal
 
@@ -95,7 +96,12 @@ class KokoroTTSRequest(BaseTTSRequest):
     engine: Literal[TTSEngine.KOKORO] = TTSEngine.KOKORO
     language: str = Field(..., description="Language code (e.g., en-US)")
     speed: float = Field(1.0, description="Speaking speed multiplier (0.5-2.0)")
-    pitch: float = Field(1.0, description="Voice pitch multiplier (0.5-2.0)")
+    pitch: float = Field(
+        1.0,
+        ge=0.5,
+        le=2.0,
+        description="Varispeed pitch multiplier (0.5-2.0). Pitch and tempo change together",
+    )
 
 
 class SesameTTSRequest(BaseTTSRequest):
@@ -458,6 +464,44 @@ async def synthesize_with_azure(request: AzureTTSRequest) -> bytes:
         )
 
 
+def apply_varispeed_pitch(wav: bytes, pitch: float) -> bytes:
+    """
+    Shift pitch and tempo together by scaling the sample rate declared in a WAV header.
+
+    The samples stay untouched: a player (or a resampler such as ffmpeg) reads them at
+    the new rate, so 24 kHz audio declared as 28.8 kHz plays 1.2x higher and faster.
+
+    Args:
+        wav: A RIFF/WAVE file
+        pitch: Factor to scale the sample rate by
+
+    Returns:
+        The WAV with its `fmt ` chunk's sample rate and byte rate scaled
+    """
+    if pitch == 1.0:
+        return wav
+    if wav[0:4] != b"RIFF" or wav[8:12] != b"WAVE":
+        raise ValueError("Kokoro did not return a RIFF/WAVE file")
+
+    out = bytearray(wav)
+    pos = 12
+    # Walk the chunks up to `fmt ` (normally the first one). Chunks after it, like
+    # `data`, are never parsed, so placeholder sizes from a streaming writer are fine
+    while pos + 8 <= len(out):
+        chunk_id = bytes(out[pos : pos + 4])
+        (chunk_size,) = struct.unpack_from("<I", out, pos + 4)
+        if chunk_id == b"fmt ":
+            (sample_rate,) = struct.unpack_from("<I", out, pos + 12)
+            (block_align,) = struct.unpack_from("<H", out, pos + 20)
+            new_rate = round(sample_rate * pitch)
+            struct.pack_into("<I", out, pos + 12, new_rate)
+            struct.pack_into("<I", out, pos + 16, new_rate * block_align)
+            return bytes(out)
+        pos += 8 + chunk_size + (chunk_size & 1)
+
+    raise ValueError("Kokoro's WAV has no fmt chunk")
+
+
 async def synthesize_with_kokoro(request: KokoroTTSRequest) -> bytes:
     """
     Synthesize speech using Kokoro TTS
@@ -472,7 +516,8 @@ async def synthesize_with_kokoro(request: KokoroTTSRequest) -> bytes:
         HTTPException: If synthesis fails
     """
     try:
-        # Call Kokoro API with direct speed parameter
+        # Kokoro-FastAPI has no pitch option, so pitch is applied to its WAV afterwards.
+        # stream=False makes it return one complete WAV instead of streamed chunks
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{KOKORO_API_URL}/v1/audio/speech",
@@ -483,13 +528,13 @@ async def synthesize_with_kokoro(request: KokoroTTSRequest) -> bytes:
                     "language": request.language,
                     "response_format": "wav",
                     "speed": request.speed,
-                    "pitch": request.pitch,
+                    "stream": False,
                 },
             )
 
             response.raise_for_status()
             logger.info(f"Kokoro speech synthesized for text: {request.text[:50]}...")
-            return response.content
+            return apply_varispeed_pitch(response.content, request.pitch)
 
     except httpx.HTTPStatusError as e:
         logger.error(f"Kokoro API error: {e.response.status_code} - {e.response.text}")
