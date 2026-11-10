@@ -86,10 +86,10 @@ uvicorn src.app:app --host 0.0.0.0 --port 5001 --reload
 The service only lists local models when `<LOCAL_BASE_URL>/models` answers. The log line `Checking local LLM availability at ...` shows the URL it tried.
 - Run `curl <LOCAL_BASE_URL>/models` on the host, with `localhost` in place of `host.docker.internal`, to check that the server answers at all.
 - The server has to listen on an address containers can reach, not only `127.0.0.1`. LM Studio: enable *Serve on Local Network*. Ollama: set `OLLAMA_HOST=0.0.0.0`, e.g. with `sudo systemctl edit ollama` and `Environment="OLLAMA_HOST=0.0.0.0"` when it runs as a systemd service.
-- A host firewall may block traffic from Docker. See [Troubleshooting](../../README.md#troubleshooting) in the root README.
+- A host firewall may block traffic from Docker. See [A service can't reach a program on the host](../../README.md#a-service-cant-reach-a-program-on-the-host).
 
 ### `Authentication error with <provider> API`
-The API key for that provider is missing or invalid in `.env`. After changing `.env`, recreate the container with `docker compose up -d llm-service`. `docker compose restart` doesn't reload `.env` files.
+The API key for that provider is missing or invalid in `.env`. After changing `.env`, recreate the container with `docker compose up -d llm-service`, because `docker compose restart` doesn't reload `.env` files.
 
 ## License
 

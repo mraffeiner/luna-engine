@@ -20,7 +20,7 @@ If the connection drops, it reconnects every 5 seconds.
 curl -X POST http://localhost:5006/subtitle -H 'Content-Type: application/json' -d '{"text":"Hello chat!"}'
 ```
 
-## Setup
+## Configuration
 
 1. In OBS, open **Tools → WebSocket Server Settings**, enable the server and set a password. The default port is 4455.
 2. Add a **Text (GDI+ / FreeType 2)** source to your scene for the subtitles, and note its name.
@@ -49,7 +49,7 @@ deno task start
 ## Troubleshooting
 
 ### `obsConnected` stays `false`
-Check that the WebSocket server is enabled in OBS and that address and password match. When OBS runs on the Docker host, see [Troubleshooting](../../README.md#troubleshooting) in the root README for host connectivity.
+Check that the WebSocket server is enabled in OBS and that address and password match. When OBS runs on the Docker host, see [A service can't reach a program on the host](../../README.md#a-service-cant-reach-a-program-on-the-host).
 
 ### `/subtitle` fails although OBS is connected
 `OBS_SUBTITLE_SOURCE_NAME` must exactly match the name of a text source in OBS.

@@ -2,7 +2,7 @@
 
 Speech-to-text backend for [Luna Engine](../../README.md). The dashboard records the microphone in the browser and uploads the clip here to be transcribed.
 
-Before transcription, the audio goes through **[Silero VAD](https://github.com/snakers4/silero-vad)**, which removes silence and keeps only the speech. Silent clips are rejected, and less audio is sent to the API. Transcription itself uses Whisper models from **OpenAI** or **Groq**.
+Before transcription, the audio goes through **[Silero VAD](https://github.com/snakers4/silero-vad)**, which removes silence and keeps only the speech. Clips without speech return `*noises*` without calling the API at all, and less audio is sent for the rest. Transcription itself uses Whisper models from **OpenAI** or **Groq**.
 
 - **Stack:** Python 3.11, FastAPI, PyTorch (Silero VAD), ffmpeg, `openai`, `groq`
 - **Port:** 5003
@@ -55,6 +55,17 @@ uvicorn src.app:app --host 0.0.0.0 --port 5003 --reload
 ```
 
 The image is large because it installs PyTorch, which is only used for VAD.
+
+## Troubleshooting
+
+### Every `/transcribe` call fails right after startup
+The Silero VAD model is downloaded from `torch.hub` when the service starts. If that fails, for example without internet access, transcription can't work. Check the log for the VAD loading error and restart the service once it has internet access.
+
+### `/models` is empty or misses a provider
+Only providers with an API key in `.env` are listed. After changing `.env`, recreate the container with `docker compose up -d stt-service`.
+
+### Every transcription is `*noises*`
+Voice activity detection found no speech in the clip, so it wasn't sent to the API. Check that the microphone works, that the right input device is selected in the browser, and that the input level isn't too low.
 
 ## License
 

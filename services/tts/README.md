@@ -76,6 +76,17 @@ pip install -r requirements.in
 uvicorn src.app:app --host 0.0.0.0 --port 5002 --reload
 ```
 
+## Troubleshooting
+
+### An engine is missing from `/health`
+`engines` only lists engines that are reachable right now.
+- **azure**: both `AZURE_SUBSCRIPTION` and `AZURE_ENDPOINT` must be set.
+- **kokoro**: the `kokoro-tts` container must be running. It needs an NVIDIA GPU and the NVIDIA Container Toolkit, and loads its model on the first start, which can take a while. Check `docker compose logs kokoro-tts`.
+- **sesame**: `sesame-tts` only runs with `docker compose --profile experimental up`, needs a locally built `sesame-tts` image and `HF_TOKEN` for the gated model.
+
+### Kokoro sounds faster or slower than expected
+Kokoro's `pitch` is applied as varispeed, so pitch and tempo change together. Use `1.0` for the original voice.
+
 ## License
 
 [MIT](../../LICENSE) © Matthias Raffeiner

@@ -21,7 +21,7 @@ There are no tests. Verification needs VTube Studio running on the host with its
 
 ## How it works
 
-- A global `pyvts.vts` instance is created in `lifespan`. It points at `host.docker.internal:8001`, the plugin is named "VTS Service" by developer "Luna Engine", and the auth token goes to `./token.txt`.
+- A global `pyvts.vts` instance is created in `lifespan`. It points at `host.docker.internal:8001`, the plugin is named "VTS Service" by developer "Luna Engine", and `authentication_token_path` is `./token.txt`. The code never calls pyvts' `read_token()`/`write_token()`, so that file is never used and the token only lives in memory.
 - `/connect` connects, requests a token (VTS shows an approval prompt the first time) and authenticates.
 - The parameter endpoints wrap pyvts requests (`requestCustomParameter`, `requestSetParameterValue` and so on). `/set_params` sets several values in one call. The UI calls it about every 33 ms for voice-based motion while Luna speaks, so keep it fast and keep the access logs quiet (the access log level is WARNING on purpose).
 
@@ -34,7 +34,7 @@ There are no tests. Verification needs VTube Studio running on the host with its
 ## Gotchas
 
 - Errors are raised as `HTTPException`, so failures come back with real status codes: `/connect` gives `401` when VTube Studio didn't approve the plugin, and `/list_custom_params` gives `502` when VTS answers with an `APIError` (it returns a list otherwise). Don't go back to returning error bodies with `200`: `vtsService.ts` stores the `/list_custom_params` response as `modelParams` and needs it to be a list.
-- `token.txt` isn't on a volume, so VTS has to approve the plugin again after the container is recreated.
+- The token isn't persisted (see above), so VTS asks to approve the plugin again after every restart of the service. Persisting it would need `read_token()`/`write_token()` in `/connect` plus a volume.
 - No environment variables are read, so compose has no `env_file` for this service and there's no `.env.example`.
 - `host.docker.internal` only resolves because of the `extra_hosts: host-gateway` entry in compose. Keep it. VTube Studio has no native Linux build and runs under Steam Proton on the host, which makes no difference to the connection.
 

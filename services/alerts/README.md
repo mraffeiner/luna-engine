@@ -55,6 +55,15 @@ Copy `.env.example` to `.env` and fill it in:
 deno run --env-file --watch --allow-net --allow-env --allow-read src/main.ts
 ```
 
+## Troubleshooting
+
+### No alerts arrive
+- Check the service log for a successful connection to StreamElements. An invalid or expired `STREAMELEMENTS_JWT_TOKEN` is the most common cause. Copy it again from **Account → Channels → Show secrets**.
+- Use **Emulate** in the StreamElements dashboard to send a test alert, and check that the dashboard's Alerts page is connected to `/ws`.
+
+### An alert shows up as `unknown`
+StreamElements sent an event type the service doesn't map yet. The original name is kept in `originalEventName`.
+
 ## License
 
 [MIT](../../LICENSE) © Matthias Raffeiner

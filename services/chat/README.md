@@ -71,7 +71,7 @@ pip install -r requirements.in
 uvicorn src.main:app --host 0.0.0.0 --port 8005 --reload
 ```
 
-Project layout:
+## Project layout
 
 ```
 src/

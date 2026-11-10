@@ -42,7 +42,7 @@ Copy `.env.example` to `.env` and fill it in:
 | `DISCORD_GUILD_ID` | Optional. Default server for `/join-voice` when the dashboard's field is empty |
 | `DISCORD_CHANNEL_ID` | Optional. Default voice channel for `/join-voice` when the dashboard's field is empty |
 
-Bot setup:
+### Bot setup
 
 1. Create an application and add a bot.
 2. Under **Privileged Gateway Intents**, enable **Message Content**.

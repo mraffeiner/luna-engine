@@ -2,6 +2,16 @@
 
 Control center for **Luna**, an AI VTuber. Luna Engine is a SvelteKit web dashboard that drives the conversation loop. It takes in chat and voice, generates a reply with an LLM, speaks it with TTS, and then sends the result to OBS, VTube Studio and Discord. Each capability runs as its own small Docker microservice, and everything lives in this repo.
 
+## Contents
+
+- [How it works](#how-it-works)
+- [Repository layout](#repository-layout)
+- [Setup](#setup)
+- [Desktop app](#desktop-app)
+- [Security](#security)
+- [Troubleshooting](#troubleshooting)
+- [Development](#development)
+
 ## How it works
 
 ```
@@ -22,19 +32,19 @@ Control center for **Luna**, an AI VTuber. Luna Engine is a SvelteKit web dashbo
           docker-service ◄── start/stop containers, stream logs
 ```
 
-The engine loop lives in the browser (`app/src/lib/pages/EnginePage.svelte`):
+The engine loop runs in the browser (`app/src/lib/pages/EnginePage.svelte`):
 
-1. New chat messages, transcribed speech and alerts are added to the **prompt**. The prompt is a system prompt plus named sections such as `conversation`, and you can edit and save templates on the *Prompt Templates* page. Templates are stored in the browser's `localStorage`.
-2. **Think**: the prompt goes to the selected LLM. There is an optional *prepass*, where a second LLM call rewrites the first answer.
+1. New chat messages, transcribed speech and alerts are added to the **prompt**. The prompt is a system prompt plus named sections such as `conversation`. Templates can be edited and saved on the *Prompt Templates* page and are stored in the browser's `localStorage`.
+2. **Think**: the prompt goes to the selected LLM. An optional *prepass* lets a second LLM call rewrite the first answer.
 3. **Speak**: the reply is synthesized with the selected TTS engine and played in the browser. It is also sent to Discord when that is enabled, and the text is shown as a subtitle. With *interruptable* turned on, the reply is split at punctuation so new input can cut it off.
 4. The spoken text is added to the `conversation` section, and the loop waits for the next trigger.
 
-Engine modes:
+Each prompt section has a character limit. When a section grows past it, its oldest lines are dropped. There is no long-term memory beyond that window.
+
+The engine starts paused and has two modes:
 
 - **REACT** (default): Luna only responds when there is new input.
 - **AUTO**: Luna keeps talking even without new input.
-
-The engine starts paused.
 
 ## Repository layout
 
@@ -61,16 +71,14 @@ luna-engine/
 | [`services/vts/`](services/vts/) | `vts-service` | 5007 | Python, FastAPI | Controls VTube Studio model parameters through the plugin API |
 | [`services/chat/`](services/chat/) | `chat-service` | 8005 | Python, FastAPI | Twitch and YouTube live chat, sent to the UI over a WebSocket |
 
-Each folder has its own README with its API and configuration.
+Each folder has its own README with its API, configuration and troubleshooting.
 
-Two more containers come from third-party images:
+Two more containers come from third-party images. Both need an NVIDIA GPU with the NVIDIA Container Toolkit:
 
-| Container | Port | What it should be |
+| Container | Port | Image |
 |---|---|---|
-| `kokoro-tts` | 8880 | [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI)'s GPU image (`ghcr.io/remsky/kokoro-fastapi-gpu`). compose pulls it automatically |
-| `sesame-tts` | 8000 | An OpenAI-compatible Sesame CSM-1B server exposing `/v1/audio/speech`, tagged as `sesame-tts`. It only starts with `--profile experimental` |
-
-Both need an NVIDIA GPU with the NVIDIA Container Toolkit installed.
+| `kokoro-tts` | 8880 | [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI)'s GPU image (`ghcr.io/remsky/kokoro-fastapi-gpu`), pulled automatically |
+| `sesame-tts` | 8000 | An OpenAI-compatible Sesame CSM-1B server exposing `/v1/audio/speech`, tagged `sesame-tts`. There is no public image, so it has to be built separately. It only starts with `--profile experimental` |
 
 ## Setup
 
@@ -79,9 +87,9 @@ Both need an NVIDIA GPU with the NVIDIA Container Toolkit installed.
 Luna Engine is developed and run on **Linux**. Other platforms aren't tested or maintained.
 
 - Docker Engine 20.10+ with Compose v2
-- An NVIDIA GPU and the NVIDIA Container Toolkit, needed for `kokoro-tts` and `sesame-tts`. Remove those services if you only use Azure TTS.
-- [Deno](https://deno.com) 2.x, only needed for local frontend development
-- Rust 1.77.2+ and the [Tauri 2 Linux prerequisites](https://v2.tauri.app/start/prerequisites/#linux) (WebKitGTK 4.1 and friends), only needed to build the desktop app
+- An NVIDIA GPU and the NVIDIA Container Toolkit for `kokoro-tts` and `sesame-tts`. Without a GPU, remove those services from `docker-compose.yml` and use Azure TTS.
+- [Deno](https://deno.com) 2.x, only for local frontend development
+- Rust 1.77.2+ and the [Tauri 2 Linux prerequisites](https://v2.tauri.app/start/prerequisites/#linux), only for the [desktop app](#desktop-app)
 
 ### 1. Clone
 
@@ -90,33 +98,34 @@ git clone https://github.com/mraffeiner/luna-engine.git
 cd luna-engine
 ```
 
-The compose project name is pinned to `luna-engine` in `docker-compose.yml`, so the folder name doesn't matter. docker-service relies on that name to find the stack's containers.
+The compose project name is pinned to `luna-engine` in `docker-compose.yml`, so the folder name doesn't matter.
 
 ### 2. Configure the services
 
-Services that need configuration read a `.env` file in their own folder. These files are git-ignored. Each of those services ships a `.env.example` to start from:
+Services that need configuration read a git-ignored `.env` file in their own folder, starting from the `.env.example` next to it. compose refuses to start if any of these files is missing, even for unused services, so create all of them:
 
 ```bash
 for d in services/*/; do [ -f "$d.env.example" ] && [ ! -f "$d.env" ] && cp "$d.env.example" "$d.env"; done
+touch services/chat/youtube_secret.json   # replace with the OAuth client file if YouTube is used
 ```
 
-Then fill in the values you need. See each service's README for details. A quick summary:
+`youtube_secret.json` has to exist before the first start. Otherwise Docker creates a directory with that name for the bind mount.
+
+Then fill in the values for the services you use. Each service's README describes its variables:
 
 | Service | Required `.env` values |
 |---|---|
-| docker | no `.env` (it mounts `/var/run/docker.sock`) |
+| docker | none, no `.env` |
 | llm | at least one of `OPENAI_API_KEY`, `GROQ_API_KEY` + `GROQ_BASE_URL`, `GEMINI_API_KEY` + `GOOGLE_BASE_URL`, or a local server at `LOCAL_BASE_URL` |
 | stt | `OPENAI_API_KEY` and/or `GROQ_API_KEY` |
-| tts | `AZURE_SUBSCRIPTION` + `AZURE_ENDPOINT` for Azure. This file is also passed to the `kokoro-tts` and `sesame-tts` containers: `HF_TOKEN` for Sesame's gated model, plus optional Kokoro settings |
+| tts | `AZURE_SUBSCRIPTION` + `AZURE_ENDPOINT` for Azure. The same file is passed to `kokoro-tts` and `sesame-tts`: `HF_TOKEN` for Sesame's gated model, plus optional Kokoro settings |
 | discord | `DISCORD_TOKEN`, optionally `DISCORD_GUILD_ID` + `DISCORD_CHANNEL_ID` as the default voice channel |
-| chat | Twitch: `TWITCH_OAUTH_TOKEN`, `TWITCH_CLIENT_ID`, `TWITCH_NICK`, `TWITCH_CHANNELS`. YouTube: `YOUTUBE_CHANNEL_ID` (a label; the chat is found through the logged-in account's live broadcast) plus a `youtube_secret.json` OAuth client file |
+| chat | Twitch: `TWITCH_OAUTH_TOKEN`, `TWITCH_CLIENT_ID`, `TWITCH_NICK`, `TWITCH_CHANNELS`. YouTube: `YOUTUBE_CHANNEL_ID` plus the `youtube_secret.json` OAuth client file |
 | alerts | `STREAMELEMENTS_JWT_TOKEN` |
 | obs | `OBS_WEBSOCKET_ADDRESS`, `OBS_WEBSOCKET_PASSWORD`, `OBS_SUBTITLE_SOURCE_NAME` |
-| vts | no `.env` (it connects to VTube Studio on the host at port 8001) |
+| vts | none, no `.env` |
 
-> **Note:** compose refuses to start if any service's `.env` is missing, even for services you don't use. The copy loop above creates them all. Also create `services/chat/youtube_secret.json` before the first start (an empty file is fine if you don't use YouTube). Otherwise Docker creates a root-owned *directory* with that name for the bind mount.
-
-### Programs on the host
+### 3. Prepare programs on the host
 
 Some services connect to programs on the Docker host rather than to other containers:
 
@@ -126,9 +135,9 @@ Some services connect to programs on the Docker host rather than to other contai
 | obs-service | OBS Studio (obs-websocket) | 4455 |
 | llm-service, `local` provider | Ollama (default), LM Studio or another OpenAI-compatible server | 11434 / 1234 |
 
-The compose file maps `host.docker.internal` to the host with `extra_hosts: host-gateway`, so the containers can reach these programs. Each program has to listen on an address the Docker bridge can reach, not only `127.0.0.1`. See [Troubleshooting](#troubleshooting) if a service can't connect.
+The compose file maps `host.docker.internal` to the host with `extra_hosts: host-gateway`, so the containers can reach these programs. Each program has to listen on an address the Docker bridge can reach, not only `127.0.0.1`. See [Troubleshooting](#a-service-cant-reach-a-program-on-the-host) if a service can't connect.
 
-### 3. Start the stack
+### 4. Start the stack
 
 From the repo root:
 
@@ -138,9 +147,7 @@ docker compose up -d --build
 docker compose --profile experimental up -d --build
 ```
 
-Open **http://localhost:8080**.
-
-Useful commands:
+Then open **http://localhost:8080**.
 
 | Command | What it does |
 |---|---|
@@ -151,7 +158,7 @@ Useful commands:
 
 The same commands exist as `compose:*` scripts in `app/package.json`.
 
-### 4. Use the dashboard
+### 5. Use the dashboard
 
 - **Engine Control Center**: start or pause the engine, switch between REACT and AUTO, toggle the LLM prepass, interruptable speech and saving TTS audio, and see what each stage produced.
 - **Docker Service**: start or stop individual service containers and follow their logs live.
@@ -160,17 +167,68 @@ The same commands exist as `compose:*` scripts in `app/package.json`.
 
 Audio saved with *Save TTS* ends up in `output/tts/`.
 
-### Desktop app (optional)
+## Desktop app
 
-`app/src-tauri/` is a Tauri 2 wrapper. It runs `docker compose up`, waits for the dashboard, opens it in a native window, and stops the stack when you close the window. See [`app/README.md`](app/README.md#desktop-app-tauri) for build instructions. Run the binary from the **repo root**, where `docker-compose.yml` is.
+`app/src-tauri/` is an optional Tauri 2 wrapper. It runs `docker compose up`, waits up to 60 seconds for the dashboard, opens it in a native window, and stops the stack when the window is closed.
+
+```bash
+cd app/src-tauri && cargo build
+cd ../.. && ./app/src-tauri/target/debug/LunaEngine
+```
+
+Run the binary from the **repo root**, because it runs `docker compose` in its current working directory. See [`app/README.md`](app/README.md#desktop-app-tauri) for details.
 
 ## Security
 
 Luna Engine is a single-user tool meant to run on one machine. None of the services have authentication.
 
-- Every port in `docker-compose.yml` is bound to `127.0.0.1`, so only the local machine can reach the dashboard and the services. Docker's published ports bypass host firewalls such as ufw, so this binding is what keeps the rest of your network out. If you change it, anyone who can reach a port can use your API keys (llm, tts, stt), play audio in your Discord call or write to OBS.
+- Every port in `docker-compose.yml` is bound to `127.0.0.1`, so only the local machine can reach the dashboard and the services. Docker's published ports bypass host firewalls such as ufw, so this binding is what keeps the rest of the network out. Without it, anyone who can reach a port can use the configured API keys (llm, tts, stt), play audio in the Discord call or write to OBS.
 - To open the dashboard from another device, put port 8080 behind a reverse proxy with authentication rather than publishing it on all interfaces.
 - docker-service mounts `/var/run/docker.sock`, which is root-equivalent access to the host. It only acts on containers of the `luna-engine` compose project and returns `404` for any other container.
+
+## Troubleshooting
+
+This section covers problems that affect the whole stack. Problems with a single service are in that service's README:
+
+| Service | Covers |
+|---|---|
+| [llm](services/llm/README.md#troubleshooting) | Local models not listed, authentication errors |
+| [tts](services/tts/README.md#troubleshooting) | Missing engines |
+| [stt](services/stt/README.md#troubleshooting) | Transcription failing, models not listed |
+| [discord](services/discord/README.md#troubleshooting) | No audio in the voice channel, permissions |
+| [chat](services/chat/README.md#troubleshooting) | YouTube login, live chat and quota errors |
+| [alerts](services/alerts/README.md#troubleshooting) | No alerts arriving |
+| [obs](services/obs/README.md#troubleshooting) | No connection, subtitles not updating |
+| [vts](services/vts/README.md#troubleshooting) | Connection and plugin approval |
+
+### `docker compose up` fails with `env file ... not found`
+
+compose needs every `.env` file it references, even for services that aren't used. Run the copy loop from [Configure the services](#2-configure-the-services).
+
+### `services/chat/youtube_secret.json` is a directory
+
+The file was missing when the stack first started, so Docker created a directory for the bind mount. Remove the directory (it's owned by root) and create the file: either the OAuth client JSON or an empty file if YouTube isn't used.
+
+### A service can't reach a program on the host
+
+This applies to vts-service, obs-service and llm-service's `local` provider.
+
+- Check that the program is running and its API or server is enabled on the expected port.
+- The program has to listen on an address containers can reach. A server bound to `127.0.0.1` only accepts connections from the host itself, so bind it to `0.0.0.0` or enable its LAN option.
+- Host firewalls (ufw, firewalld, nftables) may block traffic from the Docker bridge to the host. Allow the Docker networks (by default inside `172.16.0.0/12`) to reach that port, e.g. with ufw: `sudo ufw allow from 172.16.0.0/12 to any port 4455 proto tcp`.
+- From the host, `curl` the program's address to make sure it answers at all.
+
+### Changes to a `.env` file have no effect
+
+`docker compose restart` doesn't reload `.env` files. Recreate the container instead: `docker compose up -d <service>`.
+
+### The desktop app shows an error page
+
+The window opens after waiting up to 60 seconds for the dashboard. On the first start, building the images usually takes longer. Run `docker compose build` once before starting the app.
+
+### The desktop app doesn't compile
+
+Missing system libraries are the usual cause. Install the [Tauri 2 Linux prerequisites](https://v2.tauri.app/start/prerequisites/#linux) for the distribution. If `rustup` reports that no default toolchain is configured, run `rustup default stable`.
 
 ## Development
 
@@ -180,40 +238,12 @@ Luna Engine is a single-user tool meant to run on one machine. None of the servi
 
 There are no automated tests.
 
-## Known issues
+### Known issues
 
 - The TTS output directory is hard-coded to `output/` inside tts-service. The host side of that mount is `output/tts/` in the repo root.
-- `sesame-tts` has no build context and no public image. You have to build an OpenAI-compatible Sesame CSM-1B server yourself and tag it `sesame-tts`.
+- `sesame-tts` has no build context and no public image. An OpenAI-compatible Sesame CSM-1B server has to be built separately and tagged `sesame-tts`.
 
-## Troubleshooting
-
-### `docker compose up` fails with `env file ... not found`
-compose needs every `.env` file it references, even for services that aren't used. Run the copy loop from [Configure the services](#2-configure-the-services) to create the missing ones.
-
-### `services/chat/youtube_secret.json` is a directory
-It was missing when the stack first started, so Docker created a directory for the bind mount. Remove it (it's owned by root) and create the file: either the OAuth client JSON or an empty file if YouTube isn't used.
-
-### A service can't reach VTube Studio, OBS or a local LLM server on the host
-- Check that the program is running and its API or server is enabled on the expected port.
-- The program has to listen on an address containers can reach. A server bound to `127.0.0.1` only accepts connections from the host itself, so bind it to `0.0.0.0` or enable its LAN option (e.g. LM Studio's *Serve on Local Network*).
-- Host firewalls (ufw, firewalld, nftables) may block traffic from the Docker bridge to the host. Allow the Docker networks (by default inside `172.16.0.0/12`) to reach that port, e.g. with ufw: `sudo ufw allow from 172.16.0.0/12 to any port 4455 proto tcp`.
-- From the host, `curl` the program's address to make sure it answers at all.
-
-### VTube Studio asks to approve the plugin again
-The plugin token is stored inside the vts-service container, so it's lost whenever the container is recreated. Approve the plugin again in VTube Studio.
-
-### Does VTube Studio work on Linux?
-VTube Studio has no native Linux build, but it runs under Steam's Proton, and vts-service can connect to it there like to any other host program.
-
-### The desktop app shows an error page
-The app opens its window after waiting up to 60 seconds for the dashboard. On the first start, building the images usually takes longer. Run `docker compose build` once before starting the app.
-
-### The desktop app doesn't compile
-Missing system libraries are the usual cause. Install the [Tauri 2 Linux prerequisites](https://v2.tauri.app/start/prerequisites/#linux) for your distribution. If `rustup` reports that no default toolchain is configured, run `rustup default stable`.
-
-Most services have their own Troubleshooting section in their README.
-
-## History
+### History
 
 Until November 2026 the services lived in separate repos (`mraffeiner/<name>-service`). Their full histories were merged into this repo, so `git log --follow services/<name>/...` reaches back to each service's first commit.
 

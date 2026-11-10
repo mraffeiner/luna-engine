@@ -21,11 +21,13 @@
 
 Interactive docs: http://localhost:5007/docs
 
-## Setup
+## Configuration
 
 1. In VTube Studio, open **Settings → General → Start API** and enable the plugin API on port **8001** (the default).
 2. Start the service and call `/connect`, or use **Connect** on the dashboard's VTS page.
-3. Accept the plugin authorization prompt in VTube Studio. The token is saved to `token.txt` in the container's working directory.
+3. Accept the plugin authorization prompt in VTube Studio.
+
+The authorization token is only kept in memory, so VTube Studio asks again each time vts-service restarts.
 
 No environment variables or `.env` file are needed. The service connects to `host.docker.internal:8001`, which means VTube Studio running on the Docker host. compose maps that name to the host with `extra_hosts: ["host.docker.internal:host-gateway"]`.
 
@@ -48,10 +50,13 @@ uvicorn src.app:app --host 0.0.0.0 --port 5007 --reload
 The plugin wasn't approved. Accept the authorization prompt in VTube Studio and call `/connect` again.
 
 ### `/connect` returns `500`
-The service can't reach VTube Studio. Check that the API is enabled on port 8001 and see [Troubleshooting](../../README.md#troubleshooting) in the root README for host connectivity.
+The service can't reach VTube Studio. Check that the API is enabled on port 8001, then see [A service can't reach a program on the host](../../README.md#a-service-cant-reach-a-program-on-the-host).
 
-### The plugin has to be approved again after an update
-`token.txt` isn't stored on a volume, so the token is lost each time the container is recreated.
+### VTube Studio asks to approve the plugin after every restart
+The service doesn't persist the authorization token. It's only kept in memory, so each restart of vts-service (including `docker compose restart`, a reboot or the desktop app restarting the stack) needs a new approval in VTube Studio.
+
+### Does VTube Studio work on Linux?
+VTube Studio has no native Linux build, but it runs under Steam's Proton, and vts-service connects to it like to any other program on the host.
 
 ## License
 
