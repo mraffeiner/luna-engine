@@ -7,7 +7,7 @@ Supported providers:
 - **OpenAI**
 - **Groq**
 - **Google Gemini** (through its OpenAI-compatible endpoint)
-- **Local**: any OpenAI-compatible server such as LM Studio, Ollama or llama.cpp. The default is `http://host.docker.internal:1234/v1` (LM Studio)
+- **Local**: any OpenAI-compatible server such as Ollama, LM Studio or llama.cpp. The default is `http://host.docker.internal:11434/v1` (Ollama)
 
 The model list is fetched live from each configured provider.
 
@@ -55,7 +55,7 @@ Copy `.env.example` to `.env` and fill it in. Set the variables for the provider
 | `GROQ_BASE_URL` | Groq OpenAI-compatible endpoint, e.g. `https://api.groq.com/openai/v1` |
 | `GEMINI_API_KEY` | Google AI Studio API key |
 | `GOOGLE_BASE_URL` | Gemini OpenAI-compatible endpoint, e.g. `https://generativelanguage.googleapis.com/v1beta/openai/` |
-| `LOCAL_BASE_URL` | Local OpenAI-compatible server (default `http://host.docker.internal:1234/v1`) |
+| `LOCAL_BASE_URL` | Local OpenAI-compatible server (default `http://host.docker.internal:11434/v1`, Ollama). `.env.example` also has the LM Studio URL as a commented line |
 
 > `host.docker.internal` is mapped to the host through `extra_hosts` in compose. The local server must listen on an address the container can reach, see [Troubleshooting](#troubleshooting).
 
@@ -65,8 +65,8 @@ The `local` provider works with any OpenAI-compatible server. Its models appear 
 
 | Server | `LOCAL_BASE_URL` | Make it reachable from Docker |
 |---|---|---|
+| Ollama (default) | `http://host.docker.internal:11434/v1` | Set `OLLAMA_HOST=0.0.0.0` |
 | LM Studio | `http://host.docker.internal:1234/v1` | Enable *Serve on Local Network* |
-| Ollama | `http://host.docker.internal:11434/v1` | Set `OLLAMA_HOST=0.0.0.0` |
 
 ## Running
 

@@ -21,7 +21,7 @@ There are no tests. Verify with `curl localhost:5001/models` and a streaming `cu
 
 ## How it works
 
-- There is one `AsyncOpenAI` client per provider: `openai`, `groq`, `google` (Gemini through its OpenAI-compatible base URL) and `local` (default `http://host.docker.internal:1234/v1`, i.e. LM Studio on the host; Ollama works with `:11434/v1`).
+- There is one `AsyncOpenAI` client per provider: `openai`, `groq`, `google` (Gemini through its OpenAI-compatible base URL) and `local` (default `http://host.docker.internal:11434/v1`, i.e. Ollama on the host; LM Studio works with `:1234/v1`).
 - `GET /models` asks each configured provider for its model list concurrently. Local models are only included if the local server responds.
 - `POST /generate` takes `{provider, model, system_prompt, prompt}` and returns a `StreamingResponse` of plain-text deltas. The UI reads the stream to the end, then normalizes the text and sends it to TTS.
 - To add a provider, add another OpenAI-compatible client and register it in both the `/models` fan-out and the `client_map` in `stream_from_openai_compatible`.

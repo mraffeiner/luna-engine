@@ -124,7 +124,7 @@ Some services connect to programs on the Docker host rather than to other contai
 |---|---|---|
 | vts-service | VTube Studio (plugin API) | 8001 |
 | obs-service | OBS Studio (obs-websocket) | 4455 |
-| llm-service, `local` provider | LM Studio, Ollama or another OpenAI-compatible server | 1234 / 11434 |
+| llm-service, `local` provider | Ollama (default), LM Studio or another OpenAI-compatible server | 11434 / 1234 |
 
 The compose file maps `host.docker.internal` to the host with `extra_hosts: host-gateway`, so the containers can reach these programs. Each program has to listen on an address the Docker bridge can reach, not only `127.0.0.1`. See [Troubleshooting](#troubleshooting) if a service can't connect.
 

@@ -57,7 +57,7 @@ google_client = AsyncOpenAI(
     base_url=os.getenv("GOOGLE_BASE_URL"),
 )
 local_client = AsyncOpenAI(
-    base_url=os.getenv("LOCAL_BASE_URL", "http://host.docker.internal:1234/v1")
+    base_url=os.getenv("LOCAL_BASE_URL", "http://host.docker.internal:11434/v1")
 )  # Default added
 
 
