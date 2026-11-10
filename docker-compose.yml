@@ -1,5 +1,9 @@
-# Pin the project name: docker-service follows logs on the luna-engine_default network
+# Pin the project name: docker-service follows logs on the luna-engine_default network and only
+# controls containers labelled com.docker.compose.project=luna-engine
 name: luna-engine
+
+# All ports are bound to 127.0.0.1: the services have no authentication, and Docker's published
+# ports bypass host firewalls like ufw. The containers reach each other over the compose network.
 
 services:
   docker-service:
@@ -7,7 +11,7 @@ services:
     container_name: docker-service
     build: ./services/docker
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
@@ -16,7 +20,7 @@ services:
     container_name: llm-service
     build: ./services/llm
     ports:
-      - "5001:5001"
+      - "127.0.0.1:5001:5001"
     env_file:
       - ./services/llm/.env
     extra_hosts:
@@ -27,7 +31,7 @@ services:
     container_name: stt-service
     build: ./services/stt
     ports:
-      - "5003:5003"
+      - "127.0.0.1:5003:5003"
     env_file:
       - ./services/stt/.env
 
@@ -36,7 +40,7 @@ services:
     image: ghcr.io/remsky/kokoro-fastapi-gpu:v0.10.0
     container_name: kokoro-tts
     ports:
-      - "8880:8880"
+      - "127.0.0.1:8880:8880"
     env_file:
       - ./services/tts/.env
     deploy:
@@ -52,7 +56,7 @@ services:
     container_name: sesame-tts
     profiles: [ 'experimental' ]
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     env_file:
       - ./services/tts/.env
     deploy:
@@ -68,7 +72,7 @@ services:
     container_name: tts-service
     build: ./services/tts
     ports:
-      - "5002:5002"
+      - "127.0.0.1:5002:5002"
     env_file:
       - ./services/tts/.env
     volumes:
@@ -79,7 +83,7 @@ services:
     container_name: discord-service
     build: ./services/discord
     ports:
-      - "5004:5004"
+      - "127.0.0.1:5004:5004"
     env_file:
       - ./services/discord/.env
 
@@ -88,7 +92,7 @@ services:
     container_name: chat-service
     build: ./services/chat
     ports:
-      - "8005:8005"
+      - "127.0.0.1:8005:8005"
     env_file:
       - ./services/chat/.env
     volumes:
@@ -100,7 +104,7 @@ services:
     container_name: alerts-service
     build: ./services/alerts
     ports:
-      - "5005:5005"
+      - "127.0.0.1:5005:5005"
     env_file:
       - ./services/alerts/.env
 
@@ -109,7 +113,7 @@ services:
     container_name: vts-service
     build: ./services/vts
     ports:
-      - "5007:5007"
+      - "127.0.0.1:5007:5007"
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -118,7 +122,7 @@ services:
     container_name: obs-service
     build: ./services/obs
     ports:
-      - "5006:5006"
+      - "127.0.0.1:5006:5006"
     env_file:
       - ./services/obs/.env
     extra_hosts:
@@ -139,4 +143,4 @@ services:
       - obs-service
     build: ./app
     ports:
-      - "8080:80"
+      - "127.0.0.1:8080:80"

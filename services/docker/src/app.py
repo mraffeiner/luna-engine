@@ -25,6 +25,34 @@ active_log_tasks = []
 docker_log_client = None
 
 
+# Only containers of this compose project may be inspected, started or stopped.
+# The Docker socket gives root-equivalent access to the host, so never act on arbitrary containers.
+COMPOSE_PROJECT = "luna-engine"
+COMPOSE_PROJECT_LABEL = "com.docker.compose.project"
+
+
+async def get_project_container(docker_client: aiodocker.Docker, container_name: str):
+    """Return the container and its info, or raise 404 if it isn't part of the Luna Engine project."""
+    try:
+        container = await docker_client.containers.get(container_name)
+    except aiodocker.DockerError as e:
+        if e.status == 404:
+            raise HTTPException(
+                status_code=404, detail=f"Container '{container_name}' not found"
+            )
+        raise
+    container_info = await container.show()
+    labels = container_info.get("Config", {}).get("Labels") or {}
+    if labels.get(COMPOSE_PROJECT_LABEL) != COMPOSE_PROJECT:
+        logger.warning(
+            f"Refusing to act on '{container_name}': not part of the {COMPOSE_PROJECT} project"
+        )
+        raise HTTPException(
+            status_code=404, detail=f"Container '{container_name}' not found"
+        )
+    return container, container_info
+
+
 # Models
 class ContainerStatusResponse(BaseModel):
     status: str
@@ -67,11 +95,14 @@ async def get_container_status(container_name: str):
     docker_client = aiodocker.Docker()
 
     try:
-        container = await docker_client.containers.get(container_name)
-        container_info = await container.show()
+        container, container_info = await get_project_container(
+            docker_client, container_name
+        )
         return ContainerStatusResponse(
             status=container_info.get("State", {}).get("Status")
         )
+    except HTTPException:
+        raise
     except Exception:
         logger.exception(
             f"Unexpected error getting container status for {container_name}"
@@ -89,8 +120,9 @@ async def start_container(container_name: str):
     docker_client = aiodocker.Docker()
 
     try:
-        container = await docker_client.containers.get(container_name)
-        container_info = await container.show()
+        container, container_info = await get_project_container(
+            docker_client, container_name
+        )
         status = container_info.get("State", {}).get("Status")
         if status == "created" or status == "exited":
             logger.info(f"Starting container '{container_name}'..")
@@ -121,6 +153,8 @@ async def start_container(container_name: str):
             )
         else:
             raise Exception(f"Unknown container status: {status}")
+    except HTTPException:
+        raise
     except Exception:
         logger.exception(f"Unexpected error starting container {container_name}")
         raise HTTPException(
@@ -136,8 +170,9 @@ async def stop_container(container_name: str):
     docker_client = aiodocker.Docker()
 
     try:
-        container = await docker_client.containers.get(container_name)
-        container_info = await container.show()
+        container, container_info = await get_project_container(
+            docker_client, container_name
+        )
         status = container_info.get("State", {}).get("Status")
         if status == "running" or status == "restarting":
             logger.info(f"Stopping container '{container_name}'..")
@@ -155,6 +190,8 @@ async def stop_container(container_name: str):
             return JSONResponse(status_code=200, content="Container is dead")
         else:
             raise Exception(f"Unknown container status: {status}")
+    except HTTPException:
+        raise
     except Exception:
         logger.exception(f"Unexpected error stopping container {container_name}")
         raise HTTPException(

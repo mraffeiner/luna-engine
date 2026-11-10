@@ -156,6 +156,14 @@ Audio saved with *Save TTS* ends up in `output/tts/`.
 
 `app/src-tauri/` is a Tauri 1.x wrapper. It runs `docker compose up`, waits for the dashboard, opens it in a native window, and stops the stack when you close the window. See [`app/README.md`](app/README.md#desktop-app-tauri) for build instructions. Run the binary from the **repo root**, where `docker-compose.yml` is.
 
+## Security
+
+Luna Engine is a single-user tool for your own machine. None of the services have authentication.
+
+- Every port in `docker-compose.yml` is bound to `127.0.0.1`, so only the local machine can reach the dashboard and the services. Docker's published ports bypass host firewalls such as ufw, so this binding is what keeps the rest of your network out. If you change it, anyone who can reach a port can use your API keys (llm, tts, stt), play audio in your Discord call or write to OBS.
+- To open the dashboard from another device, put port 8080 behind a reverse proxy with authentication rather than publishing it on all interfaces.
+- docker-service mounts `/var/run/docker.sock`, which is root-equivalent access to the host. It only acts on containers of the `luna-engine` compose project and returns `404` for any other container.
+
 ## Development
 
 - Frontend: see [`app/README.md`](app/README.md).

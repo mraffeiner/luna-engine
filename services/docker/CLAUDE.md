@@ -23,6 +23,7 @@ There are no tests. Verify with `curl localhost:5000/health`, `/docs`, and the d
 
 - It talks to the host Docker daemon through the mounted `/var/run/docker.sock`. Treat changes here as security-sensitive.
 - `/container_status/{name}`, `/start_container/{name}` and `/stop_container/{name}` act on containers by **name**. The names are the `container_name`s in the root `docker-compose.yml`, which the UI's `PAGES[].serviceId` also uses.
+- `get_project_container` only returns containers labelled `com.docker.compose.project=luna-engine` and raises `404` for anything else. Keep every container endpoint going through it, because the Docker socket is root-equivalent access to the host.
 - Stopping a container does not remove it. That was a deliberate choice, so keep it that way.
 - `/container_logs` is a Server-Sent Events stream (`data: {"service","log"}\n\n`). It follows every container on the `luna-engine_default` network, with one task per container plus a heartbeat. Only one client is allowed at a time: a new request closes the previous Docker client.
 

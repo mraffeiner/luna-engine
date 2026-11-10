@@ -41,14 +41,15 @@ There is **no test suite**. Verify a service with `curl localhost:<port>/health`
 To add a new service, touch all of the following:
 
 1. `services/<name>/` with a Dockerfile, `.env.example`, README and CLAUDE.md
-2. a service entry in `docker-compose.yml`, plus an entry in `depends_on` of `luna-engine`
+2. a service entry in `docker-compose.yml` with its port bound to `127.0.0.1`, plus an entry in `depends_on` of `luna-engine`
 3. a `location /api/<name>/` block in `app/nginx.conf`
 4. a `PAGES` entry in `app/src/lib/shared/constants.ts` whose `serviceId` matches the container name
 5. a page and client in `app/src/lib/pages/services/<name>/`
 
 ## Gotchas
 
-- `name: luna-engine` in compose pins the project name. docker-service only streams logs for containers on the `luna-engine_default` network, so keep the pin.
+- `name: luna-engine` in compose pins the project name. docker-service only streams logs for containers on the `luna-engine_default` network and only starts or stops containers labelled `com.docker.compose.project=luna-engine`, so keep the pin.
+- Every published port is bound to `127.0.0.1` because no service has authentication and Docker bypasses ufw. New services must follow that (`"127.0.0.1:<port>:<port>"`).
 - `kokoro-tts` (upstream `ghcr.io/remsky/kokoro-fastapi-gpu`, pinned) and `sesame-tts` are third-party images with no build context. `sesame-tts` only runs with `--profile experimental`. Both load `services/tts/.env` (for `HF_TOKEN` and Kokoro settings), which tts-service shares and ignores.
 - compose fails if any referenced `.env` file is missing. docker-service and vts-service read no env vars, so they have no `env_file` and no `.env.example`. Keep it that way unless they gain variables. A missing `services/chat/youtube_secret.json` makes Docker create a directory in its place.
 - TTS files saved with "Save TTS" land in `output/tts/` at the repo root (git-ignored).

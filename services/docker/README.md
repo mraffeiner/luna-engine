@@ -20,6 +20,8 @@ It talks to the Docker daemon through the mounted socket (`/var/run/docker.sock`
 
 Only one log stream client is allowed at a time. A new request closes the previous stream.
 
+The container endpoints only act on containers with the label `com.docker.compose.project=luna-engine`, which compose sets on every container of the stack. Any other container name returns `404`, so the service can't be used to control the rest of the host's containers.
+
 Interactive docs: http://localhost:5000/docs
 
 ## Configuration
