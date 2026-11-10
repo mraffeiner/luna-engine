@@ -60,3 +60,4 @@ To add a new service, touch all of the following:
 - Default branch is `development`. Work on feature branches and don't push without being asked.
 - Never read or print `.env` files, `services/chat/youtube_secret.json` or `services/chat/credentials/`. They hold API keys and tokens (enforced in `.claude/settings.json`).
 - Prefer small, verifiable changes. There are no tests to catch regressions.
+- READMEs are written for any user of the project, never for one specific setup. Problems users are likely to hit (firewalls, host programs, lost tokens) go into the README's **Troubleshooting** section, not into the setup steps.
