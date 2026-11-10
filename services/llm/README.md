@@ -59,6 +59,34 @@ Copy `.env.example` to `.env` and fill it in. Set the variables for the provider
 
 > `host.docker.internal` is mapped to the host through `extra_hosts` in compose. The local server must listen on an address the container can reach, e.g. LM Studio's *Serve on Local Network*.
 
+### Local models
+
+The `local` provider works with any OpenAI-compatible server. Its models appear in `GET /models` once `<LOCAL_BASE_URL>/models` responds.
+
+| Server | `LOCAL_BASE_URL` | Make it reachable from Docker |
+|---|---|---|
+| LM Studio | `http://host.docker.internal:1234/v1` | Enable *Serve on Local Network* |
+| Ollama | `http://host.docker.internal:11434/v1` | Set `OLLAMA_HOST=0.0.0.0`, see below |
+
+**Ollama:** by default it listens on `127.0.0.1` only, which the container can't reach. If you start it by hand, run `OLLAMA_HOST=0.0.0.0 ollama serve`. If it runs as a systemd service, run `sudo systemctl edit ollama`, add the following and then `sudo systemctl restart ollama`:
+
+```ini
+[Service]
+Environment="OLLAMA_HOST=0.0.0.0"
+```
+
+`ss -ltn | grep 11434` should then show `0.0.0.0:11434` or `*:11434`.
+
+**Firewall:** with a firewall such as ufw, allow traffic from the Docker networks to the server's port:
+
+```bash
+sudo ufw allow from 172.16.0.0/12 to any port 11434 proto tcp comment 'Docker -> Ollama'   # 1234 for LM Studio
+```
+
+Other machines on your LAN stay blocked by ufw's default deny, even though the server listens on all interfaces.
+
+If the logs say the local LLM is not available, check that the URL in `Checking local LLM availability at ...` is right and run `curl http://localhost:11434/v1/models` on the host.
+
 ## Running
 
 **With the rest of the stack (recommended):** from the repo root, run `docker compose up -d --build llm-service`.
